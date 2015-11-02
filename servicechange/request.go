@@ -51,13 +51,31 @@ func (req RealRequest) Steps() []Step {
 				steps = append(steps, NewStepRemoveNode())
 			}
 		}
-	}
-	// if only scaling up or down; but not out or in
-	if !req.IsScalingIn() && !req.IsScalingOut() {
+		// if only scaling up or down; but not out or in
+	} else if !req.IsScalingIn() && !req.IsScalingOut() {
 		steps = append(steps, NewStepReplaceMaster(req.NewNodeSize))
 		// replace remaining replicas with resized nodes
 		for i := 1; i < req.Cluster.NodeCount(); i++ {
 			steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+		}
+		// changing both horizontal and vertical aspects of cluster
+	} else {
+		steps = append(steps, NewStepReplaceMaster(req.NewNodeSize))
+		if req.IsScalingOut() {
+			for i := 1; i < req.Cluster.NodeCount(); i++ {
+				steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+			}
+			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
+				steps = append(steps, NewStepAddNode(req.NewNodeSize))
+			}
+		}
+		if req.IsScalingIn() {
+			for i := 1; i < req.NewNodeCount; i++ {
+				steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+			}
+			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
+				steps = append(steps, NewStepRemoveNode())
+			}
 		}
 	}
 	return steps

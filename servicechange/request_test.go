@@ -63,21 +63,57 @@ var _ = Describe("Service instance changes", func() {
 		})
 
 		Describe("resize cluster nodes (bigger or smaller nodes)", func() {
-			Context("1-small node cluster", func() {
+			Context("1-small becoming 1-medium", func() {
 				BeforeEach(func() {
 					cluster := serviceinstance.NewFakeCluster(1, small)
 					req = servicechange.NewRequest(cluster)
+					req.NewNodeSize = medium
 				})
-				Context("single node cluster", func() {
-					It("has steps", func() {
-						req.NewNodeSize = medium
-						steps := req.Steps()
-						Ω(steps).To(HaveLen(1))
-						Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
-					})
+				It("has steps", func() {
+					steps := req.Steps()
+					Ω(steps).To(HaveLen(1))
+					Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
 				})
-
 			})
+		})
+
+		Describe("resize node and grow cluster count", func() {
+			Context("2-small becoming 4-medium node cluster", func() {
+				BeforeEach(func() {
+					cluster := serviceinstance.NewFakeCluster(2, small)
+					req = servicechange.NewRequest(cluster)
+					req.NewNodeCount = 4
+					req.NewNodeSize = medium
+				})
+				It("has steps", func() {
+					steps := req.Steps()
+					Ω(steps).To(HaveLen(4))
+					Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
+					Ω(steps[1]).To(BeAssignableToTypeOf(servicechange.StepReplaceReplica{}))
+					Ω(steps[2]).To(BeAssignableToTypeOf(servicechange.StepAddNode{}))
+					Ω(steps[3]).To(BeAssignableToTypeOf(servicechange.StepAddNode{}))
+				})
+			})
+
+			Context("6-medium becoming 3-small node cluster", func() {
+				BeforeEach(func() {
+					cluster := serviceinstance.NewFakeCluster(6, medium)
+					req = servicechange.NewRequest(cluster)
+					req.NewNodeCount = 3
+					req.NewNodeSize = small
+				})
+				It("has steps", func() {
+					steps := req.Steps()
+					Ω(steps).To(HaveLen(6))
+					Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
+					Ω(steps[1]).To(BeAssignableToTypeOf(servicechange.StepReplaceReplica{}))
+					Ω(steps[2]).To(BeAssignableToTypeOf(servicechange.StepReplaceReplica{}))
+					Ω(steps[3]).To(BeAssignableToTypeOf(servicechange.StepRemoveNode{}))
+					Ω(steps[4]).To(BeAssignableToTypeOf(servicechange.StepRemoveNode{}))
+					Ω(steps[5]).To(BeAssignableToTypeOf(servicechange.StepRemoveNode{}))
+				})
+			})
+
 		})
 
 	})
