@@ -7,13 +7,16 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+const small = 1
+const medium = 2
+
 var _ = Describe("Service instance changes", func() {
 	Describe(".Steps", func() {
 		var req servicechange.RealRequest
 
 		Context("no change", func() {
 			BeforeEach(func() {
-				cluster := serviceinstance.NewFakeCluster(1, "small")
+				cluster := serviceinstance.NewFakeCluster(1, small)
 				req = servicechange.NewRequest(cluster)
 			})
 			It("noop", func() {
@@ -24,16 +27,16 @@ var _ = Describe("Service instance changes", func() {
 		Describe("grow cluster size (more replica nodes)", func() {
 			Context("1 small master", func() {
 				BeforeEach(func() {
-					cluster := serviceinstance.NewFakeCluster(1, "small")
+					cluster := serviceinstance.NewFakeCluster(1, small)
 					req = servicechange.NewRequest(cluster)
 				})
 				It("adds (replica) node", func() {
-					req.ChangeNodeCount = +1
+					req.NewNodeCount = 2
 					steps := req.Steps()
 					Ω(len(steps)).To(Equal(1))
 				})
 				It("adds multiple (replica) nodes", func() {
-					req.ChangeNodeCount = +3
+					req.NewNodeCount = 4
 					steps := req.Steps()
 					Ω(len(steps)).To(Equal(3))
 				})
@@ -43,16 +46,16 @@ var _ = Describe("Service instance changes", func() {
 		Describe("shrink cluster size (reduce replica nodes)", func() {
 			Context("4-small nodes", func() {
 				BeforeEach(func() {
-					cluster := serviceinstance.NewFakeCluster(4, "small")
+					cluster := serviceinstance.NewFakeCluster(4, small)
 					req = servicechange.NewRequest(cluster)
 				})
 				It("remove (replica) node", func() {
-					req.ChangeNodeCount = -1
+					req.NewNodeCount = 3
 					steps := req.Steps()
 					Ω(len(steps)).To(Equal(1))
 				})
 				It("removes (replica) nodes", func() {
-					req.ChangeNodeCount = -3
+					req.NewNodeCount = 1
 					steps := req.Steps()
 					Ω(len(steps)).To(Equal(3))
 				})
@@ -62,12 +65,12 @@ var _ = Describe("Service instance changes", func() {
 		XDescribe("resize cluster nodes (bigger or smaller nodes)", func() {
 			Context("1-small node cluster", func() {
 				BeforeEach(func() {
-					cluster := serviceinstance.NewFakeCluster(1, "small")
+					cluster := serviceinstance.NewFakeCluster(1, small)
 					req = servicechange.NewRequest(cluster)
 				})
 				Context("single node cluster", func() {
 					It("has steps", func() {
-						req.ChangeNodeSize = "mega-large"
+						req.NewNodeSize = medium
 						steps := req.Steps()
 						Ω(len(steps)).To(Equal(2))
 						// 1. add replica

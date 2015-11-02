@@ -2,11 +2,21 @@ package serviceinstance
 
 // FakeCluster models a fake cluster of nodes
 type FakeCluster struct {
-	Replicas int
-	Size     string
+	nodeCount uint
+	nodeSize  uint
 }
 
 // NewFakeCluster creates a fake Cluster
-func NewFakeCluster(replicas int, size string) FakeCluster {
-	return FakeCluster{Replicas: replicas, Size: size}
+func NewFakeCluster(nodeCount uint, nodeSize uint) FakeCluster {
+	return FakeCluster{nodeCount: nodeCount, nodeSize: nodeSize}
+}
+
+// NodeCount is the total number of nodes in the cluster
+func (cluster FakeCluster) NodeCount() uint {
+	return cluster.nodeCount
+}
+
+// NodeSize is the relative size of each node
+func (cluster FakeCluster) NodeSize() uint {
+	return cluster.nodeSize
 }

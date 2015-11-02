@@ -22,9 +22,9 @@ type Request interface {
 
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
 type RealRequest struct {
-	Cluster         serviceinstance.Cluster
-	ChangeNodeSize  string
-	ChangeNodeCount int
+	Cluster      serviceinstance.Cluster
+	NewNodeSize  uint
+	NewNodeCount uint
 }
 
 // NewRequest creates a RealRequest to change a service instance
@@ -37,13 +37,13 @@ func (req RealRequest) Steps() []Step {
 	steps := []Step{}
 	if !req.IsScalingUp() && !req.IsScalingDown() {
 		if req.IsScalingOut() {
-			for i := 0; i < req.ChangeNodeCount; i++ {
+			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
 				step := NewStepAddNode()
 				steps = append(steps, step)
 			}
 		}
 		if req.IsScalingIn() {
-			for i := 0; i < -req.ChangeNodeCount; i++ {
+			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
 				step := NewStepRemoveNode()
 				steps = append(steps, step)
 			}
@@ -52,24 +52,22 @@ func (req RealRequest) Steps() []Step {
 	return steps
 }
 
-// IsScalingUp is true if ChangeNodeSize is larger than current
-// TODO: implement concept of node size
+// IsScalingUp is true if smaller nodes requested
 func (req RealRequest) IsScalingUp() bool {
-	return false
+	return req.NewNodeSize != 0 && req.Cluster.NodeSize() < req.NewNodeSize
 }
 
-// IsScalingDown is true if ChangeNodeSize is smaller than current
-// TODO: implement concept of node size
+// IsScalingDown is true if bigger nodes requested
 func (req RealRequest) IsScalingDown() bool {
-	return false
+	return req.NewNodeSize != 0 && req.Cluster.NodeSize() > req.NewNodeSize
 }
 
-// IsScalingOut is true if ChangeNodeCount is positive
+// IsScalingOut is true if more nodes requested
 func (req RealRequest) IsScalingOut() bool {
-	return req.ChangeNodeCount > 0
+	return req.NewNodeCount != 0 && req.Cluster.NodeCount() < req.NewNodeCount
 }
 
-// IsScalingIn is true if ChangeNodeCount is negative
+// IsScalingIn is true if fewer nodes requested
 func (req RealRequest) IsScalingIn() bool {
-	return req.ChangeNodeCount < 0
+	return req.NewNodeCount != 0 && req.Cluster.NodeCount() > req.NewNodeCount
 }
