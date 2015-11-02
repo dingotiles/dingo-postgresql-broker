@@ -1,0 +1,4 @@
+gin-bin
+tmp
+.DS_Store
+credentials.yml
