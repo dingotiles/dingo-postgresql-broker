@@ -23,8 +23,8 @@ type Request interface {
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
 type RealRequest struct {
 	Cluster      serviceinstance.Cluster
-	NewNodeSize  uint
-	NewNodeCount uint
+	NewNodeSize  int
+	NewNodeCount int
 }
 
 // NewRequest creates a RealRequest to change a service instance
@@ -35,18 +35,29 @@ func NewRequest(cluster serviceinstance.Cluster) RealRequest {
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req RealRequest) Steps() []Step {
 	steps := []Step{}
+	if !req.IsScalingUp() && !req.IsScalingDown() &&
+		!req.IsScalingIn() && !req.IsScalingOut() {
+		return steps
+	}
+	// if only scaling out or in; but not up or down
 	if !req.IsScalingUp() && !req.IsScalingDown() {
 		if req.IsScalingOut() {
 			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
-				step := NewStepAddNode()
-				steps = append(steps, step)
+				steps = append(steps, NewStepAddNode(req.NewNodeSize))
 			}
 		}
 		if req.IsScalingIn() {
 			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
-				step := NewStepRemoveNode()
-				steps = append(steps, step)
+				steps = append(steps, NewStepRemoveNode())
 			}
+		}
+	}
+	// if only scaling up or down; but not out or in
+	if !req.IsScalingIn() && !req.IsScalingOut() {
+		steps = append(steps, NewStepReplaceMaster(req.NewNodeSize))
+		// replace remaining replicas with resized nodes
+		for i := 1; i < req.Cluster.NodeCount(); i++ {
+			steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
 		}
 	}
 	return steps

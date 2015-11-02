@@ -33,12 +33,12 @@ var _ = Describe("Service instance changes", func() {
 				It("adds (replica) node", func() {
 					req.NewNodeCount = 2
 					steps := req.Steps()
-					Ω(len(steps)).To(Equal(1))
+					Ω(steps).To(HaveLen(1))
 				})
 				It("adds multiple (replica) nodes", func() {
 					req.NewNodeCount = 4
 					steps := req.Steps()
-					Ω(len(steps)).To(Equal(3))
+					Ω(steps).To(HaveLen(3))
 				})
 			})
 		})
@@ -52,17 +52,17 @@ var _ = Describe("Service instance changes", func() {
 				It("remove (replica) node", func() {
 					req.NewNodeCount = 3
 					steps := req.Steps()
-					Ω(len(steps)).To(Equal(1))
+					Ω(steps).To(HaveLen(1))
 				})
 				It("removes (replica) nodes", func() {
 					req.NewNodeCount = 1
 					steps := req.Steps()
-					Ω(len(steps)).To(Equal(3))
+					Ω(steps).To(HaveLen(3))
 				})
 			})
 		})
 
-		XDescribe("resize cluster nodes (bigger or smaller nodes)", func() {
+		Describe("resize cluster nodes (bigger or smaller nodes)", func() {
 			Context("1-small node cluster", func() {
 				BeforeEach(func() {
 					cluster := serviceinstance.NewFakeCluster(1, small)
@@ -72,9 +72,8 @@ var _ = Describe("Service instance changes", func() {
 					It("has steps", func() {
 						req.NewNodeSize = medium
 						steps := req.Steps()
-						Ω(len(steps)).To(Equal(2))
-						// 1. add replica
-						// 2. kill master; force promote a replica
+						Ω(steps).To(HaveLen(1))
+						Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
 					})
 				})
 

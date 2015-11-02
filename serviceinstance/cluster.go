@@ -3,15 +3,15 @@ package serviceinstance
 // Cluster describes the operations performed upon a Cluster
 type Cluster interface {
 	// NodeCount is the total number of nodes in the cluster
-	NodeCount() uint
+	NodeCount() int
 	// NodeSize is the relative size of each node
-	NodeSize() uint
+	NodeSize() int
 }
 
 // RealCluster describes a real/proposed cluster of nodes
 type RealCluster struct {
-	nodeCount uint
-	nodeSize  uint
+	nodeCount int
+	nodeSize  int
 }
 
 // NewCluster creates a RealCluster
@@ -20,11 +20,11 @@ func NewCluster() RealCluster {
 }
 
 // NodeCount is the total number of nodes in the cluster
-func (cluster RealCluster) NodeCount() uint {
+func (cluster RealCluster) NodeCount() int {
 	return cluster.nodeCount
 }
 
 // NodeSize is the relative size of each node
-func (cluster RealCluster) NodeSize() uint {
+func (cluster RealCluster) NodeSize() int {
 	return cluster.nodeSize
 }
