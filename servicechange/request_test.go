@@ -33,7 +33,6 @@ var _ = Describe("Service instance changes", func() {
 					Ω(len(steps)).To(Equal(1))
 				})
 				It("adds multiple (replica) nodes", func() {
-					// TODO: describe 1-node cluster upon which to make request
 					req.ChangeNodeCount = +3
 					steps := req.Steps()
 					Ω(len(steps)).To(Equal(3))
@@ -53,15 +52,14 @@ var _ = Describe("Service instance changes", func() {
 					Ω(len(steps)).To(Equal(1))
 				})
 				It("removes (replica) nodes", func() {
-					// TODO: describe 4-node cluster upon which to make request
 					req.ChangeNodeCount = -3
 					steps := req.Steps()
-					Ω(len(steps)).To(Equal(1))
+					Ω(len(steps)).To(Equal(3))
 				})
 			})
 		})
 
-		Describe("resize cluster nodes (bigger or smaller nodes)", func() {
+		XDescribe("resize cluster nodes (bigger or smaller nodes)", func() {
 			Context("1-small node cluster", func() {
 				BeforeEach(func() {
 					cluster := serviceinstance.NewFakeCluster(1, "small")
@@ -69,7 +67,6 @@ var _ = Describe("Service instance changes", func() {
 				})
 				Context("single node cluster", func() {
 					It("has steps", func() {
-						// TODO: describe 1-node cluster upon which to make request
 						req.ChangeNodeSize = "mega-large"
 						steps := req.Steps()
 						Ω(len(steps)).To(Equal(2))
