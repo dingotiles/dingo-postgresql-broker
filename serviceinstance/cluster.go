@@ -10,13 +10,14 @@ type Cluster interface {
 
 // RealCluster describes a real/proposed cluster of nodes
 type RealCluster struct {
-	nodeCount int
-	nodeSize  int
+	instanceID string
+	nodeCount  int
+	nodeSize   int
 }
 
 // NewCluster creates a RealCluster
-func NewCluster() RealCluster {
-	return RealCluster{}
+func NewCluster(instanceID string) RealCluster {
+	return RealCluster{instanceID: instanceID}
 }
 
 // NodeCount is the total number of nodes in the cluster

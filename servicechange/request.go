@@ -18,6 +18,9 @@ type Request interface {
 
 	// IsScalingIn is true if number of nodes will decrease
 	IsScalingIn() bool
+
+	// Perform schedules the Request Steps() to be performed
+	Perform()
 }
 
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
@@ -99,4 +102,9 @@ func (req RealRequest) IsScalingOut() bool {
 // IsScalingIn is true if fewer nodes requested
 func (req RealRequest) IsScalingIn() bool {
 	return req.NewNodeCount != 0 && req.Cluster.NodeCount() > req.NewNodeCount
+}
+
+// Perform schedules the Request Steps() to be performed
+func (req RealRequest) Perform() {
+
 }
