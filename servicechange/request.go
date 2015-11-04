@@ -1,6 +1,8 @@
 package servicechange
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-community/patroni-broker/servicechange/step"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 )
@@ -34,7 +36,7 @@ type RealRequest struct {
 }
 
 // NewRequest creates a RealRequest to change a service instance
-func NewRequest(cluster serviceinstance.Cluster) RealRequest {
+func NewRequest(cluster serviceinstance.Cluster) Request {
 	return RealRequest{Cluster: cluster}
 }
 
@@ -109,5 +111,7 @@ func (req RealRequest) IsScalingIn() bool {
 
 // Perform schedules the Request Steps() to be performed
 func (req RealRequest) Perform() {
-
+	for _, step := range req.Steps() {
+		fmt.Printf("%#v\n", step)
+	}
 }
