@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"math/rand"
 	"os"
 
@@ -12,6 +14,19 @@ func runBroker(c *cli.Context) {
 	broker := broker.NewBroker()
 
 	broker.Run()
+}
+
+func runDevSilliness(c *cli.Context) {
+	machines := []string{"http://127.0.0.1:2379"}
+	err := broker.AddBackendToEtcd(broker.Backend{GUID: "boom"}, machines, "/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	backends, err := broker.LoadBackendsFromEtcd(machines, "/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%#v\n", backends)
 }
 
 func main() {
@@ -27,6 +42,12 @@ func main() {
 			Usage:  "run the broker",
 			Flags:  []cli.Flag{},
 			Action: runBroker,
+		},
+		{
+			Name:   "dev",
+			Usage:  "invoke something internal",
+			Flags:  []cli.Flag{},
+			Action: runDevSilliness,
 		},
 	}
 	app.Run(os.Args)

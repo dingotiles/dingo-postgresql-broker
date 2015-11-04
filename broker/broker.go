@@ -12,7 +12,7 @@ import (
 // Broker is the core struct for the Broker webapp
 type Broker struct {
 	Catalog  brokerapi.CatalogResponse
-	Backends []*Backend
+	Backends []Backend
 
 	Logger lager.Logger
 }
