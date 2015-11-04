@@ -2,6 +2,7 @@ package servicechange_test
 
 import (
 	"github.com/cloudfoundry-community/patroni-broker/servicechange"
+	"github.com/cloudfoundry-community/patroni-broker/servicechange/step"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +21,7 @@ var _ = Describe("Service instance changes", func() {
 				req = servicechange.NewRequest(cluster)
 			})
 			It("noop", func() {
-				Ω(req.Steps()).To(Equal([]servicechange.Step{}))
+				Ω(req.Steps()).To(Equal([]step.Step{}))
 			})
 		})
 
@@ -72,7 +73,7 @@ var _ = Describe("Service instance changes", func() {
 				It("has steps", func() {
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(1))
-					Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
+					Ω(steps[0]).To(BeAssignableToTypeOf(step.ReplaceMaster{}))
 				})
 			})
 		})
@@ -88,10 +89,10 @@ var _ = Describe("Service instance changes", func() {
 				It("has steps", func() {
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(4))
-					Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
-					Ω(steps[1]).To(BeAssignableToTypeOf(servicechange.StepReplaceReplica{}))
-					Ω(steps[2]).To(BeAssignableToTypeOf(servicechange.StepAddNode{}))
-					Ω(steps[3]).To(BeAssignableToTypeOf(servicechange.StepAddNode{}))
+					Ω(steps[0]).To(BeAssignableToTypeOf(step.ReplaceMaster{}))
+					Ω(steps[1]).To(BeAssignableToTypeOf(step.ReplaceReplica{}))
+					Ω(steps[2]).To(BeAssignableToTypeOf(step.AddNode{}))
+					Ω(steps[3]).To(BeAssignableToTypeOf(step.AddNode{}))
 				})
 			})
 
@@ -105,12 +106,12 @@ var _ = Describe("Service instance changes", func() {
 				It("has steps", func() {
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(6))
-					Ω(steps[0]).To(BeAssignableToTypeOf(servicechange.StepReplaceMaster{}))
-					Ω(steps[1]).To(BeAssignableToTypeOf(servicechange.StepReplaceReplica{}))
-					Ω(steps[2]).To(BeAssignableToTypeOf(servicechange.StepReplaceReplica{}))
-					Ω(steps[3]).To(BeAssignableToTypeOf(servicechange.StepRemoveNode{}))
-					Ω(steps[4]).To(BeAssignableToTypeOf(servicechange.StepRemoveNode{}))
-					Ω(steps[5]).To(BeAssignableToTypeOf(servicechange.StepRemoveNode{}))
+					Ω(steps[0]).To(BeAssignableToTypeOf(step.ReplaceMaster{}))
+					Ω(steps[1]).To(BeAssignableToTypeOf(step.ReplaceReplica{}))
+					Ω(steps[2]).To(BeAssignableToTypeOf(step.ReplaceReplica{}))
+					Ω(steps[3]).To(BeAssignableToTypeOf(step.RemoveNode{}))
+					Ω(steps[4]).To(BeAssignableToTypeOf(step.RemoveNode{}))
+					Ω(steps[5]).To(BeAssignableToTypeOf(step.RemoveNode{}))
 				})
 			})
 

@@ -1,11 +1,14 @@
 package servicechange
 
-import "github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+import (
+	"github.com/cloudfoundry-community/patroni-broker/servicechange/step"
+	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+)
 
 // Request containers operations to perform a user-originating request to change a service instance (grow, scale, move)
 type Request interface {
 	// Steps is the ordered sequence of workflow steps to orchestrate a service instance change
-	Steps() []Step
+	Steps() []step.Step
 
 	// IsScalingUp is true if nodes will grow in size
 	IsScalingUp() bool
@@ -36,8 +39,8 @@ func NewRequest(cluster serviceinstance.Cluster) RealRequest {
 }
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
-func (req RealRequest) Steps() []Step {
-	steps := []Step{}
+func (req RealRequest) Steps() []step.Step {
+	steps := []step.Step{}
 	if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
 		return steps
@@ -46,38 +49,38 @@ func (req RealRequest) Steps() []Step {
 	if !req.IsScalingUp() && !req.IsScalingDown() {
 		if req.IsScalingOut() {
 			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
-				steps = append(steps, NewStepAddNode(req.NewNodeSize))
+				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
 			}
 		}
 		if req.IsScalingIn() {
 			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
-				steps = append(steps, NewStepRemoveNode())
+				steps = append(steps, step.NewStepRemoveNode())
 			}
 		}
 		// if only scaling up or down; but not out or in
 	} else if !req.IsScalingIn() && !req.IsScalingOut() {
-		steps = append(steps, NewStepReplaceMaster(req.NewNodeSize))
+		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
 		// replace remaining replicas with resized nodes
 		for i := 1; i < req.Cluster.NodeCount(); i++ {
-			steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+			steps = append(steps, step.NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
 		}
 		// changing both horizontal and vertical aspects of cluster
 	} else {
-		steps = append(steps, NewStepReplaceMaster(req.NewNodeSize))
+		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
 		if req.IsScalingOut() {
 			for i := 1; i < req.Cluster.NodeCount(); i++ {
-				steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+				steps = append(steps, step.NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
 			}
 			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
-				steps = append(steps, NewStepAddNode(req.NewNodeSize))
+				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
 			}
 		}
 		if req.IsScalingIn() {
 			for i := 1; i < req.NewNodeCount; i++ {
-				steps = append(steps, NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+				steps = append(steps, step.NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
 			}
 			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
-				steps = append(steps, NewStepRemoveNode())
+				steps = append(steps, step.NewStepRemoveNode())
 			}
 		}
 	}
