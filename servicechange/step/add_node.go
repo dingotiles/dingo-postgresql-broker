@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
+	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"
@@ -17,14 +18,14 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	nodeUUID       string
-	serviceDetails brokerapi.ProvisionDetails
-	logger         lager.Logger
+	nodeUUID string
+	cluster  serviceinstance.Cluster
+	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(serviceDetails brokerapi.ProvisionDetails, nodeSize int) Step {
-	return AddNode{serviceDetails: serviceDetails}
+func NewStepAddNode(cluster serviceinstance.Cluster, nodeSize int) Step {
+	return AddNode{cluster: cluster}
 }
 
 // Perform runs the Step action to modify the Cluster
@@ -35,11 +36,11 @@ func (step AddNode) Perform(logger lager.Logger) (err error) {
 	step.nodeUUID = uuid.New()
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
 	provisionDetails := brokerapi.ProvisionDetails{
-		OrganizationGUID: step.serviceDetails.OrganizationGUID,
-		PlanID:           step.serviceDetails.PlanID,
-		ServiceID:        step.serviceDetails.ServiceID,
-		SpaceGUID:        step.serviceDetails.SpaceGUID,
-		Parameters:       step.serviceDetails.Parameters,
+		OrganizationGUID: step.cluster.ServiceDetails().OrganizationGUID,
+		PlanID:           step.cluster.ServiceDetails().PlanID,
+		ServiceID:        step.cluster.ServiceDetails().ServiceID,
+		SpaceGUID:        step.cluster.ServiceDetails().SpaceGUID,
+		Parameters:       step.cluster.ServiceDetails().Parameters,
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
@@ -54,9 +55,10 @@ func (step AddNode) Perform(logger lager.Logger) (err error) {
 	// INITIALLY: pick one only
 	// for _, backend := range backends {
 	list := rand.Perm(len(backends))
+	var backend backend.Backend
 	fmt.Println("random list of backends", list)
 	for _, i := range list {
-		backend := backends[i]
+		backend = backends[i]
 
 		err = step.requestNodeViaBackend(backend, provisionDetails)
 		if err == nil {
@@ -67,11 +69,19 @@ func (step AddNode) Perform(logger lager.Logger) (err error) {
 		// no backends available to run a cluster
 		return err
 	}
-
 	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid
+
+	step.setClusterNodeBackend(backend)
+
 	// 6. Wait until routing mesh allocates public port; and display to logs
 	// 7. Return OK; timeout if routing mesh didn't do its job
+
+	// TODO: ensure nodes are in same cluster; I think its currently based on instanceID; but perhaps should be a parameter
 	return nil
+}
+
+func (step AddNode) setClusterNodeBackend(backend backend.Backend) {
+
 }
 
 func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {

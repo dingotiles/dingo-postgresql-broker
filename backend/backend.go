@@ -1,10 +1,6 @@
 package backend
 
-import (
-	"fmt"
-
-	"github.com/coreos/go-etcd/etcd"
-)
+import "fmt"
 
 // Backend describes the location for a backend that can run Patroni nodes
 type Backend struct {
@@ -21,9 +17,8 @@ func NewBackend(uri, username, password string) Backend {
 
 // LoadBackendsFromEtcd loads available set of backends.
 // ecah +machine+ is in uri format "http://127.0.0.1:2379"
-func LoadBackendsFromEtcd(machines []string, prefix string) (backend []Backend, err error) {
-	client := etcd.NewClient(machines)
-	resp, err := client.Get(fmt.Sprintf("%s/backends", prefix), false, true)
+func LoadBackendsFromEtcd(etcdClient *EtcdClient) (backend []Backend, err error) {
+	resp, err := etcdClient.Get("/backends", false, true)
 	if err != nil {
 		return
 	}
@@ -33,8 +28,7 @@ func LoadBackendsFromEtcd(machines []string, prefix string) (backend []Backend, 
 	return
 }
 
-func AddBackendToEtcd(backend Backend, machines []string, prefix string) error {
-	client := etcd.NewClient(machines)
-	_, err := client.Set(fmt.Sprintf("%s/backends/%s", prefix, backend.GUID), "test", 0)
+func AddBackendToEtcd(etcdClient *EtcdClient, backend Backend) error {
+	_, err := etcdClient.Set(fmt.Sprintf("/backends/%s", backend.GUID), "test", 0)
 	return err
 }
