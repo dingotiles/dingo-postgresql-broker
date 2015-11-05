@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 
@@ -27,7 +28,7 @@ func NewStepAddNode(serviceDetails brokerapi.ProvisionDetails, nodeSize int) Ste
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step AddNode) Perform(logger lager.Logger) error {
+func (step AddNode) Perform(logger lager.Logger) (err error) {
 	step.logger = logger
 	logger.Info("add-step.perform", lager.Data{"implemented": true, "step": fmt.Sprintf("%#v", step)})
 	// 1. Generate UUID for node to be created
@@ -52,9 +53,18 @@ func (step AddNode) Perform(logger lager.Logger) error {
 	// 4. Send requests to backends until one says OK; else fail
 	// INITIALLY: pick one only
 	// for _, backend := range backends {
-	backend := backends[0]
-	err := step.requestNodeViaBackend(backend, provisionDetails)
+	list := rand.Perm(len(backends))
+	fmt.Println("random list of backends", list)
+	for _, i := range list {
+		backend := backends[i]
+
+		err = step.requestNodeViaBackend(backend, provisionDetails)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
+		// no backends available to run a cluster
 		return err
 	}
 

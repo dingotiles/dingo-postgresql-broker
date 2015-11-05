@@ -31,7 +31,7 @@ func runDevSilliness(c *cli.Context) {
 }
 
 func main() {
-	rand.Seed(4200)
+	rand.Seed(5000)
 
 	app := cli.NewApp()
 	app.Name = "patroni-broker"
