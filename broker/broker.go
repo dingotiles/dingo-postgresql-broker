@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/cloudfoundry-community/patroni-broker/backend"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -12,7 +13,7 @@ import (
 // Broker is the core struct for the Broker webapp
 type Broker struct {
 	Catalog  brokerapi.CatalogResponse
-	Backends []Backend
+	Backends []backend.Backend
 
 	Logger lager.Logger
 }

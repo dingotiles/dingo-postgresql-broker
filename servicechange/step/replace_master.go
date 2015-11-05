@@ -15,7 +15,8 @@ func NewStepReplaceMaster(newNodeSize int) Step {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step ReplaceMaster) Perform(logger lager.Logger) {
+func (step ReplaceMaster) Perform(logger lager.Logger) error {
 	logger.Info("add-step.perform", lager.Data{"implemented": false, "step": fmt.Sprintf("%#v", step)})
+	return nil
 
 }
