@@ -53,13 +53,13 @@ func (req RealRequest) Steps() []step.Step {
 	}
 	if req.IsInitialProvision() {
 		for i := existingNodeCount; i < req.NewNodeCount; i++ {
-			steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
+			steps = append(steps, step.NewStepAddNode(req.Cluster.ServiceDetails(), req.NewNodeSize))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() {
 		// if only scaling out or in; but not up or down
 		if req.IsScalingOut() {
 			for i := existingNodeCount; i < req.NewNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
+				steps = append(steps, step.NewStepAddNode(req.Cluster.ServiceDetails(), req.NewNodeSize))
 			}
 		}
 		if req.IsScalingIn() {
@@ -82,7 +82,7 @@ func (req RealRequest) Steps() []step.Step {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
 			}
 			for i := existingNodeCount; i < req.NewNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
+				steps = append(steps, step.NewStepAddNode(req.Cluster.ServiceDetails(), req.NewNodeSize))
 			}
 		} else if req.IsScalingIn() {
 			for i := 1; i < req.NewNodeCount; i++ {
