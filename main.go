@@ -12,7 +12,10 @@ import (
 )
 
 func runBroker(c *cli.Context) {
-	broker := broker.NewBroker()
+	machines := []string{"http://127.0.0.1:2379"}
+	etcdClient := backend.NewEtcdClient(machines, "/")
+
+	broker := broker.NewBroker(etcdClient)
 	broker.Run()
 }
 

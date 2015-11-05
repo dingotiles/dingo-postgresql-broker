@@ -1,25 +1,44 @@
 package servicechange_test
 
 import (
+	"github.com/cloudfoundry-community/patroni-broker/backend"
 	"github.com/cloudfoundry-community/patroni-broker/servicechange"
 	"github.com/cloudfoundry-community/patroni-broker/servicechange/step"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager"
 )
 
 const small = 1
 const medium = 2
 
+// SetFakeSize is used by request_tests to set an initial cluster size before changes
+func setFakeSize(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) {
+	cluster.NodeCount = nodeCount
+	cluster.NodeSize = nodeSize
+}
+
 var _ = Describe("Service instance changes", func() {
+	var etcdClient *backend.EtcdClient
+	var logger lager.Logger
+
+	BeforeEach(func() {
+
+	})
+
 	Describe(".Steps", func() {
-		var cluster serviceinstance.FakeCluster
+		var cluster *serviceinstance.Cluster
 		var req servicechange.Request
 		var steps []step.Step
+		clusterUUID := "uuid"
+		var serviceDetails brokerapi.ProvisionDetails
 
 		Context("no change", func() {
 			BeforeEach(func() {
-				cluster = serviceinstance.NewFakeCluster(1, small)
+				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+				setFakeSize(cluster, 1, small)
 				req = servicechange.NewRequest(cluster, 1, small)
 			})
 			It("noop", func() {
@@ -30,7 +49,8 @@ var _ = Describe("Service instance changes", func() {
 		Describe("new cluster", func() {
 			Context("create 1 small master", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewFakeCluster(0, small)
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 0, small)
 				})
 				It("is initial creation", func() {
 					req = servicechange.NewRequest(cluster, 1, small)
@@ -55,7 +75,8 @@ var _ = Describe("Service instance changes", func() {
 		Describe("grow cluster size (more replica nodes)", func() {
 			Context("1 small master", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewFakeCluster(1, small)
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 1, small)
 				})
 				It("adds (replica) node", func() {
 					req = servicechange.NewRequest(cluster, 2, small)
@@ -77,7 +98,8 @@ var _ = Describe("Service instance changes", func() {
 		Describe("shrink cluster size (reduce replica nodes)", func() {
 			Context("4-small nodes", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewFakeCluster(4, small)
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 4, small)
 				})
 				It("remove (replica) node", func() {
 					req = servicechange.NewRequest(cluster, 3, small)
@@ -95,7 +117,8 @@ var _ = Describe("Service instance changes", func() {
 		Describe("resize cluster nodes (bigger or smaller nodes)", func() {
 			Context("1-small becoming 1-medium", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewFakeCluster(1, small)
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 1, small)
 					req = servicechange.NewRequest(cluster, 1, medium)
 				})
 				It("has steps", func() {
@@ -109,7 +132,8 @@ var _ = Describe("Service instance changes", func() {
 		Describe("resize node and grow cluster count", func() {
 			Context("2-small becoming 4-medium node cluster", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewFakeCluster(2, small)
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 2, small)
 					req = servicechange.NewRequest(cluster, 4, medium)
 				})
 				It("has steps", func() {
@@ -124,7 +148,8 @@ var _ = Describe("Service instance changes", func() {
 
 			Context("6-medium becoming 3-small node cluster", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewFakeCluster(6, medium)
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 6, medium)
 					req = servicechange.NewRequest(cluster, 3, small)
 					steps = req.Steps()
 				})

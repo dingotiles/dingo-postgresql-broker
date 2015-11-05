@@ -12,15 +12,16 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
-	Catalog  brokerapi.CatalogResponse
-	Backends []backend.Backend
+	EtcdClient *backend.EtcdClient
+	Catalog    brokerapi.CatalogResponse
+	Backends   []backend.Backend
 
 	Logger lager.Logger
 }
 
 // NewBroker is a constructor for a Broker webapp struct
-func NewBroker() (broker *Broker) {
-	broker = &Broker{}
+func NewBroker(etcdClient *backend.EtcdClient) (broker *Broker) {
+	broker = &Broker{EtcdClient: etcdClient}
 	broker.Logger = lager.NewLogger("patroni-broker")
 	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))

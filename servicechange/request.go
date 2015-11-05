@@ -27,25 +27,29 @@ type Request interface {
 	IsScalingIn() bool
 
 	// Perform schedules the Request Steps() to be performed
-	Perform(logger lager.Logger)
+	Perform()
 }
 
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
 type RealRequest struct {
-	Cluster      serviceinstance.Cluster
+	Cluster      *serviceinstance.Cluster
 	NewNodeSize  int
 	NewNodeCount int
 }
 
 // NewRequest creates a RealRequest to change a service instance
-func NewRequest(cluster serviceinstance.Cluster, nodeCount, nodeSize int) Request {
-	return RealRequest{Cluster: cluster, NewNodeCount: nodeCount, NewNodeSize: nodeSize}
+func NewRequest(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) Request {
+	return RealRequest{
+		Cluster:      cluster,
+		NewNodeCount: nodeCount,
+		NewNodeSize:  nodeSize,
+	}
 }
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req RealRequest) Steps() []step.Step {
-	existingNodeCount := req.Cluster.NodeCount()
-	existingNodeSize := req.Cluster.NodeSize()
+	existingNodeCount := req.Cluster.NodeCount
+	existingNodeSize := req.Cluster.NodeSize
 	steps := []step.Step{}
 	if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
@@ -98,33 +102,37 @@ func (req RealRequest) Steps() []step.Step {
 
 // IsInitialProvision is true if this Request is to create the initial cluster
 func (req RealRequest) IsInitialProvision() bool {
-	return req.Cluster.NodeCount() == 0
+	return req.Cluster.NodeCount == 0
 }
 
 // IsScalingUp is true if smaller nodes requested
 func (req RealRequest) IsScalingUp() bool {
-	return req.NewNodeSize != 0 && req.Cluster.NodeSize() < req.NewNodeSize
+	return req.NewNodeSize != 0 && req.Cluster.NodeSize < req.NewNodeSize
 }
 
 // IsScalingDown is true if bigger nodes requested
 func (req RealRequest) IsScalingDown() bool {
-	return req.NewNodeSize != 0 && req.Cluster.NodeSize() > req.NewNodeSize
+	return req.NewNodeSize != 0 && req.Cluster.NodeSize > req.NewNodeSize
 }
 
 // IsScalingOut is true if more nodes requested
 func (req RealRequest) IsScalingOut() bool {
-	return req.NewNodeCount != 0 && req.Cluster.NodeCount() < req.NewNodeCount
+	return req.NewNodeCount != 0 && req.Cluster.NodeCount < req.NewNodeCount
 }
 
 // IsScalingIn is true if fewer nodes requested
 func (req RealRequest) IsScalingIn() bool {
-	return req.NewNodeCount != 0 && req.Cluster.NodeCount() > req.NewNodeCount
+	return req.NewNodeCount != 0 && req.Cluster.NodeCount > req.NewNodeCount
 }
 
 // Perform schedules the Request Steps() to be performed
-func (req RealRequest) Perform(logger lager.Logger) {
-	logger.Info("perform", lager.Data{"steps": len(req.Steps())})
+func (req RealRequest) Perform() {
+	req.logger().Info("perform", lager.Data{"steps": len(req.Steps())})
 	for _, step := range req.Steps() {
-		step.Perform(logger)
+		step.Perform()
 	}
+}
+
+func (req RealRequest) logger() lager.Logger {
+	return req.Cluster.Logger
 }

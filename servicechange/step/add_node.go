@@ -19,28 +19,28 @@ import (
 // AddNode instructs a new cluster node be added
 type AddNode struct {
 	nodeUUID string
-	cluster  serviceinstance.Cluster
+	cluster  *serviceinstance.Cluster
 	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster serviceinstance.Cluster, nodeSize int) Step {
+func NewStepAddNode(cluster *serviceinstance.Cluster, nodeSize int) Step {
 	return AddNode{cluster: cluster}
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step AddNode) Perform(logger lager.Logger) (err error) {
-	step.logger = logger
+func (step AddNode) Perform() (err error) {
+	logger := step.cluster.Logger
 	logger.Info("add-step.perform", lager.Data{"implemented": true, "step": fmt.Sprintf("%#v", step)})
 	// 1. Generate UUID for node to be created
 	step.nodeUUID = uuid.New()
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
 	provisionDetails := brokerapi.ProvisionDetails{
-		OrganizationGUID: step.cluster.ServiceDetails().OrganizationGUID,
-		PlanID:           step.cluster.ServiceDetails().PlanID,
-		ServiceID:        step.cluster.ServiceDetails().ServiceID,
-		SpaceGUID:        step.cluster.ServiceDetails().SpaceGUID,
-		Parameters:       step.cluster.ServiceDetails().Parameters,
+		OrganizationGUID: step.cluster.ServiceDetails.OrganizationGUID,
+		PlanID:           step.cluster.ServiceDetails.PlanID,
+		ServiceID:        step.cluster.ServiceDetails.ServiceID,
+		SpaceGUID:        step.cluster.ServiceDetails.SpaceGUID,
+		Parameters:       step.cluster.ServiceDetails.Parameters,
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
