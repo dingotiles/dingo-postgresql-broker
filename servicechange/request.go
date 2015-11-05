@@ -10,6 +10,9 @@ import (
 
 // Request containers operations to perform a user-originating request to change a service instance (grow, scale, move)
 type Request interface {
+	// IsInitialProvision is true if this Request is to create the initial cluster
+	IsInitialProvision() bool
+
 	// Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 	Steps() []step.Step
 
@@ -50,8 +53,12 @@ func (req RealRequest) Steps() []step.Step {
 		!req.IsScalingIn() && !req.IsScalingOut() {
 		return steps
 	}
-	// if only scaling out or in; but not up or down
-	if !req.IsScalingUp() && !req.IsScalingDown() {
+	if req.IsInitialProvision() {
+		for i := existingNodeCount; i < req.NewNodeCount; i++ {
+			steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
+		}
+	} else if !req.IsScalingUp() && !req.IsScalingDown() {
+		// if only scaling out or in; but not up or down
 		if req.IsScalingOut() {
 			for i := existingNodeCount; i < req.NewNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
@@ -62,15 +69,15 @@ func (req RealRequest) Steps() []step.Step {
 				steps = append(steps, step.NewStepRemoveNode())
 			}
 		}
-		// if only scaling up or down; but not out or in
 	} else if !req.IsScalingIn() && !req.IsScalingOut() {
+		// if only scaling up or down; but not out or in
 		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
 		// replace remaining replicas with resized nodes
 		for i := 1; i < existingNodeCount; i++ {
 			steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
 		}
-		// changing both horizontal and vertical aspects of cluster
 	} else {
+		// changing both horizontal and vertical aspects of cluster
 		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
 		if req.IsScalingOut() {
 			for i := 1; i < existingNodeCount; i++ {
@@ -89,6 +96,11 @@ func (req RealRequest) Steps() []step.Step {
 		}
 	}
 	return steps
+}
+
+// IsInitialProvision is true if this Request is to create the initial cluster
+func (req RealRequest) IsInitialProvision() bool {
+	return req.Cluster.NodeCount() == 0
 }
 
 // IsScalingUp is true if smaller nodes requested

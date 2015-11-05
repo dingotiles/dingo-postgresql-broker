@@ -32,6 +32,10 @@ var _ = Describe("Service instance changes", func() {
 				BeforeEach(func() {
 					cluster = serviceinstance.NewFakeCluster(0, small)
 				})
+				It("is initial creation", func() {
+					req = servicechange.NewRequest(cluster, 1, small)
+					Ω(req.IsInitialProvision()).To(BeTrue())
+				})
 				It("add master node", func() {
 					req = servicechange.NewRequest(cluster, 1, small)
 					steps := req.Steps()
