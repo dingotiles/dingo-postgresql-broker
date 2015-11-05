@@ -10,7 +10,7 @@ import (
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	// if missing, create /clusters/instanceID; else error/redirect to .Update()?
 	cluster := serviceinstance.NewCluster(instanceID)
-	clusterRequest := servicechange.NewRequest(cluster)
+	clusterRequest := servicechange.NewRequest(cluster, 2, 2)
 	clusterRequest.Perform()
 	return brokerapi.ProvisioningResponse{DashboardURL: "foo"}, true, nil
 }

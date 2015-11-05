@@ -36,12 +36,14 @@ type RealRequest struct {
 }
 
 // NewRequest creates a RealRequest to change a service instance
-func NewRequest(cluster serviceinstance.Cluster) Request {
-	return RealRequest{Cluster: cluster}
+func NewRequest(cluster serviceinstance.Cluster, nodeCount, nodeSize int) Request {
+	return RealRequest{Cluster: cluster, NewNodeCount: nodeCount, NewNodeSize: nodeSize}
 }
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req RealRequest) Steps() []step.Step {
+	existingNodeCount := req.Cluster.NodeCount()
+	existingNodeSize := req.Cluster.NodeSize()
 	steps := []step.Step{}
 	if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
@@ -50,12 +52,12 @@ func (req RealRequest) Steps() []step.Step {
 	// if only scaling out or in; but not up or down
 	if !req.IsScalingUp() && !req.IsScalingDown() {
 		if req.IsScalingOut() {
-			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
+			for i := existingNodeCount; i < req.NewNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
 			}
 		}
 		if req.IsScalingIn() {
-			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
+			for i := existingNodeCount; i > req.NewNodeCount; i-- {
 				steps = append(steps, step.NewStepRemoveNode())
 			}
 		}
@@ -63,25 +65,24 @@ func (req RealRequest) Steps() []step.Step {
 	} else if !req.IsScalingIn() && !req.IsScalingOut() {
 		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
 		// replace remaining replicas with resized nodes
-		for i := 1; i < req.Cluster.NodeCount(); i++ {
-			steps = append(steps, step.NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+		for i := 1; i < existingNodeCount; i++ {
+			steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
 		}
 		// changing both horizontal and vertical aspects of cluster
 	} else {
 		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
 		if req.IsScalingOut() {
-			for i := 1; i < req.Cluster.NodeCount(); i++ {
-				steps = append(steps, step.NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+			for i := 1; i < existingNodeCount; i++ {
+				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
 			}
-			for i := req.Cluster.NodeCount(); i < req.NewNodeCount; i++ {
+			for i := existingNodeCount; i < req.NewNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.NewNodeSize))
 			}
-		}
-		if req.IsScalingIn() {
+		} else if req.IsScalingIn() {
 			for i := 1; i < req.NewNodeCount; i++ {
-				steps = append(steps, step.NewStepReplaceReplica(req.Cluster.NodeSize(), req.NewNodeSize))
+				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
 			}
-			for i := req.Cluster.NodeCount(); i > req.NewNodeCount; i-- {
+			for i := existingNodeCount; i > req.NewNodeCount; i-- {
 				steps = append(steps, step.NewStepRemoveNode())
 			}
 		}
