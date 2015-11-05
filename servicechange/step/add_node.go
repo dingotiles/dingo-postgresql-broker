@@ -81,7 +81,8 @@ func (step AddNode) Perform() (err error) {
 }
 
 func (step AddNode) setClusterNodeBackend(backend backend.Backend) {
-
+	key := fmt.Sprintf("/clusters/%s/nodes/%s/backend", step.cluster.InstanceID, step.nodeUUID)
+	step.cluster.EtcdClient.Set(key, backend.GUID, 0)
 }
 
 func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {
