@@ -42,9 +42,9 @@ func (step AddNode) Perform(logger lager.Logger) error {
 	// 3. Randomize backends from available AZs
 	// INITIALLY: fixed list from bosh-lite
 	backends := []backend.Backend{
-		backend.Backend{GUID: "10.244.21.6", URI: "http://10.244.21.6", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.7", URI: "http://10.244.21.7", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.8", URI: "http://10.244.21.8", Username: "containers", Password: "containers"},
+		backend.Backend{GUID: "10.244.21.6", URI: "http://54.234.184.115:10006", Username: "containers", Password: "containers"},
+		backend.Backend{GUID: "10.244.21.7", URI: "http://54.234.184.115:10007", Username: "containers", Password: "containers"},
+		backend.Backend{GUID: "10.244.21.8", URI: "http://54.234.184.115:10008", Username: "containers", Password: "containers"},
 	}
 	// 4. Send requests to backends until one says OK; else fail
 	// INITIALLY: pick one only
