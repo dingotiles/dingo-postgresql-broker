@@ -1,8 +1,6 @@
 package servicechange
 
 import (
-	"fmt"
-
 	"github.com/cloudfoundry-community/patroni-broker/servicechange/step"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 	"github.com/pivotal-golang/lager"
@@ -127,6 +125,6 @@ func (req RealRequest) IsScalingIn() bool {
 func (req RealRequest) Perform(logger lager.Logger) {
 	logger.Info("perform", lager.Data{"steps": len(req.Steps())})
 	for _, step := range req.Steps() {
-		logger.Info("perform", lager.Data{"step": fmt.Sprintf("%#v\n", step)})
+		step.Perform(logger)
 	}
 }
