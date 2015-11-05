@@ -70,13 +70,15 @@ func (step AddNode) Perform() (err error) {
 		return err
 	}
 	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid
-
 	step.setClusterNodeBackend(backend)
 
+	// TODO: ensure nodes are in same cluster; I think its currently based on instanceID; but perhaps should be a parameter
+
 	// 6. Wait until routing mesh allocates public port; and display to logs
+	// This requires access to the same etcd used by backend
+
 	// 7. Return OK; timeout if routing mesh didn't do its job
 
-	// TODO: ensure nodes are in same cluster; I think its currently based on instanceID; but perhaps should be a parameter
 	return nil
 }
 
