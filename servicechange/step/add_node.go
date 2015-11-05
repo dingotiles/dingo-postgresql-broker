@@ -16,7 +16,9 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
+	nodeUUID       string
 	serviceDetails brokerapi.ProvisionDetails
+	logger         lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
@@ -26,9 +28,10 @@ func NewStepAddNode(serviceDetails brokerapi.ProvisionDetails, nodeSize int) Ste
 
 // Perform runs the Step action to modify the Cluster
 func (step AddNode) Perform(logger lager.Logger) error {
+	step.logger = logger
 	logger.Info("add-step.perform", lager.Data{"implemented": true, "step": fmt.Sprintf("%#v", step)})
 	// 1. Generate UUID for node to be created
-	nodeUUID := uuid.New()
+	step.nodeUUID = uuid.New()
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: step.serviceDetails.OrganizationGUID,
@@ -37,7 +40,7 @@ func (step AddNode) Perform(logger lager.Logger) error {
 		SpaceGUID:        step.serviceDetails.SpaceGUID,
 		Parameters:       step.serviceDetails.Parameters,
 	}
-	fmt.Println(nodeUUID, provisionDetails)
+	fmt.Println(step.nodeUUID, provisionDetails)
 
 	// 3. Randomize backends from available AZs
 	// INITIALLY: fixed list from bosh-lite
@@ -50,9 +53,22 @@ func (step AddNode) Perform(logger lager.Logger) error {
 	// INITIALLY: pick one only
 	// for _, backend := range backends {
 	backend := backends[0]
-	var err error
+	err := step.requestNodeViaBackend(backend, provisionDetails)
+	if err != nil {
+		return err
+	}
 
-	url := fmt.Sprintf("%s/v2/service_instances/%s", backend.URI, nodeUUID)
+	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid
+	// 6. Wait until routing mesh allocates public port; and display to logs
+	// 7. Return OK; timeout if routing mesh didn't do its job
+	return nil
+}
+
+func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {
+	var err error
+	logger := step.logger
+
+	url := fmt.Sprintf("%s/v2/service_instances/%s", backend.URI, step.nodeUUID)
 	// client := &http.Client{Timeout: 5}
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
@@ -83,9 +99,5 @@ func (step AddNode) Perform(logger lager.Logger) error {
 		// FIXME: allow return of this error to end user
 		return errors.New("unknown plan")
 	}
-
-	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid
-	// 6. Wait until routing mesh allocates public port; and display to logs
-	// 7. Return OK; timeout if routing mesh didn't do its job
 	return nil
 }
