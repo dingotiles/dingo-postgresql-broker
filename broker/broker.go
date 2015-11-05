@@ -27,7 +27,7 @@ func NewBroker() (broker *Broker) {
 }
 
 // Run starts the Martini webapp handler
-func (broker *Broker) Run() {
+func (bkr *Broker) Run() {
 	username := os.Getenv("BROKER_USERNAME")
 	if username == "" {
 		username = "starkandwayne"
@@ -49,7 +49,7 @@ func (broker *Broker) Run() {
 		port = "3000"
 	}
 
-	brokerAPI := brokerapi.New(broker, broker.Logger, credentials)
+	brokerAPI := brokerapi.New(bkr, bkr.Logger, credentials)
 	http.Handle("/", brokerAPI)
-	broker.Logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil))
+	bkr.Logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil))
 }

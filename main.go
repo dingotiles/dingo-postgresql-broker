@@ -12,7 +12,6 @@ import (
 
 func runBroker(c *cli.Context) {
 	broker := broker.NewBroker()
-
 	broker.Run()
 }
 
