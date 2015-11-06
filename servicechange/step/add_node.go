@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
+	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
@@ -30,17 +31,24 @@ func NewStepAddNode(cluster *serviceinstance.Cluster, nodeSize int) Step {
 
 // Perform runs the Step action to modify the Cluster
 func (step AddNode) Perform() (err error) {
-	logger := step.cluster.Logger
-	logger.Info("add-step.perform", lager.Data{"implemented": true, "step": fmt.Sprintf("%#v", step)})
-	// 1. Generate UUID for node to be created
 	step.nodeUUID = uuid.New()
+
+	logger := step.cluster.Logger
+	logger.Info("add-step.perform", lager.Data{"instance-id": step.cluster.InstanceID, "node-uuid": step.nodeUUID})
+
+	// 1. Generate UUID for node to be created
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
+	params := step.cluster.ServiceDetails.Parameters
+	if params == nil {
+		params = map[string]interface{}{}
+	}
+	params["PATRONI_SCOPE"] = step.cluster.InstanceID
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: step.cluster.ServiceDetails.OrganizationGUID,
 		PlanID:           step.cluster.ServiceDetails.PlanID,
 		ServiceID:        step.cluster.ServiceDetails.ServiceID,
 		SpaceGUID:        step.cluster.ServiceDetails.SpaceGUID,
-		Parameters:       step.cluster.ServiceDetails.Parameters,
+		Parameters:       params,
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
@@ -70,21 +78,48 @@ func (step AddNode) Perform() (err error) {
 		return err
 	}
 	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid
-	step.setClusterNodeBackend(backend)
+	_, err = step.setClusterNodeBackend(backend)
+	if err != nil {
+		// no backends available to run a cluster
+		return err
+	}
 
 	// TODO: ensure nodes are in same cluster; I think its currently based on instanceID; but perhaps should be a parameter
 
 	// 6. Wait until routing mesh allocates public port; and display to logs
 	// This requires access to the same etcd used by backend
+	err = step.waitForRoutingPortAllocation()
 
 	// 7. Return OK; timeout if routing mesh didn't do its job
 
-	return nil
+	return err
 }
 
-func (step AddNode) setClusterNodeBackend(backend backend.Backend) {
-	key := fmt.Sprintf("/clusters/%s/nodes/%s/backend", step.cluster.InstanceID, step.nodeUUID)
-	step.cluster.EtcdClient.Set(key, backend.GUID, 0)
+func (step AddNode) setClusterNodeBackend(backend backend.Backend) (kvIndex uint64, err error) {
+	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", step.cluster.InstanceID, step.nodeUUID)
+	resp, err := step.cluster.EtcdClient.Set(key, backend.GUID, 0)
+	if err != nil {
+		return 0, err
+	}
+	return resp.EtcdIndex, err
+}
+
+func (step AddNode) waitForRoutingPortAllocation() (err error) {
+	logger := step.cluster.Logger
+
+	for index := 0; index < 10; index++ {
+		key := fmt.Sprintf("/routing/allocation/%s", step.cluster.InstanceID)
+		resp, err := step.cluster.EtcdClient.Get(key, false, false)
+		if err != nil {
+			logger.Debug("add-step.routing", lager.Data{"polling": "allocated-port"})
+		} else {
+			logger.Info("add-step.routing", lager.Data{"allocated-port": resp.Node.Value})
+			return nil
+		}
+		time.Sleep(1 * time.Second)
+	}
+	logger.Error("add-step.routing", err)
+	return err
 }
 
 func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {

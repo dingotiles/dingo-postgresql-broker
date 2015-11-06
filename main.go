@@ -13,7 +13,7 @@ import (
 
 func runBroker(c *cli.Context) {
 	machines := []string{"http://54.234.184.115:14001"}
-	etcdClient := backend.NewEtcdClient(machines, "/playtime")
+	etcdClient := backend.NewEtcdClient(machines, "/")
 
 	broker := broker.NewBroker(etcdClient)
 	broker.Run()
@@ -21,7 +21,7 @@ func runBroker(c *cli.Context) {
 
 func runDevSilliness(c *cli.Context) {
 	machines := []string{"http://54.234.184.115:14001"}
-	etcdClient := backend.NewEtcdClient(machines, "/playtime")
+	etcdClient := backend.NewEtcdClient(machines, "/")
 	backendBkr := backend.Backend{GUID: "5ac91960-0cfa-4c31-90ab-3f6442ac637d", URI: "http://10.244.21.6", Username: "containers", Password: "containers"}
 	err := backend.AddBackendToEtcd(etcdClient, backendBkr)
 	if err != nil {

@@ -35,3 +35,21 @@ func (kv *EtcdClient) Get(key string, sort, recursive bool) (*etcd.Response, err
 func (kv *EtcdClient) Set(key string, value string, ttl uint64) (*etcd.Response, error) {
 	return kv.client.Set(fmt.Sprintf("%s%s", kv.prefix, key), value, ttl)
 }
+
+// Watch for a change
+// If recursive is set to true the watch returns the first change under the given
+// prefix since the given index.
+//
+// If recursive is set to false the watch returns the first change to the given key
+// since the given index.
+//
+// To watch for the latest change, set waitIndex = 0.
+//
+// If a receiver channel is given, it will be a long-term watch. Watch will block at the
+//channel. After someone receives the channel, it will go on to watch that
+// prefix.  If a stop channel is given, the client can close long-term watch using
+// the stop channel.
+func (kv *EtcdClient) Watch(key string, waitIndex uint64, recursive bool,
+	receiver chan *etcd.Response, stop chan bool) (*etcd.Response, error) {
+	return kv.client.Watch(fmt.Sprintf("%s%s", kv.prefix, key), waitIndex, recursive, receiver, stop)
+}
