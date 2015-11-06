@@ -29,6 +29,20 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 	}
 }
 
+// Load the cluster information from KV store
+func (cluster *Cluster) Load() error {
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
+	resp, err := cluster.EtcdClient.Get(key, false, true)
+	if err != nil {
+		cluster.Logger.Error("cluster.load", err)
+		return err
+	}
+	cluster.NodeCount = len(resp.Node.Nodes)
+	cluster.NodeSize = 20
+	cluster.Logger.Info("cluster.load", lager.Data{"node-count": cluster.NodeCount, "node-size": 20})
+	return nil
+}
+
 // WaitForRoutingPortAllocation blocks until the routing tier has allocated a public port
 func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 	logger := cluster.Logger
@@ -39,7 +53,7 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		if err != nil {
 			logger.Debug("cluster.provision.routing", lager.Data{"polling": "allocated-port"})
 		} else {
-			logger.Info("cluster.provision..routing", lager.Data{"allocated-port": resp.Node.Value})
+			logger.Info("cluster.provision.routing", lager.Data{"allocated-port": resp.Node.Value})
 			return nil
 		}
 		time.Sleep(1 * time.Second)
