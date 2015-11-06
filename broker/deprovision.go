@@ -26,5 +26,11 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 
 	clusterRequest := servicechange.NewRequest(cluster, 0, 20)
 	clusterRequest.Perform()
+
+	// TODO cleanup KV
+	bkr.EtcdClient.Delete(fmt.Sprintf("/service/%s", instanceID), true)
+	bkr.EtcdClient.Delete(fmt.Sprintf("/serviceinstances/%s", instanceID), true)
+	bkr.EtcdClient.Delete(fmt.Sprintf("/routing/allocation/%s", instanceID), true)
+
 	return false, nil
 }
