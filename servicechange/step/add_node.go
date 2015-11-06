@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
-	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
@@ -87,11 +86,7 @@ func (step AddNode) Perform() (err error) {
 
 	// TODO: ensure nodes are in same cluster; I think its currently based on instanceID; but perhaps should be a parameter
 
-	// 6. Wait until routing mesh allocates public port; and display to logs
-	// This requires access to the same etcd used by backend
-	err = step.waitForRoutingPortAllocation()
-
-	// 7. Return OK; timeout if routing mesh didn't do its job
+	// 6. Return OK; timeout if routing mesh didn't do its job
 
 	return err
 }
@@ -103,24 +98,6 @@ func (step AddNode) setClusterNodeBackend(backend backend.Backend) (kvIndex uint
 		return 0, err
 	}
 	return resp.EtcdIndex, err
-}
-
-func (step AddNode) waitForRoutingPortAllocation() (err error) {
-	logger := step.cluster.Logger
-
-	for index := 0; index < 10; index++ {
-		key := fmt.Sprintf("/routing/allocation/%s", step.cluster.InstanceID)
-		resp, err := step.cluster.EtcdClient.Get(key, false, false)
-		if err != nil {
-			logger.Debug("add-step.routing", lager.Data{"polling": "allocated-port"})
-		} else {
-			logger.Info("add-step.routing", lager.Data{"allocated-port": resp.Node.Value})
-			return nil
-		}
-		time.Sleep(1 * time.Second)
-	}
-	logger.Error("add-step.routing", err)
-	return err
 }
 
 func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {
