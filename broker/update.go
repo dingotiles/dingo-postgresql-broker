@@ -13,9 +13,22 @@ func (bkr *Broker) Update(instanceID string, details brokerapi.UpdateDetails, ac
 		PlanID:     details.PlanID,
 		Parameters: details.Parameters,
 	}
+
 	cluster := serviceinstance.NewCluster(instanceID, provisionDetails, bkr.EtcdClient, bkr.Logger)
-	cluster.Load()
-	clusterRequest := servicechange.NewRequest(cluster, 4, 20)
+	err := cluster.Load()
+	if err != nil {
+		return false, err
+	}
+
+	var nodeCount int
+
+	if details.Parameters["node-count"] != nil {
+		rawNodeCount := details.Parameters["node-count"]
+		nodeCount = int(rawNodeCount.(float64))
+	} else {
+		nodeCount = int(cluster.NodeCount)
+	}
+	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), 20)
 	clusterRequest.Perform()
 	return true, nil
 }
