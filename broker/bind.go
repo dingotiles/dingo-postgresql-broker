@@ -22,10 +22,19 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: published port is not an integer (%s)", resp.Node.Value)
 	}
 
+	routerHost := "10.244.21.2"
+	username := "replica"
+	password := "replica"
+	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", username, password, routerHost, publicPort)
+	jdbc := fmt.Sprintf("jdbc:postgresql://%s:%d/postgres?username=%s&password=%s", routerHost, publicPort, username, password)
 	return brokerapi.BindingResponse{
 		Credentials: brokerapi.CredentialsHash{
-			Host: "10.10.10.10",
-			Port: publicPort,
+			Host:     routerHost,
+			Port:     publicPort,
+			Username: "replica",
+			Password: "replica",
+			URI:      uri,
+			JDBCURI:  jdbc,
 		},
 	}, nil
 }
