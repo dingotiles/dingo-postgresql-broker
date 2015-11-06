@@ -37,9 +37,9 @@ func (step RemoveNode) Perform() (err error) {
 	}
 
 	backends := []backend.Backend{
-		backend.Backend{GUID: "10.244.21.6", URI: "http://54.234.184.115:10006", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.7", URI: "http://54.234.184.115:10007", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.8", URI: "http://54.234.184.115:10008", Username: "containers", Password: "containers"},
+		backend.Backend{GUID: "10.244.21.6", URI: "http://184.72.129.218:10006", Username: "containers", Password: "containers"},
+		backend.Backend{GUID: "10.244.21.7", URI: "http://184.72.129.218:10007", Username: "containers", Password: "containers"},
+		backend.Backend{GUID: "10.244.21.8", URI: "http://184.72.129.218:10008", Username: "containers", Password: "containers"},
 	}
 	for _, backend := range backends {
 		if backend.GUID == backendID {
