@@ -7,15 +7,15 @@ import (
 )
 
 // Update service instance
-func (bkr *Broker) Update(instanceID string, details brokerapi.UpdateDetails, acceptsIncomplete bool) (bool, error) {
-	provisionDetails := brokerapi.ProvisionDetails{
-		ServiceID:  details.ServiceID,
-		PlanID:     details.PlanID,
-		Parameters: details.Parameters,
+func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetails, acceptsIncomplete bool) (async bool, err error) {
+	details := brokerapi.ProvisionDetails{
+		ServiceID:  updateDetails.ServiceID,
+		PlanID:     updateDetails.PlanID,
+		Parameters: updateDetails.Parameters,
 	}
 
-	cluster := serviceinstance.NewCluster(instanceID, provisionDetails, bkr.EtcdClient, bkr.Logger)
-	err := cluster.Load()
+	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Logger)
+	err = cluster.Load()
 	if err != nil {
 		return false, err
 	}
@@ -30,5 +30,5 @@ func (bkr *Broker) Update(instanceID string, details brokerapi.UpdateDetails, ac
 	}
 	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), 20)
 	clusterRequest.Perform()
-	return true, nil
+	return false, nil
 }

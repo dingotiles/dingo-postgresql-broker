@@ -71,6 +71,21 @@ var _ = Describe("Service instance changes", func() {
 				})
 			})
 		})
+		Describe("destroy cluster", func() {
+			Context("with 2-small", func() {
+				BeforeEach(func() {
+					cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, logger)
+					setFakeSize(cluster, 2, small)
+				})
+				It("removes all nodes", func() {
+					req = servicechange.NewRequest(cluster, 0, small)
+					steps := req.Steps()
+					Ω(steps).To(HaveLen(2))
+					Ω(steps[0]).To(BeAssignableToTypeOf(step.RemoveNode{}))
+					Ω(steps[1]).To(BeAssignableToTypeOf(step.RemoveNode{}))
+				})
+			})
+		})
 
 		Describe("grow cluster size (more replica nodes)", func() {
 			Context("1 small master", func() {

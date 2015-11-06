@@ -51,11 +51,14 @@ func (req RealRequest) Steps() []step.Step {
 	existingNodeCount := req.Cluster.NodeCount
 	existingNodeSize := req.Cluster.NodeSize
 	steps := []step.Step{}
-	if !req.IsScalingUp() && !req.IsScalingDown() &&
+	if req.NewNodeCount == 0 {
+		for i := existingNodeCount; i > req.NewNodeCount; i-- {
+			steps = append(steps, step.NewStepRemoveNode(req.Cluster))
+		}
+	} else if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
 		return steps
-	}
-	if req.IsInitialProvision() {
+	} else if req.IsInitialProvision() {
 		for i := existingNodeCount; i < req.NewNodeCount; i++ {
 			steps = append(steps, step.NewStepAddNode(req.Cluster))
 		}

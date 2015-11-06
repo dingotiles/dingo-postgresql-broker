@@ -12,5 +12,5 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	clusterRequest := servicechange.NewRequest(cluster, 2, 20)
 	clusterRequest.Perform()
 	cluster.WaitForRoutingPortAllocation()
-	return brokerapi.ProvisioningResponse{}, true, nil
+	return brokerapi.ProvisioningResponse{}, false, nil
 }
