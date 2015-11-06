@@ -2,6 +2,8 @@ package serviceinstance
 
 import (
 	"fmt"
+	"math/rand"
+	"regexp"
 	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
@@ -60,4 +62,31 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 	}
 	logger.Error("cluster.provision.routing", err)
 	return err
+}
+
+// RandomReplicaNode should discover which nodes are replicas and return a random one
+// FIXME - currently just picking a random node - which might be the master
+func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, err error) {
+	logger := cluster.Logger
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
+	resp, err := cluster.EtcdClient.Get(key, false, true)
+	if err != nil {
+		logger.Error("cluster.random-replica-node.nodes", err)
+		return
+	}
+	item := rand.Intn(len(resp.Node.Nodes))
+	nodeKey := resp.Node.Nodes[item].Key
+	r, _ := regexp.Compile("/nodes/(.*)$")
+	matches := r.FindStringSubmatch(nodeKey)
+	nodeUUID = matches[1]
+
+	key = fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.InstanceID, nodeUUID)
+	resp, err = cluster.EtcdClient.Get(key, false, false)
+	if err != nil {
+		logger.Error("cluster.random-replica-node.backend", err)
+		return
+	}
+	backend = resp.Node.Value
+
+	return
 }

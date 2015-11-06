@@ -20,11 +20,10 @@ import (
 type AddNode struct {
 	nodeUUID string
 	cluster  *serviceinstance.Cluster
-	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *serviceinstance.Cluster, nodeSize int) Step {
+func NewStepAddNode(cluster *serviceinstance.Cluster) Step {
 	return AddNode{cluster: cluster}
 }
 
@@ -33,7 +32,7 @@ func (step AddNode) Perform() (err error) {
 	step.nodeUUID = uuid.New()
 
 	logger := step.cluster.Logger
-	logger.Info("add-step.perform", lager.Data{"instance-id": step.cluster.InstanceID, "node-uuid": step.nodeUUID})
+	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.InstanceID, "node-uuid": step.nodeUUID})
 
 	// 1. Generate UUID for node to be created
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
@@ -102,7 +101,7 @@ func (step AddNode) setClusterNodeBackend(backend backend.Backend) (kvIndex uint
 
 func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {
 	var err error
-	logger := step.logger
+	logger := step.cluster.Logger
 
 	url := fmt.Sprintf("%s/v2/service_instances/%s", backend.URI, step.nodeUUID)
 	// client := &http.Client{Timeout: 5}

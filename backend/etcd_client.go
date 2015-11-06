@@ -36,6 +36,19 @@ func (kv *EtcdClient) Set(key string, value string, ttl uint64) (*etcd.Response,
 	return kv.client.Set(fmt.Sprintf("%s%s", kv.prefix, key), value, ttl)
 }
 
+// Delete deletes the given key.
+//
+// When recursive set to false, if the key points to a
+// directory the method will fail.
+//
+// When recursive set to true, if the key points to a file,
+// the file will be deleted; if the key points to a directory,
+// then everything under the directory (including all child directories)
+// will be deleted.
+func (kv *EtcdClient) Delete(key string, recursive bool) (*etcd.Response, error) {
+	return kv.client.Delete(fmt.Sprintf("%s%s", kv.prefix, key), recursive)
+}
+
 // Watch for a change
 // If recursive is set to true the watch returns the first change under the given
 // prefix since the given index.
