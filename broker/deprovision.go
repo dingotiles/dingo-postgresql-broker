@@ -1,6 +1,8 @@
 package broker
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-community/patroni-broker/servicechange"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
@@ -11,6 +13,9 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 	details := brokerapi.ProvisionDetails{
 		ServiceID: deprovDetails.ServiceID,
 		PlanID:    deprovDetails.PlanID,
+	}
+	if details.ServiceID == "" || details.PlanID == "" {
+		return false, fmt.Errorf("API error - provide service_id and plan_id as URL parameters")
 	}
 
 	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Logger)
