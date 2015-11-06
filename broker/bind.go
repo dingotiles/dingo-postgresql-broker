@@ -23,16 +23,16 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 	}
 
 	routerHost := "10.244.21.2"
-	username := "replica"
-	password := "replica"
+	username := "replicator"
+	password := "replicator"
 	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", username, password, routerHost, publicPort)
 	jdbc := fmt.Sprintf("jdbc:postgresql://%s:%d/postgres?username=%s&password=%s", routerHost, publicPort, username, password)
 	return brokerapi.BindingResponse{
 		Credentials: brokerapi.CredentialsHash{
 			Host:     routerHost,
 			Port:     publicPort,
-			Username: "replica",
-			Password: "replica",
+			Username: username,
+			Password: password,
 			URI:      uri,
 			JDBCURI:  jdbc,
 		},
