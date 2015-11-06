@@ -43,6 +43,7 @@ func (step AddNode) Perform() (err error) {
 		params = map[string]interface{}{}
 	}
 	params["PATRONI_SCOPE"] = step.cluster.InstanceID
+	params["NODE_NAME"] = step.nodeUUID
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: step.cluster.ServiceDetails.OrganizationGUID,
 		PlanID:           step.cluster.ServiceDetails.PlanID,
