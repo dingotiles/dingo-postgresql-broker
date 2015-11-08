@@ -16,10 +16,10 @@ The schema of etcd - as modified and used by the various components, including t
 
 ```
 curl -s ${ETCD_CLUSTER}/v2/keys/ | jq -r ".node.nodes[].key"
-/routing
+/service
 /postgresql-patroni
 /serviceinstances
-/service
+/routing
 ```
 
 ### `/service`
@@ -73,6 +73,30 @@ curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-patroni/0.patroni.patroni1.patroni.bo
 ```
 
 There is currently no cluster-level information in this data structure. Instead, each `cf-UUID` instance id needs to looked up to determine to which cluster it belongs.
+
+### `/routing`
+
+Each service instance/cluster is allocated a public port that is exposed on each router (so it does not matter which router a TCP request is received as it will be supported by the same port).
+
+The allocated port for each service instance is at `/routing/allocation/:instanceid`.
+
+```
+curl -s $ETCD_CLUSTER/v2/keys/routing | jq -r ".node.nodes[].key"
+/routing/allocation
+/routing/nextport
+
+curl -s $ETCD_CLUSTER/v2/keys/routing/allocation | jq -r ".node.nodes[]"
+{
+  "key": "/routing/allocation/f1",
+  "value": "33006",
+  "modifiedIndex": 3176,
+  "createdIndex": 3176
+}
+```
+
+That is, the service instance `f1` (normally would be a long UUID string) has the public router port `33006`.
+
+The value of `/routing/nextport` is the next available public port to be assigned to the next new service instance/cluster.
 
 ### `/serviceinstance`
 
