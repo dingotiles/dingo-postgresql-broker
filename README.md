@@ -74,3 +74,59 @@ curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-patroni/0.patroni.patroni1.patroni.bo
 ```
 
 There is currently no cluster-level information in this data structure. Instead, each `cf-UUID` instance id needs to looked up to determine to which cluster it belongs.
+
+### `/cluster`
+
+The router uses confd to generate `haproxy.cfg` files. To make it easier for confd to look up the most useful information for `haproxy.cfg` the information is restructured into the `/cluster` KV directory.
+
+```
+curl -s ${ETCD_CLUSTER}/v2/keys/cluster/ | jq -r ".node.nodes[].key"
+/cluster/f1
+```
+
+```
+curl -s ${ETCD_CLUSTER}/v2/keys/cluster/f1/leader | jq -r ".node.nodes[]"
+{
+  "key": "/cluster/f1/leader/member",
+  "value": "f16bc34d-c3de-4843-9dc6-b183cbce2238",
+  "modifiedIndex": 39081,
+  "createdIndex": 39081
+}
+{
+  "key": "/cluster/f1/leader/host",
+  "value": "10.244.21.8",
+  "modifiedIndex": 39082,
+  "createdIndex": 39082
+}
+{
+  "key": "/cluster/f1/leader/port",
+  "value": "32768",
+  "modifiedIndex": 39083,
+  "createdIndex": 39083
+}
+```
+
+NOTE: this section is only necessary because patroni doesn't put data into the KV store in a format that confd can parse and apply to templates.
+
+### `/serviceinstance`
+
+```
+curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/ | jq -r ".node.nodes[].key"
+f1
+```
+
+```
+curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/f1/nodes/ | jq -r ".node.nodes[].key"
+/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc6-b183cbce2238
+/serviceinstances/f1/nodes/c65d2e1a-eb6b-401e-ac9b-195f8f942d26
+```
+
+```
+curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc6-b183cbce2238 | jq -r ".node.nodes[]"
+{
+  "key": "/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc6-b183cbce2238/backend",
+  "value": "10.244.21.8",
+  "modifiedIndex": 39064,
+  "createdIndex": 39064
+}
+```
