@@ -104,6 +104,8 @@ That is, the service instance `f1` (normally would be a long UUID string) has th
 
 The value of `/routing/nextport` is the next available public port to be assigned to the next new service instance/cluster.
 
+NOTE: the `/routing` section of data is the only "permanent" data in the KV store. The allocation of a public port to each service instance represents the "contract" made with the end user. We cannot change the public port; but we can change where each service instance node/container is run etc.
+
 ### `/serviceinstance`
 
 ```
