@@ -2,7 +2,6 @@ package broker
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/servicechange"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
@@ -31,15 +30,15 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 	bkr.EtcdClient.Delete(fmt.Sprintf("/serviceinstances/%s", instanceID), true)
 	bkr.EtcdClient.Delete(fmt.Sprintf("/routing/allocation/%s", instanceID), true)
 
-	// wait until /service/%s/members is empty
-	members, err := bkr.EtcdClient.Get(fmt.Sprintf("/service/%s/members", instanceID), false, false)
-	counter := 1
-	for err == nil && members.Node.Nodes != nil {
-		fmt.Printf("%ds waiting for %d nodes to be removed from %s\n", counter, len(members.Node.Nodes), fmt.Sprintf("/service/%s/members", instanceID))
-		counter++
-		time.Sleep(1 * time.Second)
-		members, err = bkr.EtcdClient.Get(fmt.Sprintf("/service/%s/members", instanceID), false, false)
-	}
+	// cluster technically not deleted until until /service/%s/members is empty
+	// members, err := bkr.EtcdClient.Get(fmt.Sprintf("/service/%s/members", instanceID), false, false)
+	// counter := 1
+	// for err == nil && members.Node.Nodes != nil {
+	// 	fmt.Printf("%ds waiting for %d nodes to be removed from %s\n", counter, len(members.Node.Nodes), fmt.Sprintf("/service/%s/members", instanceID))
+	// 	counter++
+	// 	time.Sleep(1 * time.Second)
+	// 	members, err = bkr.EtcdClient.Get(fmt.Sprintf("/service/%s/members", instanceID), false, false)
+	// }
 
 	return false, nil
 }
