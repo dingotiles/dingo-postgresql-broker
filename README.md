@@ -22,6 +22,12 @@ curl -s ${ETCD_CLUSTER}/v2/keys/ | jq -r ".node.nodes[].key"
 /routing
 ```
 
+To see the entire data store, though it may get large and unwieldy and unsociable to get a DB dump in production:
+
+```
+curl -s "${ETCD_CLUSTER}/v2/keys/?recursive=true"
+```
+
 ### `/service`
 
 `/service` is where each patroni node orchestrates itself into clusters of postgresql servers.
