@@ -15,7 +15,7 @@ But it is the same KV store that is used by:
 The schema of etcd - as modified and used by the various components, including this broker, is:
 
 ```
-curl -s http://184.72.129.218:14001/v2/keys/ | jq -r ".node.nodes[].key"
+curl -s ${ETCD_CLUSTER}/v2/keys/ | jq -r ".node.nodes[].key"
 /routing
 /postgresql-patroni
 /serviceinstances
@@ -25,12 +25,12 @@ curl -s http://184.72.129.218:14001/v2/keys/ | jq -r ".node.nodes[].key"
 
 ### `/postgresql-patroni`
 
--	`/postgresql-patroni` is where registrar documents each container's host:port binding
+`/postgresql-patroni` is where registrar documents each container's host:port binding
 
 With one running cluster of 2 nodes:
 
 ```
-curl -s http://184.72.129.218:14001/v2/keys/postgresql-patroni/ | jq -r ".node.nodes[].key"
+curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-patroni/ | jq -r ".node.nodes[].key"
 /postgresql-patroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432
 /postgresql-patroni/1.patroni.patroni1.patroni.bosh:cf-d0cfa70a-12de-441f-94e7-65a64cb583c0:5432
 ```
@@ -40,6 +40,33 @@ The key path is `/<docker-image>/<hostname>:<internal-id>:<internal-port>`.
 Each postgresql/patroni container looks itself up to discover its public `host-ip:port`.
 
 ```
-curl -s http://184.72.129.218:14001/v2/keys/postgresql-patroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432 | jq -r .node.value
+curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-patroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432 | jq -r .node.value
 10.244.21.6:32775
 ```
+
+There is currently no cluster-level information in this data structure. Instead, each `cf-UUID` instance id needs to looked up to determine to which cluster it belongs.
+
+### `/service`
+
+`/service` is where each patroni node orchestrates itself into clusters of postgresql servers.
+
+```
+id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members | jq -r ".node.nodes[].key"
+/service/f1/members/f16bc34d-c3de-4843-9dc6-b183cbce2238
+/service/f1/members/c65d2e1a-eb6b-401e-ac9b-195f8f942d26
+```
+
+Each of these keys are created by one patroni process running inside a container.
+
+```
+id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9dc6-b183cbce2238 | jq -r .node.value | jq .
+{
+  "role": "master",
+  "state": "running",
+  "conn_url": "postgres://replicator:replicator@10.244.21.8:32768/postgres",
+  "api_url": "http://127.0.0.1:8008/patroni",
+  "xlog_location": 83886336
+}
+```
+
+Note that the `jq -r .node.value` is passed again into `jq .`. This is because patroni stores its information as a JSON object.
