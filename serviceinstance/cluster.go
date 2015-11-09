@@ -95,9 +95,9 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 // Currently hardcoded list of backends in demo cluster, with example AZ split
 func (cluster *Cluster) allBackends() (backends []*backend.Backend) {
 	return []*backend.Backend{
-		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.6", URI: "http://184.72.129.218:10006", Username: "containers", Password: "containers"},
-		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.7", URI: "http://184.72.129.218:10007", Username: "containers", Password: "containers"},
-		&backend.Backend{AvailabilityZone: "z2", GUID: "10.244.21.8", URI: "http://184.72.129.218:10008", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.6", URI: "http://54.145.50.109:10006", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.7", URI: "http://54.145.50.109:10007", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z2", GUID: "10.244.21.8", URI: "http://54.145.50.109:10008", Username: "containers", Password: "containers"},
 	}
 	// list := rand.Perm(len(backends))
 }
