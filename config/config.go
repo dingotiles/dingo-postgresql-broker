@@ -8,8 +8,16 @@ import (
 
 // Config is the brokers configuration
 type Config struct {
+	Broker   Broker     `yaml:"broker"`
 	Backends []*Backend `yaml:"backends"`
 	KVStore  KVStore    `yaml:"kvstore"`
+}
+
+// Broker connection configuration
+type Broker struct {
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 // Backend describes a configured set of backend brokers
@@ -38,5 +46,20 @@ func LoadConfig(path string) (config *Config, err error) {
 		return
 	}
 	err = yaml.Unmarshal(bytes, &config)
+	if err != nil {
+		return
+	}
+
+	// defaults
+	if config.Broker.Username == "" {
+		config.Broker.Username = "starkandwayne"
+	}
+	if config.Broker.Password == "" {
+		config.Broker.Password = "starkandwayne"
+	}
+	if config.Broker.Port == 0 {
+		config.Broker.Port = 3000
+	}
+
 	return
 }

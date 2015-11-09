@@ -32,26 +32,11 @@ func NewBroker(etcdClient *backend.EtcdClient, config *config.Config) (broker *B
 
 // Run starts the Martini webapp handler
 func (bkr *Broker) Run() {
-	username := os.Getenv("BROKER_USERNAME")
-	if username == "" {
-		username = "starkandwayne"
-	}
-
-	password := os.Getenv("BROKER_PASSWORD")
-	if password == "" {
-		password = "starkandwayne"
-	}
-
 	credentials := brokerapi.BrokerCredentials{
-		Username: username,
-		Password: password,
+		Username: bkr.Config.Broker.Username,
+		Password: bkr.Config.Broker.Password,
 	}
-	fmt.Println(credentials)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
-	}
+	port := bkr.Config.Broker.Port
 
 	brokerAPI := brokerapi.New(bkr, bkr.Logger, credentials)
 	http.Handle("/", brokerAPI)
