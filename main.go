@@ -12,7 +12,8 @@ import (
 )
 
 func runBroker(c *cli.Context) {
-	config, err := config.LoadConfig("config/bosh-lite.example.yml")
+	configPath := c.String("config")
+	config, err := config.LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,12 +32,17 @@ func main() {
 	app.Usage = "Cloud Foundry service broker to run Patroni clusters"
 	app.Commands = []cli.Command{
 		{
-			Name:   "broker",
-			Usage:  "run the broker",
-			Flags:  []cli.Flag{},
+			Name:  "broker",
+			Usage: "run the broker",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "config, c",
+					Value: "config.yml",
+					Usage: "path to YAML config file",
+				},
+			},
 			Action: runBroker,
 		},
 	}
 	app.Run(os.Args)
-
 }

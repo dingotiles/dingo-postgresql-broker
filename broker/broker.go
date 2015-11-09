@@ -40,5 +40,5 @@ func (bkr *Broker) Run() {
 
 	brokerAPI := brokerapi.New(bkr, bkr.Logger, credentials)
 	http.Handle("/", brokerAPI)
-	bkr.Logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil))
+	bkr.Logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
 }
