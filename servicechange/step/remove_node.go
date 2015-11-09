@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/cloudfoundry-community/patroni-broker/backend"
+	"github.com/cloudfoundry-community/patroni-broker/config"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -16,7 +16,7 @@ import (
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
 	nodeUUID string
-	backend  *backend.Backend
+	backend  *config.Backend
 	cluster  *serviceinstance.Cluster
 }
 
@@ -36,14 +36,10 @@ func (step RemoveNode) Perform() (err error) {
 		return
 	}
 
-	backends := []backend.Backend{
-		backend.Backend{GUID: "10.244.21.6", URI: "http://54.145.50.109:10006", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.7", URI: "http://54.145.50.109:10007", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.8", URI: "http://54.145.50.109:10008", Username: "containers", Password: "containers"},
-	}
+	backends := step.cluster.AllBackends()
 	for _, backend := range backends {
 		if backend.GUID == backendID {
-			step.backend = &backend
+			step.backend = backend
 			break
 		}
 	}

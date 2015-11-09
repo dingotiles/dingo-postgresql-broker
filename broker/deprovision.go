@@ -18,7 +18,7 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 		return false, fmt.Errorf("API error - provide service_id and plan_id as URL parameters")
 	}
 
-	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Logger)
+	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
 	err = cluster.Load()
 	if err != nil {
 		return false, err

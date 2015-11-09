@@ -6,22 +6,24 @@ import (
 	"os"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
+	"github.com/cloudfoundry-community/patroni-broker/config"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
+	Config     *config.Config
 	EtcdClient *backend.EtcdClient
 	Catalog    brokerapi.CatalogResponse
-	Backends   []backend.Backend
+	Backends   []config.Backend
 
 	Logger lager.Logger
 }
 
 // NewBroker is a constructor for a Broker webapp struct
-func NewBroker(etcdClient *backend.EtcdClient) (broker *Broker) {
-	broker = &Broker{EtcdClient: etcdClient}
+func NewBroker(etcdClient *backend.EtcdClient, config *config.Config) (broker *Broker) {
+	broker = &Broker{EtcdClient: etcdClient, Config: config}
 	broker.Logger = lager.NewLogger("patroni-broker")
 	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))

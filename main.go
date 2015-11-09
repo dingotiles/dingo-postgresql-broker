@@ -1,37 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"os"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
 	"github.com/cloudfoundry-community/patroni-broker/broker"
+	"github.com/cloudfoundry-community/patroni-broker/config"
 	"github.com/codegangsta/cli"
 )
 
 func runBroker(c *cli.Context) {
-	machines := []string{"http://54.145.50.109:14001"}
-	etcdClient := backend.NewEtcdClient(machines, "/")
+	config, err := config.LoadConfig("config/bosh-lite.example.yml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	etcdClient := backend.NewEtcdClient(config.KVStore.Machines, "/")
 
-	broker := broker.NewBroker(etcdClient)
+	broker := broker.NewBroker(etcdClient, config)
 	broker.Run()
-}
-
-func runDevSilliness(c *cli.Context) {
-	machines := []string{"http://54.145.50.109:14001"}
-	etcdClient := backend.NewEtcdClient(machines, "/")
-	backendBkr := backend.Backend{AvailabilityZone: "z1", GUID: "5ac91960-0cfa-4c31-90ab-3f6442ac637d", URI: "http://10.244.21.6", Username: "containers", Password: "containers"}
-	err := backend.AddBackendToEtcd(etcdClient, backendBkr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	backends, err := backend.LoadBackendsFromEtcd(etcdClient)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%#v\n", backends)
 }
 
 func main() {
@@ -47,12 +35,6 @@ func main() {
 			Usage:  "run the broker",
 			Flags:  []cli.Flag{},
 			Action: runBroker,
-		},
-		{
-			Name:   "dev",
-			Usage:  "invoke something internal",
-			Flags:  []cli.Flag{},
-			Action: runDevSilliness,
 		},
 	}
 	app.Run(os.Args)
