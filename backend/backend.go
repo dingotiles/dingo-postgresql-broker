@@ -4,15 +4,16 @@ import "fmt"
 
 // Backend describes the location for a backend that can run Patroni nodes
 type Backend struct {
-	GUID     string
-	URI      string
-	Username string
-	Password string
+	GUID             string
+	AvailabilityZone string
+	URI              string
+	Username         string
+	Password         string
 }
 
 // NewBackend prepares a Backend client to which requests can be sent
-func NewBackend(uri, username, password string) Backend {
-	return Backend{URI: uri, Username: username, Password: password}
+func NewBackend() Backend {
+	return Backend{AvailabilityZone: "z1"}
 }
 
 // LoadBackendsFromEtcd loads available set of backends.

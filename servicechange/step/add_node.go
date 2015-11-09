@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/http/httputil"
 
@@ -51,22 +50,11 @@ func (step AddNode) Perform() (err error) {
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
-	// 3. Randomize backends from available AZs
-	// INITIALLY: fixed list from bosh-lite
-	backends := []backend.Backend{
-		backend.Backend{GUID: "10.244.21.6", URI: "http://184.72.129.218:10006", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.7", URI: "http://184.72.129.218:10007", Username: "containers", Password: "containers"},
-		backend.Backend{GUID: "10.244.21.8", URI: "http://184.72.129.218:10008", Username: "containers", Password: "containers"},
-	}
-	// 4. Send requests to backends until one says OK; else fail
-	// INITIALLY: pick one only
-	// for _, backend := range backends {
-	list := rand.Perm(len(backends))
-	var backend backend.Backend
-	fmt.Println("random list of backends", list)
-	for _, i := range list {
-		backend = backends[i]
+	backends := step.cluster.SortedBackendsByUnusedAZs()
 
+	// 4. Send requests to backends until one says OK; else fail
+	var backend *backend.Backend
+	for _, backend = range backends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
 		if err == nil {
 			break
@@ -90,7 +78,7 @@ func (step AddNode) Perform() (err error) {
 	return err
 }
 
-func (step AddNode) setClusterNodeBackend(backend backend.Backend) (kvIndex uint64, err error) {
+func (step AddNode) setClusterNodeBackend(backend *backend.Backend) (kvIndex uint64, err error) {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", step.cluster.InstanceID, step.nodeUUID)
 	resp, err := step.cluster.EtcdClient.Set(key, backend.GUID, 0)
 	if err != nil {
@@ -99,7 +87,7 @@ func (step AddNode) setClusterNodeBackend(backend backend.Backend) (kvIndex uint
 	return resp.EtcdIndex, err
 }
 
-func (step AddNode) requestNodeViaBackend(backend backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {
+func (step AddNode) requestNodeViaBackend(backend *backend.Backend, provisionDetails brokerapi.ProvisionDetails) error {
 	var err error
 	logger := step.cluster.Logger
 

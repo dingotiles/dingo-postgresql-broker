@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
+	"github.com/cloudfoundry-community/patroni-broker/utils"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -88,5 +89,74 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 	}
 	backend = resp.Node.Value
 
+	return
+}
+
+// Currently hardcoded list of backends in demo cluster, with example AZ split
+func (cluster *Cluster) allBackends() (backends []*backend.Backend) {
+	return []*backend.Backend{
+		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.6", URI: "http://184.72.129.218:10006", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.7", URI: "http://184.72.129.218:10007", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z2", GUID: "10.244.21.8", URI: "http://184.72.129.218:10008", Username: "containers", Password: "containers"},
+	}
+	// list := rand.Perm(len(backends))
+}
+
+// List of AZs offered by allBackends()
+// FIXME - currently hardcoded; should be built/cached from allBackends
+func (cluster *Cluster) allAZs() []string {
+	return []string{"z1", "z2"}
+}
+
+// if any errors, assume that cluster has no running nodes yet
+func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
+	logger := cluster.Logger
+	resp, err := cluster.EtcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID), false, false)
+	if err != nil {
+		return
+	}
+	for _, clusterNode := range resp.Node.Nodes {
+		nodeKey := clusterNode.Key
+		resp, err = cluster.EtcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
+		if err != nil {
+			logger.Error("cluster.az-used.backend", err)
+			return
+		}
+		backendGUIDs = append(backendGUIDs, resp.Node.Value)
+	}
+	return
+}
+
+// backendAZsByUnusedness sorts the availability zones in order of whether this cluster is using them or not
+// An AZ that is not being used at all will be early in the result.
+// All known AZs are included in the result
+func (cluster *Cluster) sortBackendAZsByUnusedness() (vs *utils.ValSorter) {
+	backends := cluster.allBackends()
+	azUsageData := map[string]int{}
+	for _, az := range cluster.allAZs() {
+		azUsageData[az] = 0
+	}
+	for _, backendGUID := range cluster.usedBackendGUIDs() {
+		for _, backend := range backends {
+			if backend.GUID == backendGUID {
+				azUsageData[backend.AvailabilityZone]++
+			}
+		}
+	}
+	vs = utils.NewValSorter(azUsageData)
+	vs.Sort()
+	return
+}
+
+// SortedBackendsByUnusedAZs is sequence of backends to try to request new nodes for this cluster
+// It prioritizes backends in availability zones that are not currently used
+func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*backend.Backend) {
+	for _, az := range cluster.sortBackendAZsByUnusedness().Keys {
+		for _, backend := range cluster.allBackends() {
+			if backend.AvailabilityZone == az {
+				backends = append(backends, backend)
+			}
+		}
+	}
 	return
 }
