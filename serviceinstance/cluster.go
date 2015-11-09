@@ -96,8 +96,8 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 func (cluster *Cluster) allBackends() (backends []*backend.Backend) {
 	return []*backend.Backend{
 		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.6", URI: "http://54.145.50.109:10006", Username: "containers", Password: "containers"},
-		&backend.Backend{AvailabilityZone: "z1", GUID: "10.244.21.7", URI: "http://54.145.50.109:10007", Username: "containers", Password: "containers"},
-		&backend.Backend{AvailabilityZone: "z2", GUID: "10.244.21.8", URI: "http://54.145.50.109:10008", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z2", GUID: "10.244.21.7", URI: "http://54.145.50.109:10007", Username: "containers", Password: "containers"},
+		&backend.Backend{AvailabilityZone: "z3", GUID: "10.244.21.8", URI: "http://54.145.50.109:10008", Username: "containers", Password: "containers"},
 	}
 	// list := rand.Perm(len(backends))
 }
