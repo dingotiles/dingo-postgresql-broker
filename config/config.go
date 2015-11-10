@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
+	"regexp"
 
 	"gopkg.in/yaml.v1"
 )
@@ -59,6 +61,13 @@ func LoadConfig(path string) (config *Config, err error) {
 	}
 	if config.Broker.Port == 0 {
 		config.Broker.Port = 3000
+	}
+
+	for _, backend := range config.Backends {
+		match, err := regexp.MatchString("^http", backend.URI)
+		if !match || err != nil {
+			backend.URI = fmt.Sprintf("http://%s", backend.URI)
+		}
 	}
 
 	return
