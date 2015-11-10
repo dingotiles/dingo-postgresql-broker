@@ -19,12 +19,7 @@ func runBroker(c *cli.Context) {
 	}
 	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
 
-	catalog, err := config.LoadServices(configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	broker := broker.NewBroker(etcdClient, cfg, catalog)
+	broker := broker.NewBroker(etcdClient, cfg)
 	broker.Run()
 }
 

@@ -1,23 +1,41 @@
 package config
 
-import (
-	"io/ioutil"
+type Service struct {
+	ID          string          `yaml:"id"`
+	Name        string          `yaml:"name"`
+	Description string          `yaml:"description"`
+	Bindable    bool            `yaml:"bindable"`
+	Plans       []ServicePlan   `yaml:"plans"`
+	Metadata    ServiceMetadata `yaml:"metadata"`
+	Tags        []string        `yaml:"tags"`
+}
 
-	"github.com/frodenas/brokerapi"
-	"gopkg.in/yaml.v1"
-)
+type ServicePlan struct {
+	ID          string              `yaml:"id"`
+	Name        string              `yaml:"name"`
+	Description string              `yaml:"description"`
+	Metadata    ServicePlanMetadata `yaml:"metadata"`
+}
 
-// LoadServices catalog from a YAML file
-func LoadServices(path string) (catalog *brokerapi.CatalogResponse, err error) {
-	catalog = &brokerapi.CatalogResponse{}
-	bytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return
-	}
-	err = yaml.Unmarshal(bytes, &catalog)
-	if err != nil {
-		return
-	}
+type ServicePlanMetadata struct {
+	Bullets     []string `yaml:"bullets"`
+	DisplayName string   `yaml:"displayName"`
+}
 
-	return
+type ServiceMetadata struct {
+	DisplayName      string                  `yaml:"displayName"`
+	LongDescription  string                  `yaml:"longDescription"`
+	DocumentationUrl string                  `yaml:"documentationUrl"`
+	SupportUrl       string                  `yaml:"supportUrl"`
+	Listing          ServiceMetadataListing  `yaml:"listing"`
+	Provider         ServiceMetadataProvider `yaml:"provider"`
+}
+
+type ServiceMetadataListing struct {
+	Blurb    string `yaml:"blurb"`
+	ImageUrl string `yaml:"imageUrl"`
+}
+
+type ServiceMetadataProvider struct {
+	Name string `yaml:"name"`
 }

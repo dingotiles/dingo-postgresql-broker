@@ -5,15 +5,17 @@ import (
 	"io/ioutil"
 	"regexp"
 
+	"github.com/frodenas/brokerapi"
 	"gopkg.in/yaml.v1"
 )
 
 // Config is the brokers configuration
 type Config struct {
-	Broker   Broker     `yaml:"broker"`
-	Router   Router     `yaml:"router"`
-	Backends []*Backend `yaml:"backends"`
-	KVStore  KVStore    `yaml:"kvstore"`
+	Broker   Broker                    `yaml:"broker"`
+	Router   Router                    `yaml:"router"`
+	Backends []*Backend                `yaml:"backends"`
+	KVStore  KVStore                   `yaml:"kvstore"`
+	Catalog  brokerapi.CatalogResponse `yaml:"catalog"`
 }
 
 // Broker connection configuration
@@ -44,6 +46,10 @@ type KVStore struct {
 	Machines []string `yaml:"machines"`
 	Username string
 	Password string
+}
+
+type Catalog struct {
+	Services []Service
 }
 
 // LoadConfig from a YAML file
