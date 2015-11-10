@@ -24,7 +24,7 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: published port is not an integer (%s)", resp.Node.Value)
 	}
 
-	routerHost := "10.244.21.2"
+	routerHost := bkr.Config.Router.Hostname
 	username := "replicator"
 	password := "replicator"
 	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", username, password, routerHost, publicPort)

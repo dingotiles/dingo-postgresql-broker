@@ -11,6 +11,7 @@ import (
 // Config is the brokers configuration
 type Config struct {
 	Broker   Broker     `yaml:"broker"`
+	Router   Router     `yaml:"router"`
 	Backends []*Backend `yaml:"backends"`
 	KVStore  KVStore    `yaml:"kvstore"`
 }
@@ -20,6 +21,11 @@ type Broker struct {
 	Port     int    `yaml:"port"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+}
+
+// Router advertising info
+type Router struct {
+	Hostname string `yaml:"hostname"`
 }
 
 // Backend describes a configured set of backend brokers

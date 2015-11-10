@@ -3,6 +3,8 @@ broker:
   username: starkandwayne
   password: starkandwayne
   port: 3000
+router:
+  hostname: 10.244.21.2
 backends:
 - guid: "10.244.21.6"
   availability_zone: "z1"
