@@ -28,3 +28,24 @@ kvstore:
   - http://54.145.50.109:14001
   username: ""
   password: ""
+
+services:
+- id: '0f5c1670-6dc3-11e5-bc08-6c4008a663f0'
+  name: 'postgresql94'
+  description: 'PostgreSQL 9.4 service for application development and testing'
+  bindable: true
+  planupdateable: true
+  tags:
+    - 'postgresql94'
+    - 'postgresql'
+    - 'syslog'
+  metadata:
+    displayname: 'postgresql 9.4'
+    longdescription: 'High-availablity cluster of PostgreSQL 9.4 running across multiple servers/availability zones'
+    providerdisplayname: 'Stark & Wayne LLC'
+    documentationurl: 'https://github.com/cloudfoundry-community/patroni-boshrelease'
+    supporturl: 'https://github.com/cloudfoundry-community/patroni-boshrelease/issues'
+  plans:
+    - id: '1545e30e-6dc3-11e5-826a-6c4008a663f0'
+      name: 'cluster'
+      description: 'High-availablity cluster of PostgreSQL'

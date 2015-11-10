@@ -13,13 +13,18 @@ import (
 
 func runBroker(c *cli.Context) {
 	configPath := c.String("config")
-	config, err := config.LoadConfig(configPath)
+	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	etcdClient := backend.NewEtcdClient(config.KVStore.Machines, "/")
+	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
 
-	broker := broker.NewBroker(etcdClient, config)
+	catalog, err := config.LoadServices(configPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	broker := broker.NewBroker(etcdClient, cfg, catalog)
 	broker.Run()
 }
 
