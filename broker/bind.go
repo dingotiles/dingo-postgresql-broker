@@ -15,10 +15,12 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 	key := fmt.Sprintf("/routing/allocation/%s", cluster.InstanceID)
 	resp, err := cluster.EtcdClient.Get(key, false, false)
 	if err != nil {
+		bkr.Logger.Error("bind.routing-allocation.get", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: no published port for provisioned cluster")
 	}
 	publicPort, err := strconv.ParseInt(resp.Node.Value, 10, 64)
 	if err != nil {
+		bkr.Logger.Error("bind.routing-allocation.parse-int", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: published port is not an integer (%s)", resp.Node.Value)
 	}
 
