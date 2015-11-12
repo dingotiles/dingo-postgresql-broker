@@ -108,6 +108,8 @@ NOTE: the `/routing` section of data is the only "permanent" data in the KV stor
 
 ### `/serviceinstance`
 
+This `patroni-broker` documents the assignment of each container/node in a cluster to a backend broker/cell.
+
 ```
 curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/ | jq -r ".node.nodes[].key"
 f1

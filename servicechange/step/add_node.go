@@ -56,6 +56,7 @@ func (step AddNode) Perform() (err error) {
 	var backend *config.Backend
 	for _, backend = range backends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
+		logger.Error("add-node.perform.try-backend", err)
 		if err == nil {
 			break
 		}
@@ -97,12 +98,12 @@ func (step AddNode) requestNodeViaBackend(backend *config.Backend, provisionDeta
 	buffer := &bytes.Buffer{}
 
 	if err = json.NewEncoder(buffer).Encode(provisionDetails); err != nil {
-		logger.Error("backend-provision-encode-details", err)
+		logger.Error("request-node.backend-provision-encode-details", err)
 		return err
 	}
 	req, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
-		logger.Error("backend-provision-req", err)
+		logger.Error("request-node.backend-provision-req", err)
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -111,7 +112,7 @@ func (step AddNode) requestNodeViaBackend(backend *config.Backend, provisionDeta
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Error("backend-provision-resp", err)
+		logger.Error("request-node.backend-provision-resp", err)
 		return err
 	}
 	debug(httputil.DumpResponse(resp, true))
