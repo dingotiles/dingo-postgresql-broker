@@ -4,13 +4,12 @@ import "github.com/coreos/go-etcd/etcd"
 
 // FakeEtcdClient is a fake etcd client for test purposes.
 type FakeEtcdClient struct {
-	client *etcd.Client
-	prefix string
+	GetResponses map[string]*etcd.Response
 }
 
 // NewFakeEtcdClient creates an *FakeEtcdClient
-func NewFakeEtcdClient(machines []string, prefix string) (kv FakeEtcdClient) {
-	kv = FakeEtcdClient{client: etcd.NewClient(machines), prefix: prefix}
+func NewFakeEtcdClient() (kv FakeEtcdClient) {
+	kv.GetResponses = map[string]*etcd.Response{}
 	return
 }
 
@@ -22,9 +21,13 @@ func NewFakeEtcdClient(machines []string, prefix string) (kv FakeEtcdClient) {
 // will not be returned.
 // If recursive is set to true, all the contents will be returned.
 func (kv FakeEtcdClient) Get(key string, sort, recursive bool) (resp *etcd.Response, err error) {
-	resp = &etcd.Response{
+	if kv.GetResponses[key] != nil {
+		return kv.GetResponses[key], nil
+	}
+	emptyResp := &etcd.Response{
 		Node: &etcd.Node{},
 	}
+	return emptyResp, nil
 	// resp = &etcd.Response{
 	// 	Node: &etcd.Node{
 	// 		Nodes: etcd.Nodes{
@@ -33,7 +36,6 @@ func (kv FakeEtcdClient) Get(key string, sort, recursive bool) (resp *etcd.Respo
 	// 		},
 	// 	},
 	// }
-	return
 }
 
 // Set sets the given key to the given value.
