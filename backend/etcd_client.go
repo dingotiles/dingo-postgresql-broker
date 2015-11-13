@@ -6,15 +6,22 @@ import (
 	"github.com/coreos/go-etcd/etcd"
 )
 
-// EtcdClient is a wrapper for an etcd.Client; and common KV functions
-type EtcdClient struct {
+// EtcdClient is the interface to etcd client
+type EtcdClient interface {
+	Get(key string, sort, recursive bool) (*etcd.Response, error)
+	Set(key string, value string, ttl uint64) (*etcd.Response, error)
+	Delete(key string, recursive bool) (*etcd.Response, error)
+}
+
+// RealEtcdClient is a wrapper for an etcd.Client; and common KV functions
+type RealEtcdClient struct {
 	client *etcd.Client
 	prefix string
 }
 
 // NewEtcdClient creates an *EtcdClient
-func NewEtcdClient(machines []string, prefix string) (kv *EtcdClient) {
-	kv = &EtcdClient{client: etcd.NewClient(machines), prefix: prefix}
+func NewEtcdClient(machines []string, prefix string) (kv RealEtcdClient) {
+	kv = RealEtcdClient{client: etcd.NewClient(machines), prefix: prefix}
 	return
 }
 
@@ -25,14 +32,14 @@ func NewEtcdClient(machines []string, prefix string) (kv *EtcdClient) {
 // If recursive is set to false, contents under child directories
 // will not be returned.
 // If recursive is set to true, all the contents will be returned.
-func (kv *EtcdClient) Get(key string, sort, recursive bool) (*etcd.Response, error) {
+func (kv RealEtcdClient) Get(key string, sort, recursive bool) (*etcd.Response, error) {
 	return kv.client.Get(fmt.Sprintf("%s%s", kv.prefix, key), sort, recursive)
 }
 
 // Set sets the given key to the given value.
 // It will create a new key value pair or replace the old one.
 // It will not replace a existing directory.
-func (kv *EtcdClient) Set(key string, value string, ttl uint64) (*etcd.Response, error) {
+func (kv RealEtcdClient) Set(key string, value string, ttl uint64) (*etcd.Response, error) {
 	return kv.client.Set(fmt.Sprintf("%s%s", kv.prefix, key), value, ttl)
 }
 
@@ -45,7 +52,7 @@ func (kv *EtcdClient) Set(key string, value string, ttl uint64) (*etcd.Response,
 // the file will be deleted; if the key points to a directory,
 // then everything under the directory (including all child directories)
 // will be deleted.
-func (kv *EtcdClient) Delete(key string, recursive bool) (*etcd.Response, error) {
+func (kv RealEtcdClient) Delete(key string, recursive bool) (*etcd.Response, error) {
 	return kv.client.Delete(fmt.Sprintf("%s%s", kv.prefix, key), recursive)
 }
 
@@ -62,7 +69,7 @@ func (kv *EtcdClient) Delete(key string, recursive bool) (*etcd.Response, error)
 //channel. After someone receives the channel, it will go on to watch that
 // prefix.  If a stop channel is given, the client can close long-term watch using
 // the stop channel.
-func (kv *EtcdClient) Watch(key string, waitIndex uint64, recursive bool,
+func (kv RealEtcdClient) Watch(key string, waitIndex uint64, recursive bool,
 	receiver chan *etcd.Response, stop chan bool) (*etcd.Response, error) {
 	return kv.client.Watch(fmt.Sprintf("%s%s", kv.prefix, key), waitIndex, recursive, receiver, stop)
 }

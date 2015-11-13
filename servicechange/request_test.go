@@ -22,13 +22,9 @@ func setFakeSize(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) {
 }
 
 var _ = Describe("Service instance changes", func() {
-	var etcdClient *backend.EtcdClient
-	var cfg *config.Config
+	var etcdClient backend.FakeEtcdClient
+	cfg := &config.Config{}
 	var logger lager.Logger
-
-	BeforeEach(func() {
-		cfg, _ = config.LoadConfig("config/bosh-lite.example.yml")
-	})
 
 	Describe(".Steps", func() {
 		var cluster *serviceinstance.Cluster

@@ -16,7 +16,7 @@ import (
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
 	Config         *config.Config
-	EtcdClient     *backend.EtcdClient
+	EtcdClient     backend.EtcdClient
 	Logger         lager.Logger
 	InstanceID     string
 	NodeCount      int
@@ -25,7 +25,7 @@ type Cluster struct {
 }
 
 // NewCluster creates a RealCluster
-func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClient *backend.EtcdClient, config *config.Config, logger lager.Logger) *Cluster {
+func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) *Cluster {
 	return &Cluster{
 		InstanceID:     instanceID,
 		ServiceDetails: details,
@@ -143,18 +143,5 @@ func (cluster *Cluster) sortBackendAZsByUnusedness() (vs *utils.ValSorter) {
 	}
 	vs = utils.NewValSorter(azUsageData)
 	vs.Sort()
-	return
-}
-
-// SortedBackendsByUnusedAZs is sequence of backends to try to request new nodes for this cluster
-// It prioritizes backends in availability zones that are not currently used
-func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*config.Backend) {
-	for _, az := range cluster.sortBackendAZsByUnusedness().Keys {
-		for _, backend := range cluster.AllBackends() {
-			if backend.AvailabilityZone == az {
-				backends = append(backends, backend)
-			}
-		}
-	}
 	return
 }
