@@ -19,6 +19,14 @@ func setFakeSize(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) {
 	cluster.NodeSize = nodeSize
 }
 
+func backendGUIDs(backends []*config.Backend) []string {
+	guids := make([]string, len(backends))
+	for i, backend := range backends {
+		guids[i] = backend.GUID
+	}
+	return guids
+}
+
 var _ = Describe("backend broker selection", func() {
 	var etcdClient backend.FakeEtcdClient
 	cfg := &config.Config{}
@@ -29,12 +37,12 @@ var _ = Describe("backend broker selection", func() {
 
 	BeforeEach(func() {
 		cfg.Backends = []*config.Backend{
-			&config.Backend{AvailabilityZone: "z1"},
-			&config.Backend{AvailabilityZone: "z1"},
-			&config.Backend{AvailabilityZone: "z1"},
-			&config.Backend{AvailabilityZone: "z2"},
-			&config.Backend{AvailabilityZone: "z2"},
-			&config.Backend{AvailabilityZone: "z2"},
+			&config.Backend{AvailabilityZone: "z1", GUID: "c1z1"},
+			&config.Backend{AvailabilityZone: "z1", GUID: "c2z1"},
+			&config.Backend{AvailabilityZone: "z1", GUID: "c3z1"},
+			&config.Backend{AvailabilityZone: "z2", GUID: "c4z2"},
+			&config.Backend{AvailabilityZone: "z2", GUID: "c5z2"},
+			&config.Backend{AvailabilityZone: "z2", GUID: "c6z2"},
 		}
 	})
 
@@ -50,6 +58,7 @@ var _ = Describe("backend broker selection", func() {
 		It("is initial creation", func() {
 			backends := cluster.SortedBackendsByUnusedAZs()
 			Ω(len(backends)).To(Equal(6))
+			Ω(backendGUIDs(backends)).To(Equal([]string{"c1z1", "c2z1", "c3z1", "c4z2", "c5z2", "c6z2"}))
 		})
 	})
 })
