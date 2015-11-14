@@ -68,10 +68,6 @@ var _ = Describe("backend broker selection", func() {
 			}
 		})
 
-		It("has 3 backends", func() {
-			Ω(len(cfg.Backends)).To(Equal(6))
-		})
-
 		It("orders backends before cluster change from 0 to 1", func() {
 			cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 			setupCluster(cluster, []string{})
@@ -96,6 +92,59 @@ var _ = Describe("backend broker selection", func() {
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
 				Ω(backendGUIDs(backends)).To(Equal([]string{"c2z1", "c3z1", "c5z2", "c6z2", "c1z1", "c4z2"}))
+			})
+		})
+	})
+
+	Context("three AZs", func() {
+		BeforeEach(func() {
+			cfg.Backends = []*config.Backend{
+				&config.Backend{AvailabilityZone: "z1", GUID: "c1z1"},
+				&config.Backend{AvailabilityZone: "z1", GUID: "c2z1"},
+				&config.Backend{AvailabilityZone: "z1", GUID: "c3z1"},
+				&config.Backend{AvailabilityZone: "z2", GUID: "c4z2"},
+				&config.Backend{AvailabilityZone: "z2", GUID: "c5z2"},
+				&config.Backend{AvailabilityZone: "z2", GUID: "c6z2"},
+				&config.Backend{AvailabilityZone: "z3", GUID: "c7z3"},
+				&config.Backend{AvailabilityZone: "z3", GUID: "c8z3"},
+				&config.Backend{AvailabilityZone: "z3", GUID: "c9z3"},
+			}
+		})
+
+		It("orders backends before cluster change from 0 to 1", func() {
+			cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+			setupCluster(cluster, []string{})
+			backends := cluster.SortedBackendsByUnusedAZs()
+			Ω(backendGUIDs(backends)).To(Equal([]string{"c1z1", "c2z1", "c3z1", "c4z2", "c5z2", "c6z2", "c7z3", "c8z3", "c9z3"}))
+		})
+
+		Context("orders backends before cluster change from 1 to 2", func() {
+			It("has list of backends with z2 first, z1 second, c1z1 last", func() {
+				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				setupCluster(cluster, []string{"c1z1"})
+				backends = cluster.SortedBackendsByUnusedAZs()
+				// backend broker already used is last in the list; its AZ is the last AZ
+				Ω(backendGUIDs(backends)).To(Equal([]string{"c4z2", "c5z2", "c6z2", "c7z3", "c8z3", "c9z3", "c2z1", "c3z1", "c1z1"}))
+			})
+		})
+
+		Context("orders backends before cluster change from 2 to 3", func() {
+			It("has list of backends c1z1,c4z2 last", func() {
+				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				setupCluster(cluster, []string{"c1z1", "c4z2"})
+				backends = cluster.SortedBackendsByUnusedAZs()
+				// backend broker already used is last in the list; its AZ is the last AZ
+				Ω(backendGUIDs(backends)).To(Equal([]string{"c7z3", "c8z3", "c9z3", "c2z1", "c3z1", "c5z2", "c6z2", "c1z1", "c4z2"}))
+			})
+		})
+
+		Context("orders backends before cluster change from 3 to 4", func() {
+			It("has list of backends c1z1,c4z2,c7z3 last", func() {
+				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				setupCluster(cluster, []string{"c1z1", "c4z2", "c7z3"})
+				backends = cluster.SortedBackendsByUnusedAZs()
+				// backend broker already used is last in the list; its AZ is the last AZ
+				Ω(backendGUIDs(backends)).To(Equal([]string{"c2z1", "c3z1", "c5z2", "c6z2", "c8z3", "c9z3", "c1z1", "c4z2", "c7z3"}))
 			})
 		})
 	})

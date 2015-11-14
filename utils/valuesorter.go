@@ -26,7 +26,7 @@ func (vs *ValSorter) Sort() {
 }
 
 func (vs *ValSorter) Len() int           { return len(vs.Vals) }
-func (vs *ValSorter) Less(i, j int) bool { return vs.Vals[i] < vs.Vals[j] }
+func (vs *ValSorter) Less(i, j int) bool { return vs.Vals[i] < vs.Vals[j] || vs.Keys[i] < vs.Keys[j] }
 func (vs *ValSorter) Swap(i, j int) {
 	vs.Vals[i], vs.Vals[j] = vs.Vals[j], vs.Vals[i]
 	vs.Keys[i], vs.Keys[j] = vs.Keys[j], vs.Keys[i]

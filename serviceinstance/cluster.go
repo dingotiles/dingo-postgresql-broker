@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"sort"
 	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
@@ -100,10 +101,18 @@ func (cluster *Cluster) AllBackends() (backends []*config.Backend) {
 	return cluster.Config.Backends
 }
 
-// List of AZs offered by allBackends()
-// FIXME - currently hardcoded; should be built/cached from allBackends
-func (cluster *Cluster) allAZs() []string {
-	return []string{"z1", "z2"}
+// AllAZs lists of AZs offered by AllBackends()
+func (cluster *Cluster) AllAZs() (list []string) {
+	azUsage := map[string]int{}
+	for _, backend := range cluster.AllBackends() {
+		azUsage[backend.AvailabilityZone]++
+	}
+	for az := range azUsage {
+		list = append(list, az)
+	}
+	// TEST sorting AZs for benefit of tests
+	sort.Strings(list)
+	return
 }
 
 // if any errors, assume that cluster has no running nodes yet
@@ -131,7 +140,7 @@ func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
 func (cluster *Cluster) sortBackendAZsByUnusedness() (vs *utils.ValSorter) {
 	backends := cluster.AllBackends()
 	azUsageData := map[string]int{}
-	for _, az := range cluster.allAZs() {
+	for _, az := range cluster.AllAZs() {
 		azUsageData[az] = 0
 	}
 	for _, backendGUID := range cluster.usedBackendGUIDs() {
