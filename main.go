@@ -1,27 +1,12 @@
 package main
 
 import (
-	"log"
 	"math/rand"
 	"os"
 
-	"github.com/cloudfoundry-community/patroni-broker/backend"
-	"github.com/cloudfoundry-community/patroni-broker/broker"
-	"github.com/cloudfoundry-community/patroni-broker/config"
+	"github.com/cloudfoundry-community/patroni-broker/clicmd"
 	"github.com/codegangsta/cli"
 )
-
-func runBroker(c *cli.Context) {
-	configPath := c.String("config")
-	cfg, err := config.LoadConfig(configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
-
-	broker := broker.NewBroker(etcdClient, cfg)
-	broker.Run()
-}
 
 func main() {
 	rand.Seed(5000)
@@ -41,7 +26,19 @@ func main() {
 					Usage: "path to YAML config file",
 				},
 			},
-			Action: runBroker,
+			Action: clicmd.RunBroker,
+		},
+		{
+			Name:  "service-status",
+			Usage: "status of all service clusters",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "config, c",
+					Value: "config.yml",
+					Usage: "path to YAML config file",
+				},
+			},
+			Action: clicmd.ServiceStatus,
 		},
 	}
 	app.Run(os.Args)

@@ -4,7 +4,7 @@ broker:
   password: starkandwayne
   port: 3000
 router:
-  hostname: 10.244.21.2
+  hostname: 54.221.66.11
 backends:
 - guid: "10.244.21.6"
   availability_zone: "z1"
@@ -24,8 +24,7 @@ backends:
 
 kvstore:
   type: etcd
-  machines:
-  - http://54.145.50.109:14001
+  machines: ["http://54.221.66.11:14001"]
   username: ""
   password: ""
 
