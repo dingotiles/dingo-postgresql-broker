@@ -1,6 +1,16 @@
 Patroni Broker
 ==============
 
+Usage
+-----
+
+```
+export PATRONI_BROKER_CONFIG=config/bosh-lite.example.yml
+patroni-broker broker
+patroni-broker service-status
+patroni-broker show-cells
+```
+
 etcd schema
 -----------
 
