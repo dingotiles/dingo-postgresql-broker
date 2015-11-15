@@ -48,6 +48,7 @@ type KVStore struct {
 	Password string
 }
 
+// Catalog describes the services being advertised to Cloud Foundry users
 type Catalog struct {
 	Services []Service
 }
