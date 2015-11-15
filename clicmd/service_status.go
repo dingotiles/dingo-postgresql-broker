@@ -7,7 +7,6 @@ import (
 	"path"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
-	"github.com/cloudfoundry-community/patroni-broker/config"
 	"github.com/codegangsta/cli"
 )
 
@@ -20,11 +19,7 @@ type patroniServiceMemberData struct {
 
 // ServiceStatus displays to the terminal the status of all service clusters
 func ServiceStatus(c *cli.Context) {
-	configPath := c.String("config")
-	cfg, err := config.LoadConfig(configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	cfg := loadConfig(c.String("config"))
 	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
 	patroniServices, err := etcdClient.Get("/service", true, true)
 	if err != nil {
