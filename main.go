@@ -40,6 +40,18 @@ func main() {
 			},
 			Action: clicmd.ServiceStatus,
 		},
+		{
+			Name:  "show-cells",
+			Usage: "show status of each backend cell",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "config, c",
+					Value: "config.yml",
+					Usage: "path to YAML config file",
+				},
+			},
+			Action: clicmd.ShowCells,
+		},
 	}
 	app.Run(os.Args)
 }
