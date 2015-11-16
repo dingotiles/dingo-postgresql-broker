@@ -155,3 +155,16 @@ To update an existing service instance use `-XPATCH` to reach the `broker.Update
 ```
 id=b1; nodes=4; curl -v -XPATCH ${BROKER}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
 ```
+
+To create a service instance to emulate asynchronous API, add `"accepts_incomplete": true`:
+
+```
+export instance_id=b1
+nodes=2; curl -v -XPUT ${BROKER}/v2/service_instances/${instance_id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
+```
+
+Then poll for completion:
+
+```
+curl -f ${BROKER}/v2/service_instances/${instance_id}/last_operation
+```

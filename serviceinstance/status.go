@@ -37,5 +37,8 @@ func (cluster *Cluster) MemberStatus() (statuses string, allRunning bool) {
 			allRunning = false
 		}
 	}
-	return fmt.Sprintf("master %s; replicas %s", masterStatus, strings.Join(replicasStatus, ", ")), allRunning
+	if masterStatus != "" {
+		return fmt.Sprintf("master %s; replicas %s", masterStatus, strings.Join(replicasStatus, ", ")), allRunning
+	}
+	return fmt.Sprintf("members %s", strings.Join(replicasStatus, ", ")), allRunning
 }
