@@ -14,15 +14,17 @@ import (
 func (cluster *Cluster) WaitForAllRunning() (err error) {
 	waitTimeout := 120
 	waitTime := 0
+	status := ""
 	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running.start", lager.Data{"waiting": waitTimeout})
 	allRunning := false
 	for ; !allRunning && waitTime < waitTimeout; waitTime++ {
-		_, allRunning, err = cluster.MemberStatus()
-		time.Sleep(1)
+		status, allRunning, err = cluster.MemberStatus()
+		time.Sleep(1 * time.Second)
 	}
 	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running.finish", lager.Data{
-		"wait-time": waitTime,
-		"error":     err,
+		"wait-time":      waitTime,
+		"cluster-status": status,
+		"error":          err,
 	})
 	return err
 }
