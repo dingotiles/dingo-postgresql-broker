@@ -32,7 +32,9 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 		ServiceDetails: details,
 		EtcdClient:     etcdClient,
 		Config:         config,
-		Logger:         logger,
+		Logger: logger.Session("cluster", lager.Data{
+			"instance-id": instanceID,
+		}),
 	}
 }
 
