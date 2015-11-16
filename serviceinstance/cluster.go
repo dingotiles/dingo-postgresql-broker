@@ -36,6 +36,13 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 	}
 }
 
+// Exists returns true if cluster already exists
+func (cluster *Cluster) Exists() bool {
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
+	_, err := cluster.EtcdClient.Get(key, false, true)
+	return err != nil
+}
+
 // Load the cluster information from KV store
 func (cluster *Cluster) Load() error {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
@@ -46,7 +53,10 @@ func (cluster *Cluster) Load() error {
 	}
 	cluster.NodeCount = len(resp.Node.Nodes)
 	cluster.NodeSize = 20
-	cluster.Logger.Info("cluster.load", lager.Data{"node-count": cluster.NodeCount, "node-size": 20})
+	cluster.Logger.Info("cluster.load", lager.Data{
+		"node-count": cluster.NodeCount,
+		"node-size":  cluster.NodeSize,
+	})
 	return nil
 }
 
