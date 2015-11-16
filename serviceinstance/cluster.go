@@ -40,7 +40,7 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 func (cluster *Cluster) Exists() bool {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
 	_, err := cluster.EtcdClient.Get(key, false, true)
-	return err != nil
+	return err == nil
 }
 
 // Load the cluster information from KV store
