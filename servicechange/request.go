@@ -144,7 +144,7 @@ func (req RealRequest) IsScalingIn() bool {
 // Perform schedules the Request Steps() to be performed
 func (req RealRequest) Perform() {
 	req.logRequest()
-	req.logger().Info("cluster.request.perform", lager.Data{})
+	req.logger().Info("request.perform", lager.Data{})
 	for _, step := range req.Steps() {
 		step.Perform()
 	}
@@ -156,8 +156,7 @@ func (req RealRequest) logger() lager.Logger {
 
 // logRequest send the requested change to Cluster to logs
 func (req RealRequest) logRequest() {
-	req.logger().Info("cluster.request", lager.Data{
-		"instance-id":        req.Cluster.InstanceID,
+	req.logger().Info("request", lager.Data{
 		"current-node-count": req.Cluster.NodeCount,
 		"current-node-size":  req.Cluster.NodeSize,
 		"new-node-count":     req.NewNodeCount,

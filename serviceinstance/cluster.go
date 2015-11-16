@@ -26,16 +26,19 @@ type Cluster struct {
 }
 
 // NewCluster creates a RealCluster
-func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) *Cluster {
-	return &Cluster{
+func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+	cluster = &Cluster{
 		InstanceID:     instanceID,
 		ServiceDetails: details,
 		EtcdClient:     etcdClient,
 		Config:         config,
-		Logger: logger.Session("cluster", lager.Data{
-			"instance-id": instanceID,
-		}),
 	}
+	if logger != nil {
+		cluster.Logger = logger.Session("cluster", lager.Data{
+			"instance-id": instanceID,
+		})
+	}
+	return
 }
 
 // Exists returns true if cluster already exists
@@ -50,12 +53,13 @@ func (cluster *Cluster) Load() error {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
 	resp, err := cluster.EtcdClient.Get(key, false, true)
 	if err != nil {
-		cluster.Logger.Error("cluster.load", err)
+		cluster.Logger.Error("load.etcd-get", err)
 		return err
 	}
 	cluster.NodeCount = len(resp.Node.Nodes)
+	// TODO load current node size
 	cluster.NodeSize = 20
-	cluster.Logger.Info("cluster.load", lager.Data{
+	cluster.Logger.Info("load.state", lager.Data{
 		"node-count": cluster.NodeCount,
 		"node-size":  cluster.NodeSize,
 	})
@@ -64,31 +68,28 @@ func (cluster *Cluster) Load() error {
 
 // WaitForRoutingPortAllocation blocks until the routing tier has allocated a public port
 func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
-	logger := cluster.Logger
-
 	for index := 0; index < 10; index++ {
 		key := fmt.Sprintf("/routing/allocation/%s", cluster.InstanceID)
 		resp, err := cluster.EtcdClient.Get(key, false, false)
 		if err != nil {
-			logger.Debug("cluster.provision.routing", lager.Data{"polling": "allocated-port"})
+			cluster.Logger.Debug("provision.routing", lager.Data{"polling": "allocated-port"})
 		} else {
-			logger.Info("cluster.provision.routing", lager.Data{"allocated-port": resp.Node.Value})
+			cluster.Logger.Info("provision.routing", lager.Data{"allocated-port": resp.Node.Value})
 			return nil
 		}
 		time.Sleep(1 * time.Second)
 	}
-	logger.Error("cluster.provision.routing", err)
+	cluster.Logger.Error("provision.routing", err)
 	return err
 }
 
 // RandomReplicaNode should discover which nodes are replicas and return a random one
 // FIXME - currently just picking a random node - which might be the master
 func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, err error) {
-	logger := cluster.Logger
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
 	resp, err := cluster.EtcdClient.Get(key, false, true)
 	if err != nil {
-		logger.Error("cluster.random-replica-node.nodes", err)
+		cluster.Logger.Error("random-replica-node.nodes", err)
 		return
 	}
 	item := rand.Intn(len(resp.Node.Nodes))
@@ -100,7 +101,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 	key = fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.InstanceID, nodeUUID)
 	resp, err = cluster.EtcdClient.Get(key, false, false)
 	if err != nil {
-		logger.Error("cluster.random-replica-node.backend", err)
+		cluster.Logger.Error("random-replica-node.backend", err)
 		return
 	}
 	backend = resp.Node.Value
@@ -129,7 +130,6 @@ func (cluster *Cluster) AllAZs() (list []string) {
 
 // if any errors, assume that cluster has no running nodes yet
 func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
-	logger := cluster.Logger
 	resp, err := cluster.EtcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID), false, false)
 	if err != nil {
 		return
@@ -138,7 +138,7 @@ func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
 		nodeKey := clusterNode.Key
 		resp, err = cluster.EtcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
 		if err != nil {
-			logger.Error("cluster.az-used.backend", err)
+			cluster.Logger.Error("az-used.backend", err)
 			return
 		}
 		backendGUIDs = append(backendGUIDs, resp.Node.Value)

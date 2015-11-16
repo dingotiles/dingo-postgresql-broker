@@ -13,7 +13,7 @@ import (
 var _ = Describe("backend broker selection", func() {
 	etcdClient := backend.NewFakeEtcdClient()
 	cfg := &config.Config{}
-	var logger lager.Logger
+	logger := lager.NewLogger("tests")
 	clusterUUID := "uuid"
 	var cluster *serviceinstance.Cluster
 	var serviceDetails brokerapi.ProvisionDetails
