@@ -26,6 +26,7 @@ func NewStepAddNode(cluster *serviceinstance.Cluster) Step {
 	return AddNode{cluster: cluster}
 }
 
+// StepType prints the type of step
 func (step AddNode) StepType() string {
 	return "AddNode"
 }
@@ -55,6 +56,9 @@ func (step AddNode) Perform() (err error) {
 	fmt.Println(step.nodeUUID, provisionDetails)
 
 	backends := step.cluster.SortedBackendsByUnusedAZs()
+	logger.Info("add-node.perform.backends", lager.Data{
+		"backends": backends,
+	})
 
 	// 4. Send requests to backends until one says OK; else fail
 	var backend *config.Backend
