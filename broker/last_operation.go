@@ -21,12 +21,12 @@ func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperatio
 			Description: fmt.Sprintf("Cannot find service instance %s", instanceID),
 		}, err
 	}
-	clusterStatus, allRunning := cluster.MemberStatus()
+	clusterStatus, allRunning, err := cluster.MemberStatus()
 
 	state := brokerapi.LastOperationInProgress
 	if allRunning {
 		state = brokerapi.LastOperationSucceeded
 	}
 
-	return brokerapi.LastOperationResponse{State: state, Description: clusterStatus}, nil
+	return brokerapi.LastOperationResponse{State: state, Description: clusterStatus}, err
 }
