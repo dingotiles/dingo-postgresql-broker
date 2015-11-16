@@ -8,6 +8,7 @@ func NewStepReplaceMaster(newNodeSize int) Step {
 	return ReplaceMaster{NewNodeSize: newNodeSize}
 }
 
+// StepType prints the type of step
 func (step ReplaceMaster) StepType() string {
 	return "ReplaceMaster"
 }

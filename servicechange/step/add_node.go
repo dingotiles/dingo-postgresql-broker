@@ -116,14 +116,18 @@ func (step AddNode) requestNodeViaBackend(backend *config.Backend, provisionDeta
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(backend.Username, backend.Password)
-	debug(httputil.DumpRequestOut(req, true))
+	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+		debug(httputil.DumpRequestOut(req, true))
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("request-node.backend-provision-resp", err)
 		return err
 	}
-	debug(httputil.DumpResponse(resp, true))
+	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+		debug(httputil.DumpResponse(resp, true))
+	}
 	defer resp.Body.Close()
 
 	// FIXME: If resp.StatusCode not 200 or 201, then try next

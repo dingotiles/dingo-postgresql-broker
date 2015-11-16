@@ -20,9 +20,10 @@ type Config struct {
 
 // Broker connection configuration
 type Broker struct {
-	Port     int    `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Port                   int    `yaml:"port"`
+	Username               string `yaml:"username"`
+	Password               string `yaml:"password"`
+	DumpBackendHTTPTraffic bool   `yaml:"dump_backend_http_traffic"`
 }
 
 // Router advertising info

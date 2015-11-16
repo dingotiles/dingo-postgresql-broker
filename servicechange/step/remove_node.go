@@ -25,6 +25,7 @@ func NewStepRemoveNode(cluster *serviceinstance.Cluster) Step {
 	return RemoveNode{cluster: cluster}
 }
 
+// StepType prints the type of step
 func (step RemoveNode) StepType() string {
 	return "RemoveNode"
 }
@@ -96,14 +97,18 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(step.backend.Username, step.backend.Password)
-	debug(httputil.DumpRequestOut(req, true))
+	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+		debug(httputil.DumpRequestOut(req, true))
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("remove-node.backend.do", err)
 		return err
 	}
-	debug(httputil.DumpResponse(resp, true))
+	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+		debug(httputil.DumpResponse(resp, true))
+	}
 	defer resp.Body.Close()
 
 	return

@@ -11,6 +11,7 @@ func NewStepReplaceReplica(currentNodeSize int, newNodeSize int) Step {
 	return ReplaceReplica{CurrentNodeSize: currentNodeSize, NewNodeSize: newNodeSize}
 }
 
+// StepType prints the type of step
 func (step ReplaceReplica) StepType() string {
 	return "ReplaceReplica"
 }
