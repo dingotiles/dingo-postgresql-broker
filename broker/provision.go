@@ -30,5 +30,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 	clusterRequest.Perform()
 	cluster.WaitForRoutingPortAllocation()
-	return resp, false, nil
+
+	// non-async users will get OK straight away, though might be 5s or so before cluster is ready
+	return resp, acceptsIncomplete, nil
 }

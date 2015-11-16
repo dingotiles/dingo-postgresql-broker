@@ -7,15 +7,9 @@ import (
 	"path"
 
 	"github.com/cloudfoundry-community/patroni-broker/backend"
+	"github.com/cloudfoundry-community/patroni-broker/patroni"
 	"github.com/codegangsta/cli"
 )
-
-type patroniServiceMemberData struct {
-	ConnURL  string `json:"conn_url"`
-	HostPort string `json:"conn_address"`
-	Role     string `json:"role"`
-	State    string `json:"state"`
-}
 
 // ServiceStatus displays to the terminal the status of all service clusters
 func ServiceStatus(c *cli.Context) {
@@ -33,7 +27,7 @@ func ServiceStatus(c *cli.Context) {
 			membersKey := fmt.Sprintf("%s/members", serviceCluster.Key)
 			if serviceData.Key == membersKey {
 				for _, member := range serviceData.Nodes {
-					memberData := patroniServiceMemberData{}
+					memberData := patroni.ServiceMemberData{}
 					err := json.Unmarshal([]byte(member.Value), &memberData)
 					if err != nil {
 						log.Fatal(err)
