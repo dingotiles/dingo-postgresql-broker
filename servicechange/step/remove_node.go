@@ -25,6 +25,10 @@ func NewStepRemoveNode(cluster *serviceinstance.Cluster) Step {
 	return RemoveNode{cluster: cluster}
 }
 
+func (step RemoveNode) StepType() string {
+	return "RemoveNode"
+}
+
 // Perform runs the Step action to modify the Cluster
 func (step RemoveNode) Perform() (err error) {
 	logger := step.cluster.Logger

@@ -11,6 +11,10 @@ func NewStepReplaceReplica(currentNodeSize int, newNodeSize int) Step {
 	return ReplaceReplica{CurrentNodeSize: currentNodeSize, NewNodeSize: newNodeSize}
 }
 
+func (step ReplaceReplica) StepType() string {
+	return "ReplaceReplica"
+}
+
 // Perform runs the Step action to modify the Cluster
 func (step ReplaceReplica) Perform() error {
 	// logger.Info("add-step.perform", lager.Data{"implemented": false, "step": fmt.Sprintf("%#v", step)})

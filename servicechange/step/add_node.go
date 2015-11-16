@@ -26,6 +26,10 @@ func NewStepAddNode(cluster *serviceinstance.Cluster) Step {
 	return AddNode{cluster: cluster}
 }
 
+func (step AddNode) StepType() string {
+	return "AddNode"
+}
+
 // Perform runs the Step action to modify the Cluster
 func (step AddNode) Perform() (err error) {
 	step.nodeUUID = uuid.New()

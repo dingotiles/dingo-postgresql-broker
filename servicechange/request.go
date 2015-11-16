@@ -14,6 +14,9 @@ type Request interface {
 	// Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 	Steps() []step.Step
 
+	// StepTypes is the ordered sequence of workflow step types to orchestrate a service instance change
+	StepTypes() []string
+
 	// IsScalingUp is true if nodes will grow in size
 	IsScalingUp() bool
 
@@ -44,6 +47,16 @@ func NewRequest(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) Reque
 		NewNodeCount: nodeCount,
 		NewNodeSize:  nodeSize,
 	}
+}
+
+// StepTypes is the ordered sequence of workflow step types to orchestrate a service instance change
+func (req RealRequest) StepTypes() []string {
+	steps := req.Steps()
+	stepTypes := make([]string, len(steps))
+	for i, step := range steps {
+		stepTypes[i] = step.StepType()
+	}
+	return stepTypes
 }
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
@@ -130,7 +143,8 @@ func (req RealRequest) IsScalingIn() bool {
 
 // Perform schedules the Request Steps() to be performed
 func (req RealRequest) Perform() {
-	req.logger().Info("perform", lager.Data{"steps": len(req.Steps())})
+	req.logRequest()
+	req.logger().Info("cluster.request.perform", lager.Data{})
 	for _, step := range req.Steps() {
 		step.Perform()
 	}
@@ -138,4 +152,16 @@ func (req RealRequest) Perform() {
 
 func (req RealRequest) logger() lager.Logger {
 	return req.Cluster.Logger
+}
+
+// logRequest send the requested change to Cluster to logs
+func (req RealRequest) logRequest() {
+	req.logger().Info("cluster.request", lager.Data{
+		"instance-id":        req.Cluster.InstanceID,
+		"current-node-count": req.Cluster.NodeCount,
+		"current-node-size":  req.Cluster.NodeSize,
+		"new-node-count":     req.NewNodeCount,
+		"new-node-size":      req.NewNodeSize,
+		"steps":              req.StepTypes(),
+	})
 }
