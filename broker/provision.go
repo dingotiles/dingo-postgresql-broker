@@ -20,7 +20,8 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		rawNodeCount := details.Parameters["node-count"]
 		nodeCount = int(rawNodeCount.(float64))
 	} else {
-		nodeCount = int(cluster.NodeCount)
+		// 2-node default cluster
+		nodeCount = 2
 	}
 	if nodeCount < 1 {
 		return resp, false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
