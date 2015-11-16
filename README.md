@@ -144,29 +144,37 @@ curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc
 Playing
 -------
 
+Set `$BROKER_URI` to the API for your service broker.
+
+For the bosh-lite deployment it is:
+
+```
+export BROKER_URI=http://starkandwayne:starkandwayne@10.244.21.4:8888
+```
+
 To create a service instance use `-XPUT` to hit the `broker.Provision` behavior:
 
 ```
-id=b1; nodes=2; curl -v -XPUT ${BROKER}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
+id=b1; nodes=2; curl -v -XPUT ${BROKER_URI}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER_URI}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
 ```
 
 To update an existing service instance use `-XPATCH` to reach the `broker.Update` behavior:
 
 ```
-id=b1; nodes=4; curl -v -XPATCH ${BROKER}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
+id=b1; nodes=4; curl -v -XPATCH ${BROKER_URI}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER_URI}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
 ```
 
 To create a service instance to emulate asynchronous API, add `"accepts_incomplete": true`:
 
 ```
 export id=b2
-nodes=2; curl -v -XPUT ${BROKER}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
+nodes=2; curl -v -XPUT ${BROKER_URI}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
 ```
 
 Then poll for completion:
 
 ```
-watch curl -sf ${BROKER}/v2/service_instances/${id}/last_operation
+watch curl -sf ${BROKER_URI}/v2/service_instances/${id}/last_operation
 ```
 
 The output will progress thru:
@@ -180,7 +188,7 @@ The output will progress thru:
 For a 4-node cluster:
 
 ```
-id=b3; nodes=4; curl -v -XPUT ${BROKER}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; watch curl -sf ${BROKER}/v2/service_instances/${id}/last_operation
+id=b3; nodes=4; curl -v -XPUT ${BROKER_URI}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; watch curl -sf ${BROKER_URI}/v2/service_instances/${id}/last_operation
 ```
 
 The state sequence might look like:
