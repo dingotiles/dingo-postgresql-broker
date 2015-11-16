@@ -13,12 +13,17 @@ import (
 // WaitForAllRunning blocks until all cluster members have state "running"
 func (cluster *Cluster) WaitForAllRunning() (err error) {
 	waitTimeout := 120
-	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running", lager.Data{"waiting": waitTimeout})
+	waitTime := 0
+	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running.start", lager.Data{"waiting": waitTimeout})
 	allRunning := false
-	for countDown := waitTimeout; !allRunning && countDown > 0; countDown-- {
+	for ; !allRunning && waitTime > waitTimeout; waitTime++ {
 		_, allRunning, err = cluster.MemberStatus()
 		time.Sleep(1)
 	}
+	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running.finish", lager.Data{
+		"wait-time": waitTime,
+		"error":     err,
+	})
 	return err
 }
 

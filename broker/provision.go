@@ -30,7 +30,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 	clusterRequest.Perform()
 	cluster.WaitForRoutingPortAllocation()
-	err = cluster.WaitForAllRunning()
 
+	err = cluster.WaitForAllRunning()
 	return resp, false, err
 }
