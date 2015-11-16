@@ -8,10 +8,8 @@ import (
 )
 
 // LastOperation returns the status of the last operation on a service instance
-// brokerapi:
-// const LastOperationInProgress = "in progress"
-// const LastOperationFailed = "failed"
-// const LastOperationSucceeded = "succeeded"
+// This should not currently be called as Provision() blocks until cluster is running
+// CLEANUP: can remove code in future.
 func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperationResponse, err error) {
 	cluster := serviceinstance.NewCluster(instanceID, brokerapi.ProvisionDetails{}, bkr.EtcdClient, bkr.Config, bkr.Logger)
 	err = cluster.Load()

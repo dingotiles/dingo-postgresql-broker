@@ -16,7 +16,7 @@ func (cluster *Cluster) WaitForAllRunning() (err error) {
 	waitTime := 0
 	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running.start", lager.Data{"waiting": waitTimeout})
 	allRunning := false
-	for ; !allRunning && waitTime > waitTimeout; waitTime++ {
+	for ; !allRunning && waitTime < waitTimeout; waitTime++ {
 		_, allRunning, err = cluster.MemberStatus()
 		time.Sleep(1)
 	}
