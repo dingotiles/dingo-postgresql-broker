@@ -140,3 +140,18 @@ curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc
   "createdIndex": 39064
 }
 ```
+
+Playing
+-------
+
+To create a service instance use `-XPUT` to hit the `broker.Provision` behavior:
+
+```
+id=b1; nodes=2; curl -v -XPUT ${BROKER}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
+```
+
+To update an existing service instance use `-XPATCH` to reach the `broker.Update` behavior:
+
+```
+id=b1; nodes=4; curl -v -XPATCH ${BROKER}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"; curl -v "${BROKER}/v2/service_instances/$id/service_bindings/test" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
+```
