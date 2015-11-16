@@ -7,11 +7,13 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-community/patroni-broker/patroni"
+	"github.com/pivotal-golang/lager"
 )
 
 // WaitForAllRunning blocks until all cluster members have state "running"
 func (cluster *Cluster) WaitForAllRunning() (err error) {
 	waitTimeout := 120
+	cluster.Logger.Debug("cluster.member-status.waiting-for-all-running", lager.Data{"waiting": waitTimeout})
 	allRunning := false
 	for countDown := waitTimeout; !allRunning && countDown > 0; countDown-- {
 		_, allRunning, err = cluster.MemberStatus()
