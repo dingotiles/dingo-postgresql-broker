@@ -1,6 +1,8 @@
 package broker
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-community/patroni-broker/servicechange"
 	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
@@ -21,12 +23,14 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	}
 
 	var nodeCount int
-
 	if details.Parameters["node-count"] != nil {
 		rawNodeCount := details.Parameters["node-count"]
 		nodeCount = int(rawNodeCount.(float64))
 	} else {
 		nodeCount = int(cluster.NodeCount)
+	}
+	if nodeCount < 1 {
+		return false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
 	}
 	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), 20)
 	clusterRequest.Perform()
