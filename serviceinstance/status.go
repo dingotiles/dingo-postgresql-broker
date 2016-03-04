@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry-community/patroni-broker/patroni"
+	"github.com/dingotiles/patroni-broker/patroni"
 	"github.com/pivotal-golang/lager"
 )
 

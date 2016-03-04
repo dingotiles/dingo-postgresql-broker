@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cloudfoundry-community/patroni-broker/backend"
-	"github.com/cloudfoundry-community/patroni-broker/config"
+	"github.com/dingotiles/patroni-broker/backend"
+	"github.com/dingotiles/patroni-broker/config"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )

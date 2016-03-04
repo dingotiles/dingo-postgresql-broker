@@ -1,8 +1,8 @@
 package clicmd
 
 import (
-	"github.com/cloudfoundry-community/patroni-broker/backend"
-	"github.com/cloudfoundry-community/patroni-broker/broker"
+	"github.com/dingotiles/patroni-broker/backend"
+	"github.com/dingotiles/patroni-broker/broker"
 	"github.com/codegangsta/cli"
 )
 

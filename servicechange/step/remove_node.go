@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/cloudfoundry-community/patroni-broker/config"
-	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+	"github.com/dingotiles/patroni-broker/config"
+	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )

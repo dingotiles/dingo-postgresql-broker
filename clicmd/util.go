@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cloudfoundry-community/patroni-broker/config"
+	"github.com/dingotiles/patroni-broker/config"
 )
 
 func loadConfig(configPath string) (cfg *config.Config) {

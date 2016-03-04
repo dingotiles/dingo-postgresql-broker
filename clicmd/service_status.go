@@ -6,8 +6,8 @@ import (
 	"log"
 	"path"
 
-	"github.com/cloudfoundry-community/patroni-broker/backend"
-	"github.com/cloudfoundry-community/patroni-broker/patroni"
+	"github.com/dingotiles/patroni-broker/backend"
+	"github.com/dingotiles/patroni-broker/patroni"
 	"github.com/codegangsta/cli"
 )
 

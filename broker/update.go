@@ -3,8 +3,8 @@ package broker
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-community/patroni-broker/servicechange"
-	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+	"github.com/dingotiles/patroni-broker/servicechange"
+	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 )
 

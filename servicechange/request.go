@@ -1,8 +1,8 @@
 package servicechange
 
 import (
-	"github.com/cloudfoundry-community/patroni-broker/servicechange/step"
-	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+	"github.com/dingotiles/patroni-broker/servicechange/step"
+	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/pivotal-golang/lager"
 )
 

@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/cloudfoundry-community/patroni-broker",
+	"ImportPath": "github.com/dingotiles/patroni-broker",
 	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."

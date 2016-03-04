@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/cloudfoundry-community/patroni-broker/clicmd"
+	"github.com/dingotiles/patroni-broker/clicmd"
 	"github.com/codegangsta/cli"
 )
 

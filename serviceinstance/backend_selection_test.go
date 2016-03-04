@@ -3,9 +3,9 @@ package serviceinstance_test
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-community/patroni-broker/backend"
-	"github.com/cloudfoundry-community/patroni-broker/config"
-	"github.com/cloudfoundry-community/patroni-broker/serviceinstance"
+	"github.com/dingotiles/patroni-broker/backend"
+	"github.com/dingotiles/patroni-broker/config"
+	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
