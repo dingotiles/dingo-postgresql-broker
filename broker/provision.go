@@ -15,18 +15,17 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	var nodeCount int
+	// 1-node default cluster
+	nodeCount := 1
+	nodeSize := 20 // meaningless at moment
 	if details.Parameters["node-count"] != nil {
 		rawNodeCount := details.Parameters["node-count"]
 		nodeCount = int(rawNodeCount.(float64))
-	} else {
-		// 2-node default cluster
-		nodeCount = 2
 	}
 	if nodeCount < 1 {
 		return resp, false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
 	}
-	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), 20)
+	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), nodeSize)
 
 	clusterRequest.Perform()
 	cluster.WaitForRoutingPortAllocation()
