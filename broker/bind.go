@@ -8,6 +8,21 @@ import (
 	"github.com/frodenas/brokerapi"
 )
 
+// CredentialsHash represents the set of binding credentials returned
+type CredentialsHash struct {
+	Host              string `json:"host,omitempty"`
+	Port              int64  `json:"port,omitempty"`
+	Name              string `json:"name,omitempty"`
+	Username          string `json:"username,omitempty"`
+	Password          string `json:"password,omitempty"`
+	URI               string `json:"uri,omitempty"`
+	JDBCURI           string `json:"jdbcUrl,omitempty"`
+	SuperuserUsername string `json:"superuser_username,omitempty"`
+	SuperuserPassword string `json:"superuser_password,omitempty"`
+	SuperuserURI      string `json:"superuser_uri,omitempty"`
+	SuperuserJDBCURI  string `json:"superuser_jdbcUrl,omitempty"`
+}
+
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
 	cluster := serviceinstance.NewCluster(instanceID, brokerapi.ProvisionDetails{}, bkr.EtcdClient, bkr.Config, bkr.Logger)
@@ -25,18 +40,26 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 	}
 
 	routerHost := bkr.Config.Router.Hostname
-	username := "replicator"
-	password := "replicator"
-	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", username, password, routerHost, publicPort)
-	jdbc := fmt.Sprintf("jdbc:postgresql://%s:%d/postgres?username=%s&password=%s", routerHost, publicPort, username, password)
+	appUsername := "replicator"
+	appPassword := "replicator"
+	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", appUsername, appPassword, routerHost, publicPort)
+	jdbc := fmt.Sprintf("jdbc:postgresql://%s:%d/postgres?username=%s&password=%s", routerHost, publicPort, appUsername, appPassword)
+	superuserUsername := "postgres"
+	superuserPassword := "starkandwayne"
+	superuserURI := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", superuserUsername, superuserPassword, routerHost, publicPort)
+	superuserJDBCURI := fmt.Sprintf("jdbc:postgresql://%s:%d/postgres?username=%s&password=%s", routerHost, publicPort, superuserUsername, superuserPassword)
 	return brokerapi.BindingResponse{
-		Credentials: brokerapi.CredentialsHash{
-			Host:     routerHost,
-			Port:     publicPort,
-			Username: username,
-			Password: password,
-			URI:      uri,
-			JDBCURI:  jdbc,
+		Credentials: CredentialsHash{
+			Host:              routerHost,
+			Port:              publicPort,
+			Username:          appUsername,
+			Password:          appPassword,
+			URI:               uri,
+			JDBCURI:           jdbc,
+			SuperuserUsername: superuserUsername,
+			SuperuserPassword: superuserPassword,
+			SuperuserURI:      superuserURI,
+			SuperuserJDBCURI:  superuserJDBCURI,
 		},
 	}, nil
 }
