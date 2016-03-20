@@ -36,6 +36,8 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 	if logger != nil {
 		cluster.Logger = logger.Session("cluster", lager.Data{
 			"instance-id": instanceID,
+			"service-id":  details.ServiceID,
+			"plan-id":     details.PlanID,
 		})
 	}
 	return

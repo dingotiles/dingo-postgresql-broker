@@ -6,11 +6,16 @@ import (
 	"github.com/dingotiles/patroni-broker/servicechange"
 	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
+	"github.com/pivotal-golang/lager"
 )
 
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
+
+	logger := cluster.Logger
+	logger.Info("provision.start", lager.Data{})
+
 	if cluster.Exists() {
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
@@ -23,6 +28,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		nodeCount = int(rawNodeCount.(float64))
 	}
 	if nodeCount < 1 {
+		logger.Info("provision.start.node-count-too-low", lager.Data{"node-count": nodeCount})
 		nodeCount = 1
 	}
 	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), nodeSize)
@@ -31,5 +37,11 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	cluster.WaitForRoutingPortAllocation()
 
 	err = cluster.WaitForAllRunning()
+
+	if err != nil {
+		logger.Info("provision.end.with-error", lager.Data{"err": err})
+	} else {
+		logger.Info("provision.end.no-error", lager.Data{})
+	}
 	return resp, false, err
 }
