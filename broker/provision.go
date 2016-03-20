@@ -23,7 +23,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		nodeCount = int(rawNodeCount.(float64))
 	}
 	if nodeCount < 1 {
-		return resp, false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
+		nodeCount = 1
 	}
 	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), nodeSize)
 
