@@ -65,7 +65,7 @@ func (step AddNode) Perform() (err error) {
 	for _, backend = range backends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
 		if err == nil {
-			logger.Error("add-node.perform.backend.selected", err, lager.Data{
+			logger.Error("add-node.perform.backends.selected", err, lager.Data{
 				"backend-uri":  backend.URI,
 				"backend-guid": backend.GUID,
 			})
