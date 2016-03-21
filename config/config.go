@@ -11,11 +11,12 @@ import (
 
 // Config is the brokers configuration
 type Config struct {
-	Broker   Broker                    `yaml:"broker"`
-	Router   Router                    `yaml:"router"`
-	Backends []*Backend                `yaml:"backends"`
-	KVStore  KVStore                   `yaml:"kvstore"`
-	Catalog  brokerapi.CatalogResponse `yaml:"catalog"`
+	Broker    Broker                    `yaml:"broker"`
+	Router    Router                    `yaml:"router"`
+	Backends  []*Backend                `yaml:"backends"`
+	KVStore   KVStore                   `yaml:"kvstore"`
+	Callbacks Callbacks                 `yaml:"callbacks"`
+	Catalog   brokerapi.CatalogResponse `yaml:"catalog"`
 }
 
 // Broker connection configuration
@@ -47,6 +48,17 @@ type KVStore struct {
 	Machines []string `yaml:"machines"`
 	Username string
 	Password string
+}
+
+// Callbacks allows plug'n'play scripts to be run when events have completed
+type Callbacks struct {
+	ProvisionSuccess *CallbackCommand `yaml:"provision_success"`
+}
+
+// CallbackCommand describes a command that can be run via os/exec's Command
+type CallbackCommand struct {
+	Command   string   `yaml:"cmd"`
+	Arguments []string `yaml:"args"`
 }
 
 // Catalog describes the services being advertised to Cloud Foundry users
