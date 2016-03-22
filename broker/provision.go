@@ -107,6 +107,7 @@ func (bkr *Broker) triggerProvisionSuccessCallback(cluster *serviceinstance.Clus
 	err = cmd.Wait()
 	if err != nil {
 		logger.Error("provision.success.callback.cmd", err)
+		return
 	}
-
+	logger.Info("provision.success.callback.done")
 }
