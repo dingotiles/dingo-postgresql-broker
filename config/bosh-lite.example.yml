@@ -24,7 +24,7 @@ kvstore:
   password: ""
 
 callbacks:
-  provision_success: {cmd: jq, args: ["-r", "."]}
+  clusterdata_backup: {cmd: jq, args: ["-r", "."]}
 
 catalog:
   services:

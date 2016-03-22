@@ -48,15 +48,15 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Info("provision.end.with-error", lager.Data{"err": err})
 	} else {
 		logger.Info("provision.end.success", lager.Data{"cluster": cluster.ClusterData()})
-		bkr.triggerProvisionSuccessCallback(cluster)
+		bkr.triggerClusterDataBackup(cluster)
 	}
 	return resp, false, err
 }
 
-func (bkr *Broker) triggerProvisionSuccessCallback(cluster *serviceinstance.Cluster) {
+func (bkr *Broker) triggerClusterDataBackup(cluster *serviceinstance.Cluster) {
 	logger := cluster.Logger
-	provisionCallback := bkr.Config.Callbacks.ProvisionSuccess
-	if provisionCallback == nil {
+	callback := bkr.Config.Callbacks.ClusterDataBackup
+	if callback == nil {
 		logger.Info("provision.success.callback.noop")
 		return
 	}
@@ -67,7 +67,7 @@ func (bkr *Broker) triggerProvisionSuccessCallback(cluster *serviceinstance.Clus
 		return
 	}
 
-	cmd := exec.Command(provisionCallback.Command, provisionCallback.Arguments...)
+	cmd := exec.Command(callback.Command, callback.Arguments...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		logger.Error("provision.success.callback.stdin-pipe", err)

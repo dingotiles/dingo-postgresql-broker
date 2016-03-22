@@ -52,7 +52,7 @@ type KVStore struct {
 
 // Callbacks allows plug'n'play scripts to be run when events have completed
 type Callbacks struct {
-	ProvisionSuccess *CallbackCommand `yaml:"provision_success"`
+	ClusterDataBackup *CallbackCommand `yaml:"clusterdata_backup"`
 }
 
 // CallbackCommand describes a command that can be run via os/exec's Command
