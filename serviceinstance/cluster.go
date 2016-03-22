@@ -16,22 +16,29 @@ import (
 
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
-	Config         *config.Config
-	EtcdClient     backend.EtcdClient
-	Logger         lager.Logger
-	InstanceID     string
-	NodeCount      int
-	NodeSize       int
-	ServiceDetails brokerapi.ProvisionDetails
+	Config           *config.Config
+	EtcdClient       backend.EtcdClient
+	Logger           lager.Logger
+	InstanceID       string
+	OrganizationGUID string
+	PlanID           string
+	ServiceID        string
+	SpaceGUID        string
+	Parameters       map[string]interface{}
+	NodeCount        int
+	NodeSize         int
 }
 
 // NewCluster creates a RealCluster
 func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
-		InstanceID:     instanceID,
-		ServiceDetails: details,
-		EtcdClient:     etcdClient,
-		Config:         config,
+		InstanceID:       instanceID,
+		OrganizationGUID: details.OrganizationGUID,
+		PlanID:           details.PlanID,
+		ServiceID:        details.ServiceID,
+		SpaceGUID:        details.SpaceGUID,
+		EtcdClient:       etcdClient,
+		Config:           config,
 	}
 	if logger != nil {
 		cluster.Logger = logger.Session("cluster", lager.Data{

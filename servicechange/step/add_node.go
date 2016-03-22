@@ -40,17 +40,17 @@ func (step AddNode) Perform() (err error) {
 
 	// 1. Generate UUID for node to be created
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
-	params := step.cluster.ServiceDetails.Parameters
+	params := step.cluster.Parameters
 	if params == nil {
 		params = map[string]interface{}{}
 	}
 	params["PATRONI_SCOPE"] = step.cluster.InstanceID
 	params["NODE_NAME"] = step.nodeUUID
 	provisionDetails := brokerapi.ProvisionDetails{
-		OrganizationGUID: step.cluster.ServiceDetails.OrganizationGUID,
-		PlanID:           step.cluster.ServiceDetails.PlanID,
-		ServiceID:        step.cluster.ServiceDetails.ServiceID,
-		SpaceGUID:        step.cluster.ServiceDetails.SpaceGUID,
+		OrganizationGUID: step.cluster.OrganizationGUID,
+		PlanID:           step.cluster.PlanID,
+		ServiceID:        step.cluster.ServiceID,
+		SpaceGUID:        step.cluster.SpaceGUID,
 		Parameters:       params,
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)

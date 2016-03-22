@@ -1,9 +1,11 @@
 package step
 
+// ReplaceMaster describes the new master
 type ReplaceMaster struct {
 	NewNodeSize int
 }
 
+// NewStepReplaceMaster prepares to change the service by replacing/upgrading the leader/master
 func NewStepReplaceMaster(newNodeSize int) Step {
 	return ReplaceMaster{NewNodeSize: newNodeSize}
 }

@@ -82,8 +82,8 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 	buffer := &bytes.Buffer{}
 
 	deleteDetails := brokerapi.DeprovisionDetails{
-		PlanID:    step.cluster.ServiceDetails.PlanID,
-		ServiceID: step.cluster.ServiceDetails.ServiceID,
+		PlanID:    step.cluster.PlanID,
+		ServiceID: step.cluster.ServiceID,
 	}
 
 	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {
