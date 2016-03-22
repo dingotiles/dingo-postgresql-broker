@@ -41,7 +41,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	if err != nil {
 		logger.Info("provision.end.with-error", lager.Data{"err": err})
 	} else {
-		logger.Info("provision.end.no-error", lager.Data{"cluster": cluster.ClusterData()})
+		logger.Info("provision.end.success", lager.Data{"cluster": cluster.ClusterData()})
 		// provisionCallback := bkr.Config.Callbacks.ProvisionSuccess
 		// if provisionCallback != nil {
 		// 	logger.Info("callbacks.provision.running", lager.Data{"command": provisionCallback})
