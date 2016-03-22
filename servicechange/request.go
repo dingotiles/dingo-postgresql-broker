@@ -61,8 +61,8 @@ func (req RealRequest) StepTypes() []string {
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req RealRequest) Steps() []step.Step {
-	existingNodeCount := req.Cluster.NodeCount
-	existingNodeSize := req.Cluster.NodeSize
+	existingNodeCount := req.Cluster.Data.NodeCount
+	existingNodeSize := req.Cluster.Data.NodeSize
 	steps := []step.Step{}
 	if req.NewNodeCount == 0 {
 		for i := existingNodeCount; i > req.NewNodeCount; i-- {
@@ -118,27 +118,27 @@ func (req RealRequest) Steps() []step.Step {
 
 // IsInitialProvision is true if this Request is to create the initial cluster
 func (req RealRequest) IsInitialProvision() bool {
-	return req.Cluster.NodeCount == 0
+	return req.Cluster.Data.NodeCount == 0
 }
 
 // IsScalingUp is true if smaller nodes requested
 func (req RealRequest) IsScalingUp() bool {
-	return req.NewNodeSize != 0 && req.Cluster.NodeSize < req.NewNodeSize
+	return req.NewNodeSize != 0 && req.Cluster.Data.NodeSize < req.NewNodeSize
 }
 
 // IsScalingDown is true if bigger nodes requested
 func (req RealRequest) IsScalingDown() bool {
-	return req.NewNodeSize != 0 && req.Cluster.NodeSize > req.NewNodeSize
+	return req.NewNodeSize != 0 && req.Cluster.Data.NodeSize > req.NewNodeSize
 }
 
 // IsScalingOut is true if more nodes requested
 func (req RealRequest) IsScalingOut() bool {
-	return req.NewNodeCount != 0 && req.Cluster.NodeCount < req.NewNodeCount
+	return req.NewNodeCount != 0 && req.Cluster.Data.NodeCount < req.NewNodeCount
 }
 
 // IsScalingIn is true if fewer nodes requested
 func (req RealRequest) IsScalingIn() bool {
-	return req.NewNodeCount != 0 && req.Cluster.NodeCount > req.NewNodeCount
+	return req.NewNodeCount != 0 && req.Cluster.Data.NodeCount > req.NewNodeCount
 }
 
 // Perform schedules the Request Steps() to be performed
@@ -157,8 +157,8 @@ func (req RealRequest) logger() lager.Logger {
 // logRequest send the requested change to Cluster to logs
 func (req RealRequest) logRequest() {
 	req.logger().Info("request", lager.Data{
-		"current-node-count": req.Cluster.NodeCount,
-		"current-node-size":  req.Cluster.NodeSize,
+		"current-node-count": req.Cluster.Data.NodeCount,
+		"current-node-size":  req.Cluster.Data.NodeSize,
 		"new-node-count":     req.NewNodeCount,
 		"new-node-size":      req.NewNodeSize,
 		"steps":              req.StepTypes(),

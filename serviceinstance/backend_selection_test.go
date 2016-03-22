@@ -22,17 +22,17 @@ func setupCluster(cluster *serviceinstance.Cluster, existingBackendGUIDs []strin
 
 	nodes := make(etcd.Nodes, len(existingBackendGUIDs))
 	for i, backendGUID := range existingBackendGUIDs {
-		key := fmt.Sprintf("/serviceinstances/%s/nodes/instance-%d/backend", cluster.InstanceID, i)
+		key := fmt.Sprintf("/serviceinstances/%s/nodes/instance-%d/backend", cluster.Data.InstanceID, i)
 		etcdClient.GetResponses[key] = &etcd.Response{
 			Node: &etcd.Node{
 				Key:   key,
 				Value: backendGUID,
 			},
 		}
-		nodes[i] = &etcd.Node{Key: fmt.Sprintf("/serviceinstances/%s/nodes/instance-%d", cluster.InstanceID, i)}
+		nodes[i] = &etcd.Node{Key: fmt.Sprintf("/serviceinstances/%s/nodes/instance-%d", cluster.Data.InstanceID, i)}
 	}
 
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.InstanceID)
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
 	etcdClient.GetResponses[key] = &etcd.Response{
 		Node: &etcd.Node{Key: key, Nodes: nodes},
 	}

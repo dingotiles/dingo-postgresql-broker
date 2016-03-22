@@ -55,7 +55,7 @@ func (step RemoveNode) Perform() (err error) {
 	}
 
 	logger.Info("remove-node.perform", lager.Data{
-		"instance-id": step.cluster.InstanceID,
+		"instance-id": step.cluster.Data.InstanceID,
 		"node-uuid":   step.nodeUUID,
 		"backend":     step.backend.GUID,
 	})
@@ -65,7 +65,7 @@ func (step RemoveNode) Perform() (err error) {
 		return nil
 	}
 
-	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", step.cluster.InstanceID, step.nodeUUID)
+	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", step.cluster.Data.InstanceID, step.nodeUUID)
 	_, err = step.cluster.EtcdClient.Delete(key, true)
 	if err != nil {
 		logger.Error("remove-node.nodes-delete", err)
@@ -82,8 +82,8 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 	buffer := &bytes.Buffer{}
 
 	deleteDetails := brokerapi.DeprovisionDetails{
-		PlanID:    step.cluster.PlanID,
-		ServiceID: step.cluster.ServiceID,
+		PlanID:    step.cluster.Data.PlanID,
+		ServiceID: step.cluster.Data.ServiceID,
 	}
 
 	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {

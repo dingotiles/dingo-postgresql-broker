@@ -2,7 +2,6 @@ package broker
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/dingotiles/patroni-broker/servicechange"
 	"github.com/dingotiles/patroni-broker/serviceinstance"
@@ -42,17 +41,17 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	if err != nil {
 		logger.Info("provision.end.with-error", lager.Data{"err": err})
 	} else {
-		logger.Info("provision.end.no-error", lager.Data{})
-		provisionCallback := bkr.Config.Callbacks.ProvisionSuccess
-		if provisionCallback != nil {
-			logger.Info("callbacks.provision.running", lager.Data{"command": provisionCallback})
-			out, err := exec.Command(provisionCallback.Command, provisionCallback.Arguments...).CombinedOutput()
-			if err != nil {
-				logger.Error("callbacks.provision.error", err)
-			} else {
-				logger.Info("callbacks.provision.success", lager.Data{"output": out})
-			}
-		}
+		logger.Info("provision.end.no-error", lager.Data{"cluster": cluster.ClusterData()})
+		// provisionCallback := bkr.Config.Callbacks.ProvisionSuccess
+		// if provisionCallback != nil {
+		// 	logger.Info("callbacks.provision.running", lager.Data{"command": provisionCallback})
+		// 	out, err := exec.Command(provisionCallback.Command, provisionCallback.Arguments...).CombinedOutput()
+		// 	if err != nil {
+		// 		logger.Error("callbacks.provision.error", err)
+		// 	} else {
+		// 		logger.Info("callbacks.provision.success", lager.Data{"output": out})
+		// 	}
+		// }
 	}
 	return resp, false, err
 }
