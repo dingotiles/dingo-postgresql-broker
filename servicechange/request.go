@@ -30,7 +30,7 @@ type Request interface {
 	IsScalingIn() bool
 
 	// Perform schedules the Request Steps() to be performed
-	Perform()
+	Perform() error
 }
 
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
@@ -142,12 +142,16 @@ func (req RealRequest) IsScalingIn() bool {
 }
 
 // Perform schedules the Request Steps() to be performed
-func (req RealRequest) Perform() {
+func (req RealRequest) Perform() (err error) {
 	req.logRequest()
 	req.logger().Info("request.perform", lager.Data{})
 	for _, step := range req.Steps() {
-		step.Perform()
+		err = step.Perform()
+		if err != nil {
+			return
+		}
 	}
+	return
 }
 
 func (req RealRequest) logger() lager.Logger {

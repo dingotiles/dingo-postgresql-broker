@@ -39,15 +39,22 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	}
 	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), nodeSize)
 
-	clusterRequest.Perform()
-	cluster.WaitForRoutingPortAllocation()
+	err = clusterRequest.Perform()
+	if err != nil {
+		logger.Error("provision.perform.error", err)
+		return resp, false, err
+	}
 
 	err = cluster.WaitForAllRunning()
+	if err == nil {
+		// if cluster is running, then wait until routing port operational
+		err = cluster.WaitForRoutingPortAllocation()
+	}
 
 	if err != nil {
-		logger.Info("provision.end.with-error", lager.Data{"err": err})
+		logger.Error("provision.running.error", err)
 	} else {
-		logger.Info("provision.end.success", lager.Data{"cluster": cluster.ClusterData()})
+		logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
 		bkr.triggerClusterDataBackup(cluster)
 	}
 	return resp, false, err
