@@ -34,23 +34,17 @@ callbacks:
 catalog:
   services:
     - id: '0f5c1670-6dc3-11e5-bc08-6c4008a663f0'
-      name: 'postgresql94'
-      description: 'PostgreSQL 9.4 service for application development and testing'
+      name: postgresql95
+      description: 'PostgreSQL 9.5 service for application development and testing'
       bindable: true
       planupdateable: true
-      tags:
-        - 'postgresql94'
-        - 'postgresql'
-        - 'syslog'
+      tags: [postgresql95 postgresq]
       metadata:
-        displayName: 'postgresql 9.4'
-        longDescription: 'High-availablity cluster of PostgreSQL 9.4 running across multiple servers/availability zones'
-        providerDisplayName: 'Stark & Wayne LLC'
-        documentationUrl: 'https://github.com/cloudfoundry-community/patroni-boshrelease'
-        supportUrl: 'https://github.com/cloudfoundry-community/patroni-boshrelease/issues'
+        displayName: 'postgresql 9.5'
+        longDescription: 'High-availablity cluster of PostgreSQL 9.5 running across multiple servers/availability zones'
+        providerDisplayName: 'Dingo Tiles'
       plans:
         - id: '1545e30e-6dc3-11e5-826a-6c4008a663f0'
           name: 'cluster'
           description: 'High-availablity cluster of PostgreSQL'
-          metadata:
-            displayName: 'Clustered'
+          metadata: {displayName: 'Clustered'}
