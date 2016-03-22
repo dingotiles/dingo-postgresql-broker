@@ -46,6 +46,7 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 			PlanID:           details.PlanID,
 			ServiceID:        details.ServiceID,
 			SpaceGUID:        details.SpaceGUID,
+			Parameters:       details.Parameters,
 		},
 	}
 	if logger != nil {
