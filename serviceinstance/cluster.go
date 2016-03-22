@@ -32,6 +32,7 @@ type ClusterData struct {
 	Parameters       map[string]interface{} `json:"parameters"`
 	NodeCount        int                    `json:"node_count"`
 	NodeSize         int                    `json:"node_size"`
+	AllocatedPort    string                 `json:"allocated-port"`
 }
 
 // NewCluster creates a RealCluster
@@ -95,7 +96,8 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		if err != nil {
 			cluster.Logger.Debug("provision.routing", lager.Data{"polling": "allocated-port"})
 		} else {
-			cluster.Logger.Info("provision.routing", lager.Data{"allocated-port": resp.Node.Value})
+			cluster.Data.AllocatedPort = resp.Node.Value
+			cluster.Logger.Info("provision.routing", lager.Data{"allocated-port": cluster.Data.AllocatedPort})
 			return nil
 		}
 		time.Sleep(1 * time.Second)
