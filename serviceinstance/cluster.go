@@ -32,7 +32,7 @@ type ClusterData struct {
 	Parameters       map[string]interface{} `json:"parameters"`
 	NodeCount        int                    `json:"node_count"`
 	NodeSize         int                    `json:"node_size"`
-	AllocatedPort    string                 `json:"allocated-port"`
+	AllocatedPort    string                 `json:"allocated_port"`
 }
 
 // NewCluster creates a RealCluster
@@ -95,10 +95,10 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
 		resp, err := cluster.EtcdClient.Get(key, false, false)
 		if err != nil {
-			cluster.Logger.Debug("provision.routing", lager.Data{"polling": "allocated-port"})
+			cluster.Logger.Debug("provision.routing", lager.Data{"polling": "allocated_port"})
 		} else {
 			cluster.Data.AllocatedPort = resp.Node.Value
-			cluster.Logger.Info("provision.routing", lager.Data{"allocated-port": cluster.Data.AllocatedPort})
+			cluster.Logger.Info("provision.routing", lager.Data{"allocated_port": cluster.Data.AllocatedPort})
 			return nil
 		}
 		time.Sleep(1 * time.Second)

@@ -27,7 +27,7 @@ The incoming STDIN JSON looks like:
   },
   "node_count": 1,
   "node_size": 20,
-  "allocated-port": "33004"
+  "allocated_port": "33004"
 }
 ```
 
