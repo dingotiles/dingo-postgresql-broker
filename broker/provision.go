@@ -78,13 +78,18 @@ func (bkr *Broker) triggerProvisionSuccessCallback(cluster *serviceinstance.Clus
 		logger.Error("provision.success.callback.stdout-pipe", err)
 		return
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		logger.Error("provision.success.callback.stderr-pipe", err)
+		return
+	}
 	err = cmd.Start()
 	if err != nil {
 		logger.Error("provision.success.callback.start", err)
 		return
 	}
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		defer stdin.Close()
@@ -93,6 +98,10 @@ func (bkr *Broker) triggerProvisionSuccessCallback(cluster *serviceinstance.Clus
 	go func() {
 		defer wg.Done()
 		io.Copy(os.Stdout, stdout)
+	}()
+	go func() {
+		defer wg.Done()
+		io.Copy(os.Stderr, stderr)
 	}()
 	wg.Wait()
 	err = cmd.Wait()
