@@ -1,7 +1,13 @@
 package broker
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"sync"
 
 	"github.com/dingotiles/patroni-broker/servicechange"
 	"github.com/dingotiles/patroni-broker/serviceinstance"
@@ -42,16 +48,56 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Info("provision.end.with-error", lager.Data{"err": err})
 	} else {
 		logger.Info("provision.end.success", lager.Data{"cluster": cluster.ClusterData()})
-		// provisionCallback := bkr.Config.Callbacks.ProvisionSuccess
-		// if provisionCallback != nil {
-		// 	logger.Info("callbacks.provision.running", lager.Data{"command": provisionCallback})
-		// 	out, err := exec.Command(provisionCallback.Command, provisionCallback.Arguments...).CombinedOutput()
-		// 	if err != nil {
-		// 		logger.Error("callbacks.provision.error", err)
-		// 	} else {
-		// 		logger.Info("callbacks.provision.success", lager.Data{"output": out})
-		// 	}
-		// }
+		bkr.triggerProvisionSuccessCallback(cluster)
 	}
 	return resp, false, err
+}
+
+func (bkr *Broker) triggerProvisionSuccessCallback(cluster *serviceinstance.Cluster) {
+	logger := cluster.Logger
+	provisionCallback := bkr.Config.Callbacks.ProvisionSuccess
+	if provisionCallback == nil {
+		logger.Info("provision.success.callback.noop")
+		return
+	}
+
+	data, err := json.Marshal(cluster.ClusterData())
+	if err != nil {
+		logger.Error("provision.success.callback.data-marshal", err)
+		return
+	}
+
+	cmd := exec.Command(provisionCallback.Command, provisionCallback.Arguments...)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		logger.Error("provision.success.callback.stdin-pipe", err)
+		return
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		logger.Error("provision.success.callback.stdout-pipe", err)
+		return
+	}
+	err = cmd.Start()
+	if err != nil {
+		logger.Error("provision.success.callback.start", err)
+		return
+	}
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		defer stdin.Close()
+		io.Copy(stdin, bytes.NewBufferString(string(data)))
+	}()
+	go func() {
+		defer wg.Done()
+		io.Copy(os.Stdout, stdout)
+	}()
+	wg.Wait()
+	err = cmd.Wait()
+	if err != nil {
+		logger.Error("provision.success.callback.cmd", err)
+	}
+
 }

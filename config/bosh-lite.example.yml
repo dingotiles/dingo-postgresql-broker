@@ -24,7 +24,7 @@ kvstore:
   password: ""
 
 callbacks:
-  provision_success: {cmd: tee, args: []}
+  provision_success: {cmd: jq, args: ["-r", "."]}
 
 catalog:
   services:
