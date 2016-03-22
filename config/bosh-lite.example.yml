@@ -4,27 +4,22 @@ broker:
   password: starkandwayne
   port: 3000
 router:
-  hostname: 54.221.66.11
+  hostname: 54.82.6.219
 backends:
-- guid: "10.244.21.6"
-  availability_zone: "z1"
-  uri: "http://54.145.50.109:10006"
-  username: "containers"
-  password: "containers"
 - guid: "10.244.21.7"
   availability_zone: "z1"
-  uri: "http://54.145.50.109:10007"
+  uri: "http://54.82.6.219:10217"
   username: "containers"
   password: "containers"
-- guid: "10.244.21.8"
+- guid: "10.244.22.2"
   availability_zone: "z2"
-  uri: "http://54.145.50.109:10008"
+  uri: "http://54.82.6.219:10222"
   username: "containers"
   password: "containers"
 
 kvstore:
   type: etcd
-  machines: ["http://54.221.66.11:14001"]
+  machines: ["http://54.82.6.219:14001"]
   username: ""
   password: ""
 
@@ -33,7 +28,7 @@ callbacks:
 
 catalog:
   services:
-    - id: '0f5c1670-6dc3-11e5-bc08-6c4008a663f0'
+    - id: beb5973c-e1b2-11e5-a736-c7c0b526363d
       name: postgresql95
       description: 'PostgreSQL 9.5 service for application development and testing'
       bindable: true
@@ -43,8 +38,9 @@ catalog:
         displayName: 'postgresql 9.5'
         longDescription: 'High-availablity cluster of PostgreSQL 9.5 running across multiple servers/availability zones'
         providerDisplayName: 'Dingo Tiles'
+        supportUrl: 'https://slack.dingotiles.com'
       plans:
-        - id: '1545e30e-6dc3-11e5-826a-6c4008a663f0'
-          name: 'cluster'
+        - id: b96d0936-e423-11e5-accb-93d374e93368
+          name: cluster
           description: 'High-availablity cluster of PostgreSQL'
           metadata: {displayName: 'Clustered'}

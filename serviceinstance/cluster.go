@@ -24,14 +24,14 @@ type Cluster struct {
 
 // ClusterData describes the current request for the state of the cluster
 type ClusterData struct {
-	InstanceID       string
-	OrganizationGUID string
-	PlanID           string
-	ServiceID        string
-	SpaceGUID        string
-	Parameters       map[string]interface{}
-	NodeCount        int
-	NodeSize         int
+	InstanceID       string                 `json:"instance_id"`
+	ServiceID        string                 `json:"service_id"`
+	PlanID           string                 `json:"plan_id"`
+	OrganizationGUID string                 `json:"organization_guid"`
+	SpaceGUID        string                 `json:"space_guid"`
+	Parameters       map[string]interface{} `json:"parameters"`
+	NodeCount        int                    `json:"node_count"`
+	NodeSize         int                    `json:"node_size"`
 }
 
 // NewCluster creates a RealCluster

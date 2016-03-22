@@ -64,19 +64,21 @@ func (step AddNode) Perform() (err error) {
 	var backend *config.Backend
 	for _, backend = range backends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
+		logBackend := lager.Data{
+			"uri":  backend.URI,
+			"guid": backend.GUID,
+			"az":   backend.AvailabilityZone,
+		}
 		if err == nil {
-			logger.Error("add-node.perform.backends.selected", err, lager.Data{
-				"uri":  backend.URI,
-				"guid": backend.GUID,
-				"az":   backend.AvailabilityZone,
-			})
+			logger.Info("add-node.perform.backends.selected", logBackend)
 			break
+		} else {
+			logger.Error("add-node.perform.backends.skipped", err, logBackend)
 		}
 	}
 	if err != nil {
 		// no backends available to run a cluster
-		logger.Error("add-node.perform.backends.unavailable",
-			fmt.Errorf("no backends available to run a container"))
+		logger.Info("add-node.perform.backends.unavailable", lager.Data{"summary": "no backends available to run a container"})
 		return err
 	}
 	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid

@@ -6,9 +6,9 @@ import (
 	"log"
 	"path"
 
+	"github.com/codegangsta/cli"
 	"github.com/dingotiles/patroni-broker/backend"
 	"github.com/dingotiles/patroni-broker/patroni"
-	"github.com/codegangsta/cli"
 )
 
 // ServiceStatus displays to the terminal the status of all service clusters
