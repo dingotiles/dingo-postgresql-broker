@@ -11,7 +11,7 @@ import (
 // This should not currently be called as Provision() blocks until cluster is running
 // CLEANUP: can remove code in future.
 func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperationResponse, err error) {
-	cluster := serviceinstance.NewCluster(instanceID, brokerapi.ProvisionDetails{}, bkr.EtcdClient, bkr.Config, bkr.Logger)
+	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.EtcdClient, bkr.Config, bkr.Logger)
 	err = cluster.Load()
 	if err != nil {
 		return brokerapi.LastOperationResponse{

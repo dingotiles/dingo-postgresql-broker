@@ -17,7 +17,7 @@ import (
 
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
-	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
+	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
 
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, acceptsIncomplete)

@@ -30,7 +30,7 @@ var _ = Describe("backend broker selection", func() {
 			&config.Backend{AvailabilityZone: "z3", GUID: "c8z3"},
 			&config.Backend{AvailabilityZone: "z3", GUID: "c9z3"},
 		}
-		cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+		cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 		Ω(cluster.AllAZs()).To(Equal([]string{"z1", "z2", "z3"}))
 	})
 })

@@ -35,8 +35,8 @@ type ClusterData struct {
 	AllocatedPort    string                 `json:"allocated_port"`
 }
 
-// NewCluster creates a RealCluster
-func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+// NewCluster creates a RealCluster from ProvisionDetails
+func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		EtcdClient: etcdClient,
 		Config:     config,
@@ -54,6 +54,23 @@ func NewCluster(instanceID string, details brokerapi.ProvisionDetails, etcdClien
 			"instance-id": cluster.Data.InstanceID,
 			"service-id":  cluster.Data.ServiceID,
 			"plan-id":     cluster.Data.PlanID,
+		})
+	}
+	return
+}
+
+// NewCluster creates a RealCluster from ProvisionDetails
+func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+	cluster = &Cluster{
+		EtcdClient: etcdClient,
+		Config:     config,
+		Data:       *clusterdata,
+	}
+	if logger != nil {
+		cluster.Logger = logger.Session("cluster", lager.Data{
+			"instance-id": clusterdata.InstanceID,
+			"service-id":  clusterdata.ServiceID,
+			"plan-id":     clusterdata.PlanID,
 		})
 	}
 	return

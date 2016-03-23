@@ -69,7 +69,7 @@ var _ = Describe("backend broker selection", func() {
 		})
 
 		It("orders backends before cluster change from 0 to 1", func() {
-			cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+			cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 			setupCluster(cluster, []string{})
 			backends := cluster.SortedBackendsByUnusedAZs()
 			Ω(backendGUIDs(backends)).To(Equal([]string{"c1z1", "c2z1", "c3z1", "c4z2", "c5z2", "c6z2"}))
@@ -77,7 +77,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 1 to 2", func() {
 			It("has list of backends with z2 first, z1 second, c1z1 last", func() {
-				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
@@ -87,7 +87,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 2 to 3", func() {
 			It("has list of backends c1z1,c4z2 last", func() {
-				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1", "c4z2"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
@@ -112,7 +112,7 @@ var _ = Describe("backend broker selection", func() {
 		})
 
 		It("orders backends before cluster change from 0 to 1", func() {
-			cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+			cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 			setupCluster(cluster, []string{})
 			backends := cluster.SortedBackendsByUnusedAZs()
 			Ω(backendGUIDs(backends)).To(Equal([]string{"c1z1", "c2z1", "c3z1", "c4z2", "c5z2", "c6z2", "c7z3", "c8z3", "c9z3"}))
@@ -120,7 +120,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 1 to 2", func() {
 			It("has list of backends with z2 first, z1 second, c1z1 last", func() {
-				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
@@ -130,7 +130,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 2 to 3", func() {
 			It("has list of backends c1z1,c4z2 last", func() {
-				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1", "c4z2"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
@@ -140,7 +140,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 3 to 4", func() {
 			It("has list of backends c1z1,c4z2,c7z3 last", func() {
-				cluster = serviceinstance.NewCluster(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1", "c4z2", "c7z3"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
