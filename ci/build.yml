@@ -1,0 +1,10 @@
+---
+platform: linux
+image: docker:///dingotiles/dingo-postgresql-release-pipeline
+
+inputs:
+- name: broker
+  path: broker/src/github.com/dingotiles/patroni-broker
+
+run:
+  path: ./broker/ci/scripts/build-and-test.sh
