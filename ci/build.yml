@@ -7,4 +7,4 @@ inputs:
   path: broker/src/github.com/dingotiles/patroni-broker
 
 run:
-  path: ./broker/ci/scripts/build-and-test.sh
+  path: ./broker/src/github.com/dingotiles/patroni-broker/ci/scripts/build-and-test.sh
