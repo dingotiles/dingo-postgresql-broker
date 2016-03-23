@@ -2,6 +2,7 @@ package broker
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -66,8 +67,11 @@ func (bkr *Broker) restoreClusterDataBackup(instanceID string) (err error, clust
 	}()
 	go func() {
 		defer wg.Done()
-		io.Copy(os.Stdout, stdout)
-		// TODO - copy "stdout" for later marshaling into cluster.ClusterData struct
+		clusterdata = &serviceinstance.ClusterData{}
+		if err := json.NewDecoder(stdout).Decode(&clusterdata); err != nil {
+			logger.Error("restore.callback.marshal-error", err)
+			return
+		}
 	}()
 	go func() {
 		defer wg.Done()
@@ -79,6 +83,6 @@ func (bkr *Broker) restoreClusterDataBackup(instanceID string) (err error, clust
 		logger.Error("restore.callback.error", err)
 		return
 	}
-	// logger.Info("restore.callback.received", lager.Data{"backup": data})
+	logger.Info("restore.callback.received", lager.Data{"clusterdata": clusterdata})
 	return
 }
