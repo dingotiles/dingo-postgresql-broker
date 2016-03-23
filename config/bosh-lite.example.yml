@@ -25,6 +25,7 @@ kvstore:
 
 callbacks:
   clusterdata_backup: {cmd: jq, args: ["-r", "."]}
+  # clusterdata_restore: {cmd: echo, args: ["service-id"]}
 
 catalog:
   services:

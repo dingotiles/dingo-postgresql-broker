@@ -19,6 +19,10 @@ import (
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	cluster := serviceinstance.NewCluster(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
 
+	if details.ServiceID == "" && details.PlanID == "" {
+		return bkr.Recreate(instanceID, acceptsIncomplete)
+	}
+
 	logger := cluster.Logger
 	logger.Info("provision.start", lager.Data{})
 
