@@ -144,7 +144,11 @@ func (req RealRequest) IsScalingIn() bool {
 // Perform schedules the Request Steps() to be performed
 func (req RealRequest) Perform() (err error) {
 	req.logRequest()
-	req.logger().Info("request.perform", lager.Data{})
+	if len(req.Steps()) == 0 {
+		req.logger().Info("request.no-steps")
+		return
+	}
+	req.logger().Info("request.perform", lager.Data{"steps-count": len(req.Steps())})
 	for _, step := range req.Steps() {
 		err = step.Perform()
 		if err != nil {

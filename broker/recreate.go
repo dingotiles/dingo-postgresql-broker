@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"github.com/dingotiles/patroni-broker/servicechange"
 	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -28,9 +29,45 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		return
 	}
 
-	cluster := serviceinstance.NewClusterFromRestoredData(instanceID, clusterdata, bkr.EtcdClient, bkr.Config, bkr.Logger)
-	logger.Info("cluster", lager.Data{"cluster": cluster})
+	cluster := serviceinstance.NewClusterFromRestoredData(instanceID, clusterdata, bkr.EtcdClient, bkr.Config, logger)
+	logger = cluster.Logger
+	logger.Info("me", lager.Data{"cluster": cluster})
 
+	if cluster.Exists() {
+		logger.Info("exists")
+		err = fmt.Errorf("Service instance %s still exists in etcd, please clean it out before recreating cluster", instanceID)
+		return
+	} else {
+		logger.Info("not-exists")
+	}
+
+	nodeSize := cluster.Data.NodeSize
+	nodeCount := cluster.Data.NodeCount
+	if nodeCount < 1 {
+		nodeCount = 1
+	}
+	cluster.Data.NodeSize = 0
+	cluster.Data.NodeCount = 0
+	clusterRequest := servicechange.NewRequest(cluster, nodeCount, nodeSize)
+
+	err = clusterRequest.Perform()
+	if err != nil {
+		logger.Error("provision.perform.error", err)
+		return resp, false, err
+	}
+
+	err = cluster.WaitForRoutingPortAllocation()
+	if err == nil {
+		// if port is allocated, then wait to confirm containers are running
+		err = cluster.WaitForAllRunning()
+	}
+
+	if err != nil {
+		logger.Error("provision.running.error", err)
+		return
+	}
+	logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
+	bkr.triggerClusterDataBackup(cluster)
 	return
 }
 
