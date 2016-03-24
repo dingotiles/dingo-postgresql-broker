@@ -2,7 +2,7 @@
 
 set -e -x
 
-export GOPATH=$PWD/broker
+export GOPATH=$PWD/broker:$PWD/broker/src/github.com/dingotiles/patroni-broker/Godeps/_workspace
 export PATH=$GOPATH/bin:$PATH
 
 cd ${GOPATH}/src/github.com/dingotiles/patroni-broker
