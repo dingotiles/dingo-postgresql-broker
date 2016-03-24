@@ -41,6 +41,15 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Info("not-exists")
 	}
 
+	// Restore port allocation from cluster.Data
+	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
+	_, err = cluster.EtcdClient.Set(key, cluster.Data.AllocatedPort, 0)
+	if err != nil {
+		logger.Error("routing-allocation.error", err)
+		return
+	}
+	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": cluster.Data.AllocatedPort})
+
 	nodeSize := cluster.Data.NodeSize
 	nodeCount := cluster.Data.NodeCount
 	if nodeCount < 1 {
@@ -49,18 +58,14 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	cluster.Data.NodeSize = 0
 	cluster.Data.NodeCount = 0
 	clusterRequest := servicechange.NewRequest(cluster, nodeCount, nodeSize)
-
 	err = clusterRequest.Perform()
 	if err != nil {
 		logger.Error("provision.perform.error", err)
 		return resp, false, err
 	}
 
-	err = cluster.WaitForRoutingPortAllocation()
-	if err == nil {
-		// if port is allocated, then wait to confirm containers are running
-		err = cluster.WaitForAllRunning()
-	}
+	// if port is allocated, then wait to confirm containers are running
+	err = cluster.WaitForAllRunning()
 
 	if err != nil {
 		logger.Error("provision.running.error", err)
