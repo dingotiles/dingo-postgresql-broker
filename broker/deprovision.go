@@ -3,9 +3,11 @@ package broker
 import (
 	"fmt"
 
+	"github.com/coreos/go-etcd/etcd"
 	"github.com/dingotiles/patroni-broker/servicechange"
 	"github.com/dingotiles/patroni-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
+	"github.com/pivotal-golang/lager"
 )
 
 // Deprovision service instance
@@ -19,26 +21,39 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 	}
 
 	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
+	logger := cluster.Logger
 	err = cluster.Load()
 	if err != nil {
+		logger.Error("load", err)
 		return false, err
 	}
 
 	clusterRequest := servicechange.NewRequest(cluster, 0, 20)
 	clusterRequest.Perform()
 
-	bkr.EtcdClient.Delete(fmt.Sprintf("/serviceinstances/%s", instanceID), true)
-	bkr.EtcdClient.Delete(fmt.Sprintf("/routing/allocation/%s", instanceID), true)
+	var resp *etcd.Response
+	resp, err = bkr.EtcdClient.Delete(fmt.Sprintf("/serviceinstances/%s", instanceID), true)
+	if err != nil {
+		logger.Error("etcd-delete.serviceinstances.err", err, lager.Data{"response": resp})
+	}
+	resp, err = bkr.EtcdClient.Delete(fmt.Sprintf("/routing/allocation/%s", instanceID), true)
+	if err != nil {
+		logger.Error("etcd-delete.routing-allocation.err", err, lager.Data{"response": resp})
+	}
 
-	// cluster technically not deleted until until /service/%s/members is empty
-	// members, err := bkr.EtcdClient.Get(fmt.Sprintf("/service/%s/members", instanceID), false, false)
-	// counter := 1
-	// for err == nil && members.Node.Nodes != nil {
-	// 	fmt.Printf("%ds waiting for %d nodes to be removed from %s\n", counter, len(members.Node.Nodes), fmt.Sprintf("/service/%s/members", instanceID))
-	// 	counter++
-	// 	time.Sleep(1 * time.Second)
-	// 	members, err = bkr.EtcdClient.Get(fmt.Sprintf("/service/%s/members", instanceID), false, false)
-	// }
-
+	// clear out etcd data that would eventually timeout; to allow immediate recreation if required by user
+	resp, err = bkr.EtcdClient.Delete(fmt.Sprintf("/service/%s/members", instanceID), true)
+	if err != nil {
+		logger.Error("etcd-delete.service-members.err", err, lager.Data{"response": resp})
+	}
+	resp, err = bkr.EtcdClient.Delete(fmt.Sprintf("/service/%s/optime", instanceID), true)
+	if err != nil {
+		logger.Error("etcd-delete.service-optime.err", err, lager.Data{"response": resp})
+	}
+	resp, err = bkr.EtcdClient.Delete(fmt.Sprintf("/service/%s/leader", instanceID), true)
+	if err != nil {
+		logger.Error("etcd-delete.service-leader.err", err, lager.Data{"response": resp})
+	}
+	logger.Info("etcd-delete.done")
 	return false, nil
 }
