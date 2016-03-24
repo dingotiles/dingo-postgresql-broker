@@ -112,15 +112,15 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
 		resp, err := cluster.EtcdClient.Get(key, false, false)
 		if err != nil {
-			cluster.Logger.Debug("provision.routing", lager.Data{"polling": "allocated_port"})
+			cluster.Logger.Debug("provision.routing.polling", lager.Data{})
 		} else {
 			cluster.Data.AllocatedPort = resp.Node.Value
-			cluster.Logger.Info("provision.routing", lager.Data{"allocated_port": cluster.Data.AllocatedPort})
+			cluster.Logger.Info("provision.routing.done", lager.Data{"allocated_port": cluster.Data.AllocatedPort})
 			return nil
 		}
 		time.Sleep(1 * time.Second)
 	}
-	cluster.Logger.Error("provision.routing", err)
+	cluster.Logger.Error("provision.routing.timed-out", err, lager.Data{"err": err})
 	return err
 }
 
