@@ -30,8 +30,8 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	// 1-node default cluster
-	nodeCount := 1
+	// 2-node default cluster
+	nodeCount := 2
 	nodeSize := 20 // meaningless at moment
 	if details.Parameters["node-count"] != nil {
 		rawNodeCount := details.Parameters["node-count"]
