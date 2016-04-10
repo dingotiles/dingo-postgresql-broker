@@ -3,10 +3,10 @@ package serviceinstance_test
 import (
 	"fmt"
 
+	"github.com/coreos/go-etcd/etcd"
 	"github.com/dingotiles/patroni-broker/backend"
 	"github.com/dingotiles/patroni-broker/config"
 	"github.com/dingotiles/patroni-broker/serviceinstance"
-	"github.com/coreos/go-etcd/etcd"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -81,7 +81,14 @@ var _ = Describe("backend broker selection", func() {
 				setupCluster(cluster, []string{"c1z1"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
-				Ω(backendGUIDs(backends)).To(Equal([]string{"c4z2", "c5z2", "c6z2", "c2z1", "c3z1", "c1z1"}))
+				// example expected result (z2's first, then z1's):
+				//   "c4z2", "c5z2", "c6z2", "c2z1", "c3z1", "c1z1"
+				Ω(backends[0].GUID).To(MatchRegexp("z2$"))
+				Ω(backends[1].GUID).To(MatchRegexp("z2$"))
+				Ω(backends[2].GUID).To(MatchRegexp("z2$"))
+				Ω(backends[3].GUID).To(MatchRegexp("z1$"))
+				Ω(backends[4].GUID).To(MatchRegexp("z1$"))
+				Ω(backends[5].GUID).To(MatchRegexp("^c1z1$"))
 			})
 		})
 
