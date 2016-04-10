@@ -36,12 +36,18 @@ catalog:
       planupdateable: true
       tags: [postgresql95 postgresq]
       metadata:
-        displayName: 'postgresql 9.5'
-        longDescription: 'High-availablity cluster of PostgreSQL 9.5 running across multiple servers/availability zones'
-        providerDisplayName: 'Dingo Tiles'
-        supportUrl: 'https://slack.dingotiles.com'
+        displayname: displayname
+        longdescription: 'High-availablity cluster of PostgreSQL 9.5 running across multiple servers/availability zones'
+        providerdisplayname: 'Dingo Tiles'
+        supporturl: 'https://slack.dingotiles.com'
       plans:
         - id: b96d0936-e423-11e5-accb-93d374e93368
           name: cluster
           description: 'High-availablity cluster of PostgreSQL'
-          metadata: {displayName: 'Clustered'}
+          metadata:
+            displayname: Clustered
+            bullets:
+            - PostgreSQL 9.5
+            - Dedicated secure containers
+            - Highly-available cluster across availability zones
+            - Continuously archived for potential disaster recovery
