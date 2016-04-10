@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/coreos/go-etcd/etcd"
-	"github.com/dingotiles/patroni-broker/backend"
-	"github.com/dingotiles/patroni-broker/config"
-	"github.com/dingotiles/patroni-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

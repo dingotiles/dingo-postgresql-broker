@@ -4,7 +4,7 @@ image: docker:///dingotiles/dingo-postgresql-release-pipeline
 
 inputs:
 - name: broker
-  path: broker/src/github.com/dingotiles/patroni-broker
+  path: broker/src/github.com/dingotiles/dingo-postgresql-broker
 
 run:
-  path: ./broker/src/github.com/dingotiles/patroni-broker/ci/scripts/build-and-test.sh
+  path: ./broker/src/github.com/dingotiles/dingo-postgresql-broker/ci/scripts/build-and-test.sh

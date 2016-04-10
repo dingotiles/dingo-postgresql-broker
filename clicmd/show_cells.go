@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dingotiles/patroni-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/codegangsta/cli"
 )
 

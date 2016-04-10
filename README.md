@@ -6,9 +6,9 @@ Usage
 
 ```
 export PATRONI_BROKER_CONFIG=config/bosh-lite.example.yml
-patroni-broker broker
-patroni-broker service-status
-patroni-broker show-cells
+dingo-postgresql-broker broker
+dingo-postgresql-broker service-status
+dingo-postgresql-broker show-cells
 ```
 
 etcd schema
@@ -118,7 +118,7 @@ NOTE: the `/routing` section of data is the only "permanent" data in the KV stor
 
 ### `/serviceinstance`
 
-This `patroni-broker` documents the assignment of each container/node in a cluster to a backend broker/cell.
+This `dingo-postgresql-broker` documents the assignment of each container/node in a cluster to a backend broker/cell.
 
 ```
 curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/ | jq -r ".node.nodes[].key"

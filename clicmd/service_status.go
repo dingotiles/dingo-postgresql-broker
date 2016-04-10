@@ -7,8 +7,8 @@ import (
 	"path"
 
 	"github.com/codegangsta/cli"
-	"github.com/dingotiles/patroni-broker/backend"
-	"github.com/dingotiles/patroni-broker/patroni"
+	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 )
 
 // ServiceStatus displays to the terminal the status of all service clusters

@@ -3,8 +3,8 @@ package broker
 import (
 	"fmt"
 
-	"github.com/dingotiles/patroni-broker/servicechange"
-	"github.com/dingotiles/patroni-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
+	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 )
 

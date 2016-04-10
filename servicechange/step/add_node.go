@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/dingotiles/patroni-broker/config"
-	"github.com/dingotiles/patroni-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"

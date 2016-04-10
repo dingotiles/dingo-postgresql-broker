@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dingotiles/patroni-broker/backend"
-	"github.com/dingotiles/patroni-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -23,7 +23,7 @@ type Broker struct {
 // NewBroker is a constructor for a Broker webapp struct
 func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (broker *Broker) {
 	broker = &Broker{EtcdClient: etcdClient, Config: config}
-	broker.Logger = lager.NewLogger("patroni-broker")
+	broker.Logger = lager.NewLogger("dingo-postgresql-broker")
 	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
 	return broker

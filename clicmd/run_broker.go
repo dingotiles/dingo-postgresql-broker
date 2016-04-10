@@ -1,8 +1,8 @@
 package clicmd
 
 import (
-	"github.com/dingotiles/patroni-broker/backend"
-	"github.com/dingotiles/patroni-broker/broker"
+	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/broker"
 	"github.com/codegangsta/cli"
 )
 

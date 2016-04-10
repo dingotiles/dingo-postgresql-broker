@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dingotiles/patroni-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 )
 
 func loadConfig(configPath string) (cfg *config.Config) {

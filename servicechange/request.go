@@ -1,8 +1,8 @@
 package servicechange
 
 import (
-	"github.com/dingotiles/patroni-broker/servicechange/step"
-	"github.com/dingotiles/patroni-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/servicechange/step"
+	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/pivotal-golang/lager"
 )
 

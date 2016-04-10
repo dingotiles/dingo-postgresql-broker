@@ -1,6 +1,6 @@
 package serviceinstance
 
-import "github.com/dingotiles/patroni-broker/config"
+import "github.com/dingotiles/dingo-postgresql-broker/config"
 
 // SortedBackendsByUnusedAZs is sequence of backends to try to request new nodes for this cluster
 // It prioritizes backends in availability zones that are not currently used

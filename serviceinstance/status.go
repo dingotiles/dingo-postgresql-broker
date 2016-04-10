@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingotiles/patroni-broker/patroni"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/pivotal-golang/lager"
 )
 

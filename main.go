@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/dingotiles/patroni-broker/clicmd"
+	"github.com/dingotiles/dingo-postgresql-broker/clicmd"
 	"github.com/codegangsta/cli"
 )
 
@@ -12,7 +12,7 @@ func main() {
 	rand.Seed(5000)
 
 	app := cli.NewApp()
-	app.Name = "patroni-broker"
+	app.Name = "dingo-postgresql-broker"
 	app.Version = "0.1.0"
 	app.Usage = "Cloud Foundry service broker to run Patroni clusters"
 	app.Commands = []cli.Command{

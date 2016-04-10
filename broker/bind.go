@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dingotiles/patroni-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 )
 
