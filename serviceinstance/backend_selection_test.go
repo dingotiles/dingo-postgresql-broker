@@ -128,19 +128,19 @@ var _ = Describe("backend broker selection", func() {
 		Context("orders backends before cluster change from 1 to 2", func() {
 			It("has list of backends with z2 first, z3 second, z1 third with c1z1 last", func() {
 				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
-				setupCluster(cluster, []string{"c1z1"})
+				setupCluster(cluster, []string{"c1z1", "c2z1", "c7z3"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
 				fmt.Printf("%#v\n", backendGUIDs(backends))
-				Ω(backends[0].GUID).To(MatchRegexp("z2$"))
+				Ω(backends[0].GUID).To(MatchRegexp("z2$")) // no z2 used so far; so should be first in list
 				Ω(backends[1].GUID).To(MatchRegexp("z2$"))
 				Ω(backends[2].GUID).To(MatchRegexp("z2$"))
-				Ω(backends[3].GUID).To(MatchRegexp("z3$"))
+				Ω(backends[3].GUID).To(MatchRegexp("z3$")) // z3 is middle
 				Ω(backends[4].GUID).To(MatchRegexp("z3$"))
-				Ω(backends[5].GUID).To(MatchRegexp("z3$"))
-				Ω(backends[6].GUID).To(MatchRegexp("z1$"))
-				Ω(backends[7].GUID).To(MatchRegexp("z1$"))
-				Ω(backends[8].GUID).To(Equal("c1z1"))
+				Ω(backends[5].GUID).To(Equal("c3z1")) // the last z1; and z1 is most overused AZ
+				Ω(backends[6].GUID).To(Equal("c1z1"))
+				Ω(backends[7].GUID).To(Equal("c2z1"))
+				Ω(backends[8].GUID).To(Equal("c7z3"))
 			})
 		})
 

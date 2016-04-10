@@ -204,6 +204,8 @@ func (cluster *Cluster) sortBackendAZsByUnusedness() (vs *utils.ValSorter) {
 		}
 	}
 	vs = utils.NewValSorter(azUsageData)
+	fmt.Printf("usage %#v\n", azUsageData)
 	vs.Sort()
+	fmt.Printf("sorted %#v\n", vs)
 	return
 }
