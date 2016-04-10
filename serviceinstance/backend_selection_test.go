@@ -88,7 +88,7 @@ var _ = Describe("backend broker selection", func() {
 				Ω(backends[2].GUID).To(MatchRegexp("z2$"))
 				Ω(backends[3].GUID).To(MatchRegexp("z1$"))
 				Ω(backends[4].GUID).To(MatchRegexp("z1$"))
-				Ω(backends[5].GUID).To(MatchRegexp("^c1z1$"))
+				Ω(backends[5].GUID).To(Equal("c1z1"))
 			})
 		})
 
@@ -141,7 +141,9 @@ var _ = Describe("backend broker selection", func() {
 				setupCluster(cluster, []string{"c1z1", "c4z2"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
-				Ω(backendGUIDs(backends)).To(Equal([]string{"c7z3", "c8z3", "c9z3", "c2z1", "c3z1", "c5z2", "c6z2", "c1z1", "c4z2"}))
+				Ω(len(backends)).To(Equal(9))
+				Ω(backends[7].GUID).To(Equal("c1z1"))
+				Ω(backends[8].GUID).To(Equal("c4z2"))
 			})
 		})
 
