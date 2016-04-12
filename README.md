@@ -22,7 +22,7 @@ For local dev deployment (`go run main.go broker`) it is:
 export BROKER_URI=http://starkandwayne:starkandwayne@localhost:3000
 ```
 
-For the bosh-lite deployment it is:
+For a bosh-lite deployment of [dingo-postgresql-release](https://github.com/dingotiles/dingo-postgresql-release) it is:
 
 ```
 export BROKER_URI=http://starkandwayne:starkandwayne@10.244.21.4:8888
