@@ -19,6 +19,12 @@ backends:
 
 license_text: '{"company_name": "Test Company", "service_plans": [{"uuid": "b96d0936-e423-11e5-accb-93d374e93368", "name": "postgresql95", "quota": 3}]}'
 
+cf:
+  api: https://api.run.mycompany.com
+  username: admin
+  password: admin
+  skip_ssl_validation: true
+
 kvstore:
   type: etcd
   machines: ["http://54.82.6.219:14001"]

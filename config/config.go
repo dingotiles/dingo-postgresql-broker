@@ -18,6 +18,7 @@ type Config struct {
 	Callbacks      Callbacks                 `yaml:"callbacks"`
 	Catalog        brokerapi.CatalogResponse `yaml:"catalog"`
 	LicenseText    string                    `yaml:"license_text"`
+	CloudFoundry   CloudFoundryAPI           `yaml:"cf"`
 	LicenseDetails *LicenseDetails
 }
 
@@ -69,6 +70,14 @@ type Catalog struct {
 	Services []Service
 }
 
+// CloudFoundryAPI describes the target CF and some admin user/pass
+type CloudFoundryAPI struct {
+	API               string `yaml:"api"`
+	Username          string `yaml:"username"`
+	Password          string `yaml:"password"`
+	SkipSSLValidation bool   `yaml:"skip_ssl_validation"`
+}
+
 // LoadConfig from a YAML file
 func LoadConfig(path string) (cfg *Config, err error) {
 	cfg = &Config{}
@@ -105,6 +114,16 @@ func LoadConfig(path string) (cfg *Config, err error) {
 	} else {
 		fmt.Printf("License decoded for %s, plans %#v\n", cfg.LicenseDetails.CompanyName, cfg.LicenseDetails.Plans)
 	}
+
+	// cfconfig := &cfclient.Config{
+	// 	ApiAddress:        cfg.CloudFoundry.API,
+	// 	Username:          cfg.CloudFoundry.Username,
+	// 	Password:          cfg.CloudFoundry.Password,
+	// 	SkipSslValidation: cfg.CloudFoundry.SkipSSLValidation,
+	// }
+	// client := cfclient.NewClient(cfconfig)
+	// fmt.Println(client.GetToken())
+	// fmt.Println(client.ListApps())
 
 	return
 }
