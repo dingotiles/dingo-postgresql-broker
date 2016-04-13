@@ -11,12 +11,14 @@ import (
 
 // Config is the brokers configuration
 type Config struct {
-	Broker    Broker                    `yaml:"broker"`
-	Router    Router                    `yaml:"router"`
-	Backends  []*Backend                `yaml:"backends"`
-	KVStore   KVStore                   `yaml:"kvstore"`
-	Callbacks Callbacks                 `yaml:"callbacks"`
-	Catalog   brokerapi.CatalogResponse `yaml:"catalog"`
+	Broker         Broker                    `yaml:"broker"`
+	Router         Router                    `yaml:"router"`
+	Backends       []*Backend                `yaml:"backends"`
+	KVStore        KVStore                   `yaml:"kvstore"`
+	Callbacks      Callbacks                 `yaml:"callbacks"`
+	Catalog        brokerapi.CatalogResponse `yaml:"catalog"`
+	LicenseText    string                    `yaml:"license_text"`
+	LicenseDetails *LicenseDetails
 }
 
 // Broker connection configuration
@@ -68,33 +70,40 @@ type Catalog struct {
 }
 
 // LoadConfig from a YAML file
-func LoadConfig(path string) (config *Config, err error) {
-	config = &Config{}
+func LoadConfig(path string) (cfg *Config, err error) {
+	cfg = &Config{}
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return
 	}
-	err = yaml.Unmarshal(bytes, &config)
+	err = yaml.Unmarshal(bytes, &cfg)
 	if err != nil {
 		return
 	}
 
 	// defaults
-	if config.Broker.Username == "" {
-		config.Broker.Username = "starkandwayne"
+	if cfg.Broker.Username == "" {
+		cfg.Broker.Username = "starkandwayne"
 	}
-	if config.Broker.Password == "" {
-		config.Broker.Password = "starkandwayne"
+	if cfg.Broker.Password == "" {
+		cfg.Broker.Password = "starkandwayne"
 	}
-	if config.Broker.Port == 0 {
-		config.Broker.Port = 3000
+	if cfg.Broker.Port == 0 {
+		cfg.Broker.Port = 3000
 	}
 
-	for _, backend := range config.Backends {
+	for _, backend := range cfg.Backends {
 		match, err := regexp.MatchString("^http", backend.URI)
 		if !match || err != nil {
 			backend.URI = fmt.Sprintf("http://%s", backend.URI)
 		}
+	}
+
+	cfg.LicenseDetails, err = NewLicenseDetailsFromLicenseText(cfg.LicenseText)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Printf("License decoded for %s, plans %#v\n", cfg.LicenseDetails.CompanyName, cfg.LicenseDetails.Plans)
 	}
 
 	return

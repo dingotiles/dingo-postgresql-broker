@@ -17,6 +17,8 @@ backends:
   username: "containers"
   password: "containers"
 
+license_text: '{"company_name": "Test Company", "service_plans": [{"uuid": "b96d0936-e423-11e5-accb-93d374e93368", "name": "postgresql95", "quota": 3}]}'
+
 kvstore:
   type: etcd
   machines: ["http://54.82.6.219:14001"]
@@ -34,7 +36,7 @@ catalog:
       description: 'PostgreSQL 9.5 service for application development and testing'
       bindable: true
       planupdateable: true
-      tags: [postgresql95 postgresq]
+      tags: ["postgresql95", "postgresq"]
       metadata:
         displayname: displayname
         longdescription: 'High-availablity cluster of PostgreSQL 9.5 running across multiple servers/availability zones'
