@@ -111,6 +111,7 @@ func LoadConfig(path string) (cfg *Config, err error) {
 	cfg.LicenseDetails, err = NewLicenseDetailsFromLicenseText(cfg.LicenseText)
 	if err != nil {
 		fmt.Println(err)
+		err = nil // its not that bad of an error at this stage
 	} else {
 		fmt.Printf("License decoded for %s, plans %#v\n", cfg.LicenseDetails.CompanyName, cfg.LicenseDetails.Plans)
 	}

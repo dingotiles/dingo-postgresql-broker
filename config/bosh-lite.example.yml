@@ -17,12 +17,6 @@ backends:
   username: "containers"
   password: "containers"
 
-cf:
-  api: https://api.run.mycompany.com
-  username: admin
-  password: admin
-  skip_ssl_validation: true
-
 kvstore:
   type: etcd
   machines: ["http://54.82.6.219:14001"]

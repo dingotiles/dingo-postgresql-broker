@@ -7,10 +7,12 @@ func (lc *LicenseCheck) DumpQuotaToLogs() {
 		for _, plan := range service.Plans {
 			licenseQuota := lc.TrialQuota(service.ID, plan.ID)
 			licenseStatus := "trial"
-			for _, licensePlan := range lc.Config.LicenseDetails.Plans {
-				if licensePlan.UUID == plan.ID {
-					licenseQuota = licensePlan.Quota
-					licenseStatus = "licensed"
+			if lc.Config.LicenseDetails != nil {
+				for _, licensePlan := range lc.Config.LicenseDetails.Plans {
+					if licensePlan.UUID == plan.ID {
+						licenseQuota = licensePlan.Quota
+						licenseStatus = "licensed"
+					}
 				}
 			}
 			servicePlanUsage, err := lc.ServicePlanUsage(plan.ID)

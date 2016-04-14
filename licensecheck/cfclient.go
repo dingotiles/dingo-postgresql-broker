@@ -1,6 +1,8 @@
 package licensecheck
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/pivotal-golang/lager"
@@ -21,6 +23,9 @@ func NewLicenseCheck(config *bkrconfig.Config, baseLogger lager.Logger) (lc *Lic
 }
 
 func (lc *LicenseCheck) cfClient() (client *cfclient.Client, err error) {
+	if lc.Config.CloudFoundry.API == "" {
+		return nil, fmt.Errorf("No Cloud Foundry API configuration provided (cf.api)")
+	}
 	cfconfig := &cfclient.Config{
 		ApiAddress:        lc.Config.CloudFoundry.API,
 		Username:          lc.Config.CloudFoundry.Username,
