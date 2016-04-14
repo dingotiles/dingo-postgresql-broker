@@ -17,8 +17,6 @@ backends:
   username: "containers"
   password: "containers"
 
-license_text: '{"company_name": "Test Company", "service_plans": [{"uuid": "b96d0936-e423-11e5-accb-93d374e93368", "name": "postgresql95", "quota": 3}]}'
-
 cf:
   api: https://api.run.mycompany.com
   username: admin
@@ -37,8 +35,8 @@ callbacks:
 
 catalog:
   services:
-    - id: beb5973c-e1b2-11e5-a736-c7c0b526363d
-      name: postgresql95
+    - name: postgresql95
+      id: beb5973c-e1b2-11e5-a736-c7c0b526363d
       description: 'PostgreSQL 9.5 service for application development and testing'
       bindable: true
       planupdateable: true
@@ -49,8 +47,8 @@ catalog:
         providerdisplayname: 'Dingo Tiles'
         supporturl: 'https://slack.dingotiles.com'
       plans:
-        - id: b96d0936-e423-11e5-accb-93d374e93368
-          name: cluster
+        - name: cluster
+          id: b96d0936-e423-11e5-accb-93d374e93368
           description: 'High-availablity cluster of PostgreSQL'
           metadata:
             displayname: Clustered
