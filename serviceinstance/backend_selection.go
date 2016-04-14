@@ -1,10 +1,10 @@
 package serviceinstance
 
-import "github.com/dingotiles/dingo-postgresql-broker/config"
+import "github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 
 // SortedBackendsByUnusedAZs is sequence of backends to try to request new nodes for this cluster
 // It prioritizes backends in availability zones that are not currently used
-func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*config.Backend) {
+func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*bkrconfig.Backend) {
 	usedBackends, unusedBackeds := cluster.usedAndUnusedBackends()
 
 	for _, az := range cluster.sortBackendAZsByUnusedness().Keys {
@@ -20,7 +20,7 @@ func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*config.Backend)
 	return
 }
 
-func (cluster *Cluster) usedAndUnusedBackends() (usedBackends, unusuedBackends []*config.Backend) {
+func (cluster *Cluster) usedAndUnusedBackends() (usedBackends, unusuedBackends []*bkrconfig.Backend) {
 	usedBackendGUIDs := cluster.usedBackendGUIDs()
 	for _, backend := range cluster.AllBackends() {
 		used := false

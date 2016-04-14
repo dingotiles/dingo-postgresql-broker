@@ -4,14 +4,14 @@ import (
 	"log"
 	"os"
 
-	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 )
 
-func loadConfig(configPath string) (cfg *config.Config) {
+func loadConfig(configPath string) (cfg *bkrconfig.Config) {
 	if os.Getenv("PATRONI_BROKER_CONFIG") != "" {
 		configPath = os.Getenv("PATRONI_BROKER_CONFIG")
 	}
-	cfg, err := config.LoadConfig(configPath)
+	cfg, err := bkrconfig.LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}

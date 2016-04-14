@@ -1,4 +1,4 @@
-package config
+package bkrconfig
 
 import (
 	"encoding/json"

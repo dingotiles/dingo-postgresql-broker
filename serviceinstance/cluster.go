@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -16,7 +16,7 @@ import (
 
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
-	Config     *config.Config
+	Config     *bkrconfig.Config
 	EtcdClient backend.EtcdClient
 	Logger     lager.Logger
 	Data       ClusterData
@@ -36,7 +36,7 @@ type ClusterData struct {
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		EtcdClient: etcdClient,
 		Config:     config,
@@ -60,7 +60,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		EtcdClient: etcdClient,
 		Config:     config,
@@ -151,7 +151,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 }
 
 // AllBackends is a flat list of all Backend APIs
-func (cluster *Cluster) AllBackends() (backends []*config.Backend) {
+func (cluster *Cluster) AllBackends() (backends []*bkrconfig.Backend) {
 	return cluster.Config.Backends
 }
 

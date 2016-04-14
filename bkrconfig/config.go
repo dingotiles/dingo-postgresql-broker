@@ -1,4 +1,4 @@
-package config
+package bkrconfig
 
 import (
 	"fmt"
@@ -114,16 +114,6 @@ func LoadConfig(path string) (cfg *Config, err error) {
 	} else {
 		fmt.Printf("License decoded for %s, plans %#v\n", cfg.LicenseDetails.CompanyName, cfg.LicenseDetails.Plans)
 	}
-
-	// cfconfig := &cfclient.Config{
-	// 	ApiAddress:        cfg.CloudFoundry.API,
-	// 	Username:          cfg.CloudFoundry.Username,
-	// 	Password:          cfg.CloudFoundry.Password,
-	// 	SkipSslValidation: cfg.CloudFoundry.SkipSSLValidation,
-	// }
-	// client := cfclient.NewClient(cfconfig)
-	// fmt.Println(client.GetToken())
-	// fmt.Println(client.ListApps())
 
 	return
 }

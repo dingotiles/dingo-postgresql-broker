@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
@@ -61,7 +61,7 @@ func (step AddNode) Perform() (err error) {
 	})
 
 	// 4. Send requests to backends until one says OK; else fail
-	var backend *config.Backend
+	var backend *bkrconfig.Backend
 	for _, backend = range backends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
@@ -95,7 +95,7 @@ func (step AddNode) Perform() (err error) {
 	return err
 }
 
-func (step AddNode) setClusterNodeBackend(backend *config.Backend) (kvIndex uint64, err error) {
+func (step AddNode) setClusterNodeBackend(backend *bkrconfig.Backend) (kvIndex uint64, err error) {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", step.cluster.Data.InstanceID, step.nodeUUID)
 	resp, err := step.cluster.EtcdClient.Set(key, backend.GUID, 0)
 	if err != nil {
@@ -104,7 +104,7 @@ func (step AddNode) setClusterNodeBackend(backend *config.Backend) (kvIndex uint
 	return resp.EtcdIndex, err
 }
 
-func (step AddNode) requestNodeViaBackend(backend *config.Backend, provisionDetails brokerapi.ProvisionDetails) error {
+func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionDetails brokerapi.ProvisionDetails) error {
 	var err error
 	logger := step.cluster.Logger
 

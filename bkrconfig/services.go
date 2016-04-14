@@ -1,4 +1,4 @@
-package config
+package bkrconfig
 
 type Service struct {
 	ID          string          `yaml:"id"`
