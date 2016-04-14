@@ -23,12 +23,17 @@ type Broker struct {
 }
 
 // NewBroker is a constructor for a Broker webapp struct
-func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (broker *Broker) {
-	broker = &Broker{EtcdClient: etcdClient, Config: config}
-	broker.Logger = lager.NewLogger("dingo-postgresql-broker")
-	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
-	broker.Logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
-	return broker
+func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (bkr *Broker) {
+	bkr = &Broker{EtcdClient: etcdClient, Config: config}
+
+	bkr.Logger = lager.NewLogger("dingo-postgresql-broker")
+	bkr.Logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
+	bkr.Logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
+
+	bkr.LicenseCheck = licensecheck.NewLicenseCheck(bkr.Config, bkr.Logger)
+	bkr.LicenseCheck.DumpQuotaToLogs()
+
+	return
 }
 
 // Run starts the Martini webapp handler
