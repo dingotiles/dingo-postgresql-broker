@@ -30,6 +30,11 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
+	canProvision := bkr.LicenseCheck.CanProvision(details.ServiceID, details.PlanID)
+	if !canProvision {
+		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
+	}
+
 	// 2-node default cluster
 	nodeCount := 2
 	nodeSize := 20 // meaningless at moment
