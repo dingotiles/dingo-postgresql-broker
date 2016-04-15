@@ -33,8 +33,8 @@ To create a service instance use `-XPUT` to hit the `broker.Provision` behavior:
 ```
 export id=b1
 export nodes=2
-curl -v -XPUT ${BROKER_URI}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
-curl -v "${BROKER_URI}/v2/service_instances/$id/service_bindings/test-binding" -XPUT -d '{"service_id": "0f5c1670-6dc3-11e5-bc08-6c4008a663f0", "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0"}'
+curl -v -XPUT ${BROKER_URI}/v2/service_instances/$id -d "{\"service_id\": \"beb5973c-e1b2-11e5-a736-c7c0b526363d\", \"plan_id\": \"b96d0936-e423-11e5-accb-93d374e93368\", \"parameters\": {\"node-count\": $nodes}}"
+curl -v "${BROKER_URI}/v2/service_instances/$id/service_bindings/test-binding" -XPUT -d '{"service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d", "plan_id": "b96d0936-e423-11e5-accb-93d374e93368"}'
 ```
 
 To update an existing service instance use `-XPATCH` to reach the `broker.Update` behavior:
@@ -42,7 +42,7 @@ To update an existing service instance use `-XPATCH` to reach the `broker.Update
 ```
 export id=b1
 export nodes=4
-curl -v -XPATCH ${BROKER_URI}/v2/service_instances/$id -d "{\"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
+curl -v -XPATCH ${BROKER_URI}/v2/service_instances/$id -d "{\"service_id\": \"beb5973c-e1b2-11e5-a736-c7c0b526363d\", \"plan_id\": \"b96d0936-e423-11e5-accb-93d374e93368\", \"parameters\": {\"node-count\": $nodes}}"
 ```
 
 ### Asynchronous API and polling for status
@@ -52,7 +52,7 @@ To create a service instance to emulate the Cloud Foundry Service Broker Asynchr
 ```
 export id=b2
 export nodes=2
-curl -v -XPUT ${BROKER_URI}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
+curl -v -XPUT ${BROKER_URI}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"beb5973c-e1b2-11e5-a736-c7c0b526363d\", \"plan_id\": \"b96d0936-e423-11e5-accb-93d374e93368\", \"parameters\": {\"node-count\": $nodes}}"
 ```
 
 Then poll for completion:
@@ -74,7 +74,7 @@ The see the asynchronous status updates for a new 4-node cluster:
 ```
 export id=b3
 export nodes=4
-curl -v -XPUT ${BROKER_URI}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"0f5c1670-6dc3-11e5-bc08-6c4008a663f0\", \"plan_id\": \"1545e30e-6dc3-11e5-826a-6c4008a663f0\", \"parameters\": {\"node-count\": $nodes}}"
+curl -v -XPUT ${BROKER_URI}/v2/service_instances/${id} -d "{\"accepts_incomplete\": true, \"service_id\": \"beb5973c-e1b2-11e5-a736-c7c0b526363d\", \"plan_id\": \"b96d0936-e423-11e5-accb-93d374e93368\", \"parameters\": {\"node-count\": $nodes}}"
 watch curl -sf ${BROKER_URI}/v2/service_instances/${id}/last_operation
 ```
 
