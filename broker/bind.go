@@ -50,16 +50,16 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 	superuserJDBCURI := fmt.Sprintf("jdbc:postgresql://%s:%d/postgres?username=%s&password=%s", routerHost, publicPort, superuserUsername, superuserPassword)
 	return brokerapi.BindingResponse{
 		Credentials: CredentialsHash{
-			Host:              routerHost,
-			Port:              publicPort,
-			Username:          appUsername,
-			Password:          appPassword,
-			URI:               uri,
-			JDBCURI:           jdbc,
+			Host:     routerHost,
+			Port:     publicPort,
+			Username: appUsername,
+			Password: appPassword,
+			URI:      uri,
+			// JDBCURI:           jdbc,
 			SuperuserUsername: superuserUsername,
 			SuperuserPassword: superuserPassword,
 			SuperuserURI:      superuserURI,
-			SuperuserJDBCURI:  superuserJDBCURI,
+			// SuperuserJDBCURI:  superuserJDBCURI,
 		},
 	}, nil
 }
