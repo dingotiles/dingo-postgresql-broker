@@ -43,7 +43,7 @@ id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9d
 {
   "role": "master",
   "state": "running",
-  "conn_url": "postgres://replicator:replicator@10.244.21.8:32768/postgres",
+  "conn_url": "postgres://dvw7DJgqzFBJC8:jkT3TTNebfrh6C@10.244.21.8:32768/postgres",
   "api_url": "http://127.0.0.1:8008/patroni",
   "xlog_location": 83886336
 }
