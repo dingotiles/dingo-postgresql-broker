@@ -1,6 +1,7 @@
 package bkrconfig
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 )
@@ -23,10 +24,15 @@ func NewLicenseDetailsFromLicenseText(licenseText string) (details *LicenseDetai
 	if licenseText == "" {
 		return nil, fmt.Errorf("No license file provided, entering trial mode.")
 	}
-	details = &LicenseDetails{}
-	err = json.Unmarshal([]byte(licenseText), details)
+	licenseJSON, err := base64.StdEncoding.DecodeString(licenseText)
 	if err != nil {
-		err = fmt.Errorf("License file could not be loaded, entering trial mode (%s).", err.Error())
+		err = fmt.Errorf("License file could not be decoded, entering trial mode (%s).", err.Error())
+		return
+	}
+	details = &LicenseDetails{}
+	err = json.Unmarshal(licenseJSON, details)
+	if err != nil {
+		err = fmt.Errorf("License file could not be marshaled into JSON, entering trial mode (%s).", err.Error())
 		return
 	}
 	return
