@@ -27,10 +27,12 @@ func (lc *LicenseCheck) FetchQuotaStatus() (quotaStatus *QuotaStatus) {
 	quotaStatus = &QuotaStatus{}
 	for _, service := range lc.Config.Catalog.Services {
 		serviceStatus := &ServiceQuotaStatus{
+			GUID:          service.ID,
 			LicenseStatus: "trial",
 		}
 		for _, plan := range service.Plans {
 			planStatus := &PlanQuotaStatus{
+				GUID:          plan.ID,
 				LicenseStatus: "trial",
 				Quota:         lc.TrialQuota(service.ID, plan.ID),
 			}
