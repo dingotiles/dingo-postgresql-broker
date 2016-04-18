@@ -53,8 +53,8 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 			ServiceID:        details.ServiceID,
 			SpaceGUID:        details.SpaceGUID,
 			AdminCredentials: AdminCredentials{
-				Username: "admin",
-				Password: "admin",
+				Username: "pgadmin",
+				Password: NewPassword(12),
 			},
 			Parameters: details.Parameters,
 		},
