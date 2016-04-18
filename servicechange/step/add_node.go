@@ -46,6 +46,8 @@ func (step AddNode) Perform() (err error) {
 	}
 	params["PATRONI_SCOPE"] = step.cluster.Data.InstanceID
 	params["NODE_NAME"] = step.nodeUUID
+	params["POSTGRES_USERNAME"] = step.cluster.Data.AdminCredentials.Username
+	params["POSTGRES_PASSWORD"] = step.cluster.Data.AdminCredentials.Password
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: step.cluster.Data.OrganizationGUID,
 		PlanID:           step.cluster.Data.PlanID,

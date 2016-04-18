@@ -22,6 +22,11 @@ type Cluster struct {
 	Data       ClusterData
 }
 
+type AdminCredentials struct {
+	Username string `json:"admin_username"`
+	Password string `json:"admin_password"`
+}
+
 // ClusterData describes the current request for the state of the cluster
 type ClusterData struct {
 	InstanceID       string                 `json:"instance_id"`
@@ -29,6 +34,7 @@ type ClusterData struct {
 	PlanID           string                 `json:"plan_id"`
 	OrganizationGUID string                 `json:"organization_guid"`
 	SpaceGUID        string                 `json:"space_guid"`
+	AdminCredentials AdminCredentials       `json:"admin_credentials"`
 	Parameters       map[string]interface{} `json:"parameters"`
 	NodeCount        int                    `json:"node_count"`
 	NodeSize         int                    `json:"node_size"`
@@ -46,7 +52,11 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 			PlanID:           details.PlanID,
 			ServiceID:        details.ServiceID,
 			SpaceGUID:        details.SpaceGUID,
-			Parameters:       details.Parameters,
+			AdminCredentials: AdminCredentials{
+				Username: "admin",
+				Password: "admin",
+			},
+			Parameters: details.Parameters,
 		},
 	}
 	if logger != nil {
