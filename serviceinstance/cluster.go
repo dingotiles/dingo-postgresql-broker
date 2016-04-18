@@ -23,8 +23,8 @@ type Cluster struct {
 }
 
 type AdminCredentials struct {
-	Username string `json:"admin_username"`
-	Password string `json:"admin_password"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 // ClusterData describes the current request for the state of the cluster
