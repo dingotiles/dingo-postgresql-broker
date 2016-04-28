@@ -2,6 +2,7 @@ package broker
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
 	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
@@ -27,6 +28,15 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	canProvision := bkr.LicenseCheck.CanProvision(details.ServiceID, details.PlanID)
 	if !canProvision {
 		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
+	}
+
+	if bkr.Config.SupportsClusterDataBackup() {
+		cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
+		var restoredData *serviceinstance.ClusterData
+		err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
+		if err != nil || !reflect.DeepEqual(*restoredData, cluster.ClusterData) {
+			logger.Error("provision.start.clusterdata-not-backed-up", err, lager.Data{"callbacks": bkr.Config.Callbacks})
+		}
 	}
 
 	// 2-node default cluster
@@ -58,7 +68,6 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Error("provision.running.error", err)
 	} else {
 		logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
-		cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
 	}
 	return resp, false, err
 }
