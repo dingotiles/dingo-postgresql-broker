@@ -22,10 +22,6 @@ type Config struct {
 	LicenseDetails *LicenseDetails
 }
 
-func (cfg *Config) SupportsClusterDataBackup() bool {
-	return cfg.Callbacks.ClusterDataBackup != nil && cfg.Callbacks.ClusterDataRestore != nil
-}
-
 // Broker connection configuration
 type Broker struct {
 	Port                   int    `yaml:"port"`
