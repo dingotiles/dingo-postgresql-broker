@@ -2,6 +2,7 @@ package broker
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
 	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
@@ -57,8 +58,24 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	if err != nil {
 		logger.Error("provision.running.error", err)
 	} else {
+
+		if bkr.Config.SupportsClusterDataBackup() {
+			cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
+			var restoredData *serviceinstance.ClusterData
+			err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
+			if err != nil || !reflect.DeepEqual(*restoredData, cluster.Data) {
+				logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": cluster.Data, "restoreddata": *restored_data})
+				go func() {
+					brk.Deprovision(cluster.Data.InstanceID, DeprovisionDetails{
+						PlanID:    cluster.Data.PlanID,
+						ServiceID: clusted.Data.ServiceID,
+					}, true)
+				}()
+				return resp, false, err
+			}
+		}
+
 		logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
-		cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
 	}
 	return resp, false, err
 }
