@@ -64,11 +64,11 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 			var restoredData *serviceinstance.ClusterData
 			err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
 			if err != nil || !reflect.DeepEqual(*restoredData, cluster.Data) {
-				logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": cluster.Data, "restoreddata": *restored_data})
+				logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": cluster.Data, "restoreddata": *restoredData})
 				go func() {
-					brk.Deprovision(cluster.Data.InstanceID, DeprovisionDetails{
+					bkr.Deprovision(cluster.Data.InstanceID, brokerapi.DeprovisionDetails{
 						PlanID:    cluster.Data.PlanID,
-						ServiceID: clusted.Data.ServiceID,
+						ServiceID: cluster.Data.ServiceID,
 					}, true)
 				}()
 				return resp, false, err
