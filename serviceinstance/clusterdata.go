@@ -36,35 +36,35 @@ func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) 
 	logger := cluster.Logger
 	callback := callbacks.ClusterDataBackup
 	if callback == nil {
-		logger.Info("provision.success.callback.noop")
+		logger.Info("clusterdata.backup.noop")
 		return
 	}
 
 	data, err := json.Marshal(cluster.ClusterData())
 	if err != nil {
-		logger.Error("provision.success.callback.data-marshal", err)
+		logger.Error("clusterdata.backup.data-marshal", err)
 		return
 	}
 
 	cmd := exec.Command(callback.Command, callback.Arguments...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		logger.Error("provision.success.callback.stdin-pipe", err)
+		logger.Error("clusterdata.backup.stdin-pipe", err)
 		return
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.Error("provision.success.callback.stdout-pipe", err)
+		logger.Error("clusterdata.backup.stdout-pipe", err)
 		return
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		logger.Error("provision.success.callback.stderr-pipe", err)
+		logger.Error("clusterdata.backup.stderr-pipe", err)
 		return
 	}
 	err = cmd.Start()
 	if err != nil {
-		logger.Error("provision.success.callback.start", err)
+		logger.Error("clusterdata.backup.start", err)
 		return
 	}
 	var wg sync.WaitGroup
@@ -85,42 +85,39 @@ func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) 
 	wg.Wait()
 	err = cmd.Wait()
 	if err != nil {
-		logger.Error("provision.success.callback.cmd", err)
+		logger.Error("clusterdata.backup.cmd", err)
 		return
 	}
-	logger.Info("provision.success.callback.done")
+	logger.Info("clusterdata.backup.done")
 }
 
 func RestoreClusterDataBackup(instanceID string, callbacks bkrconfig.Callbacks, logger lager.Logger) (err error, clusterdata *ClusterData) {
-	logger = logger.Session("recreate", lager.Data{
-		"instance-id": instanceID,
-	})
 	callback := callbacks.ClusterDataRestore
 	if callback == nil {
 		err = fmt.Errorf("Broker not configured to support service recreation")
-		logger.Error("restore.callback.missing", err, lager.Data{"missing-config": "callbacks.clusterdata_restore"})
+		logger.Error("clusterdata.restore.callback-missing", err, lager.Data{"missing-config": "callbacks.clusterdata_restore"})
 		return
 	}
 
 	cmd := exec.Command(callback.Command, callback.Arguments...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		logger.Error("restore.callback.stdin-pipe", err)
+		logger.Error("clusterdata.restore.stdin-pipe", err)
 		return
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.Error("restore.callback.stdout-pipe", err)
+		logger.Error("clusterdata.restore.stdout-pipe", err)
 		return
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		logger.Error("restore.callback.stderr-pipe", err)
+		logger.Error("clusterdata.restore.stderr-pipe", err)
 		return
 	}
 	err = cmd.Start()
 	if err != nil {
-		logger.Error("restore.callback.start", err)
+		logger.Error("clusterdata.restore.start", err)
 		return
 	}
 	var wg sync.WaitGroup
@@ -134,7 +131,7 @@ func RestoreClusterDataBackup(instanceID string, callbacks bkrconfig.Callbacks, 
 		defer wg.Done()
 		clusterdata = &ClusterData{}
 		if err := json.NewDecoder(stdout).Decode(&clusterdata); err != nil {
-			logger.Error("restore.callback.marshal-error", err)
+			logger.Error("clusterdata.restore.marshal-error", err)
 			return
 		}
 	}()
@@ -145,9 +142,9 @@ func RestoreClusterDataBackup(instanceID string, callbacks bkrconfig.Callbacks, 
 	wg.Wait()
 	err = cmd.Wait()
 	if err != nil {
-		logger.Error("restore.callback.error", err)
+		logger.Error("clusterdata.restore.error", err)
 		return
 	}
-	logger.Info("restore.callback.received", lager.Data{"clusterdata": clusterdata})
+	logger.Info("clusterdata.restore.done", lager.Data{"clusterdata": clusterdata})
 	return
 }

@@ -35,7 +35,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		var restoredData *serviceinstance.ClusterData
 		err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
 		if err != nil || !reflect.DeepEqual(*restoredData, cluster.ClusterData) {
-			logger.Error("provision.start.clusterdata-not-backed-up", err, lager.Data{"callbacks": bkr.Config.Callbacks})
+			logger.Error("clusterdata.backup.failure", err, lager.Data{"callbacks": bkr.Config.Callbacks})
 		}
 	}
 
