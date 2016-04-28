@@ -22,25 +22,6 @@ type Cluster struct {
 	Data       ClusterData
 }
 
-type AdminCredentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-// ClusterData describes the current request for the state of the cluster
-type ClusterData struct {
-	InstanceID       string                 `json:"instance_id"`
-	ServiceID        string                 `json:"service_id"`
-	PlanID           string                 `json:"plan_id"`
-	OrganizationGUID string                 `json:"organization_guid"`
-	SpaceGUID        string                 `json:"space_guid"`
-	AdminCredentials AdminCredentials       `json:"admin_credentials"`
-	Parameters       map[string]interface{} `json:"parameters"`
-	NodeCount        int                    `json:"node_count"`
-	NodeSize         int                    `json:"node_size"`
-	AllocatedPort    string                 `json:"allocated_port"`
-}
-
 // NewCluster creates a RealCluster from ProvisionDetails
 func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{

@@ -1,13 +1,7 @@
 package broker
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"os/exec"
-	"sync"
 
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
 	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
@@ -64,66 +58,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Error("provision.running.error", err)
 	} else {
 		logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
-		bkr.triggerClusterDataBackup(cluster)
+		cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
 	}
 	return resp, false, err
-}
-
-func (bkr *Broker) triggerClusterDataBackup(cluster *serviceinstance.Cluster) {
-	logger := cluster.Logger
-	callback := bkr.Config.Callbacks.ClusterDataBackup
-	if callback == nil {
-		logger.Info("provision.success.callback.noop")
-		return
-	}
-
-	data, err := json.Marshal(cluster.ClusterData())
-	if err != nil {
-		logger.Error("provision.success.callback.data-marshal", err)
-		return
-	}
-
-	cmd := exec.Command(callback.Command, callback.Arguments...)
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		logger.Error("provision.success.callback.stdin-pipe", err)
-		return
-	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		logger.Error("provision.success.callback.stdout-pipe", err)
-		return
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		logger.Error("provision.success.callback.stderr-pipe", err)
-		return
-	}
-	err = cmd.Start()
-	if err != nil {
-		logger.Error("provision.success.callback.start", err)
-		return
-	}
-	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() {
-		defer wg.Done()
-		defer stdin.Close()
-		io.Copy(stdin, bytes.NewBufferString(string(data)))
-	}()
-	go func() {
-		defer wg.Done()
-		io.Copy(os.Stdout, stdout)
-	}()
-	go func() {
-		defer wg.Done()
-		io.Copy(os.Stderr, stderr)
-	}()
-	wg.Wait()
-	err = cmd.Wait()
-	if err != nil {
-		logger.Error("provision.success.callback.cmd", err)
-		return
-	}
-	logger.Info("provision.success.callback.done")
 }
