@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"reflect"
 	"sync"
 
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
@@ -32,6 +33,9 @@ type ClusterData struct {
 	AllocatedPort    string                 `json:"allocated_port"`
 }
 
+func (data *ClusterData) Equals(other *ClusterData) bool {
+	return reflect.DeepEqual(*data, *other)
+}
 func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) {
 	logger := cluster.Logger
 	callback := callbacks.ClusterDataBackup
