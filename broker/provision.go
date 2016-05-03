@@ -42,39 +42,39 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	}
 	clusterRequest := servicechange.NewRequest(cluster, int(nodeCount), nodeSize)
 
-	err = clusterRequest.Perform()
-	if err != nil {
-		logger.Error("provision.perform.error", err)
-		return resp, false, err
-	}
-
-	err = cluster.WaitForAllRunning()
-	if err == nil {
-		// if cluster is running, then wait until routing port operational
-		err = cluster.WaitForRoutingPortAllocation()
-	}
-
-	if err != nil {
-		logger.Error("provision.running.error", err)
-	} else {
-
-		if bkr.Config.SupportsClusterDataBackup() {
-			cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
-			var restoredData *serviceinstance.ClusterData
-			err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
-			if err != nil || !restoredData.Equals(&cluster.Data) {
-				logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": cluster.Data, "restoreddata": *restoredData})
-				go func() {
-					bkr.Deprovision(cluster.Data.InstanceID, brokerapi.DeprovisionDetails{
-						PlanID:    cluster.Data.PlanID,
-						ServiceID: cluster.Data.ServiceID,
-					}, true)
-				}()
-				return resp, false, err
-			}
+	go func() {
+		err = clusterRequest.Perform()
+		if err != nil {
+			logger.Error("provision.perform.error", err)
 		}
 
-		logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
-	}
-	return resp, false, err
+		err = cluster.WaitForAllRunning()
+		if err == nil {
+			// if cluster is running, then wait until routing port operational
+			err = cluster.WaitForRoutingPortAllocation()
+		}
+
+		if err != nil {
+			logger.Error("provision.running.error", err)
+		} else {
+
+			if bkr.Config.SupportsClusterDataBackup() {
+				cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
+				var restoredData *serviceinstance.ClusterData
+				err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
+				if err != nil || !restoredData.Equals(&cluster.Data) {
+					logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": cluster.Data, "restoreddata": *restoredData})
+					go func() {
+						bkr.Deprovision(cluster.Data.InstanceID, brokerapi.DeprovisionDetails{
+							PlanID:    cluster.Data.PlanID,
+							ServiceID: cluster.Data.ServiceID,
+						}, true)
+					}()
+				}
+			}
+
+			logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
+		}
+	}()
+	return resp, true, err
 }
