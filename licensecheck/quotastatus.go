@@ -9,7 +9,7 @@ type QuotaStatus struct {
 }
 
 type ServiceQuotaStatus struct {
-	GUID          string
+	ServiceID     string
 	Quota         int
 	Usage         int
 	LicenseStatus string
@@ -17,7 +17,7 @@ type ServiceQuotaStatus struct {
 }
 
 type PlanQuotaStatus struct {
-	GUID          string
+	PlanID        string
 	Quota         int
 	Usage         int
 	LicenseStatus string
@@ -27,12 +27,12 @@ func (lc *LicenseCheck) FetchQuotaStatus() (quotaStatus *QuotaStatus) {
 	quotaStatus = &QuotaStatus{}
 	for _, service := range lc.Config.Catalog.Services {
 		serviceStatus := &ServiceQuotaStatus{
-			GUID:          service.ID,
+			ServiceID:     service.ID,
 			LicenseStatus: "trial",
 		}
 		for _, plan := range service.Plans {
 			planStatus := &PlanQuotaStatus{
-				GUID:          plan.ID,
+				PlanID:        plan.ID,
 				LicenseStatus: "trial",
 				Quota:         lc.TrialQuota(service.ID, plan.ID),
 			}
