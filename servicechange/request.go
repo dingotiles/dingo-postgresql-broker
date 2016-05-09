@@ -72,6 +72,7 @@ func (req RealRequest) Steps() []step.Step {
 		!req.IsScalingIn() && !req.IsScalingOut() {
 		return steps
 	} else if req.IsInitialProvision() {
+		steps = append(steps, step.NewStepInitCluster(req.Cluster))
 		for i := existingNodeCount; i < req.NewNodeCount; i++ {
 			steps = append(steps, step.NewStepAddNode(req.Cluster))
 		}
