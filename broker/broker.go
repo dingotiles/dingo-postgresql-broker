@@ -26,9 +26,7 @@ type Broker struct {
 func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (bkr *Broker) {
 	bkr = &Broker{EtcdClient: etcdClient, Config: config}
 
-	bkr.Logger = lager.NewLogger("dingo-postgresql-broker")
-	bkr.Logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
-	bkr.Logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
+	bkr.Logger = bkr.setupLogger()
 
 	bkr.LicenseCheck = licensecheck.NewLicenseCheck(bkr.Config, bkr.Logger)
 	bkr.LicenseCheck.DisplayQuotaStatus()
@@ -47,4 +45,11 @@ func (bkr *Broker) Run() {
 	brokerAPI := brokerapi.New(bkr, bkr.Logger, credentials)
 	http.Handle("/", brokerAPI)
 	bkr.Logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
+}
+
+func (bkr *Broker) setupLogger() lager.Logger {
+	logger := lager.NewLogger("dingo-postgresql-broker")
+	logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
+	logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
+	return logger
 }
