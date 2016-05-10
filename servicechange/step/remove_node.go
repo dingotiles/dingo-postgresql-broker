@@ -65,8 +65,7 @@ func (step RemoveNode) Perform() (err error) {
 		return nil
 	}
 
-	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", step.cluster.Data.InstanceID, step.nodeUUID)
-	_, err = step.cluster.EtcdClient.Delete(key, true)
+	err = step.cluster.RemoveNode(step.nodeUUID)
 	if err != nil {
 		logger.Error("remove-node.nodes-delete", err)
 	}

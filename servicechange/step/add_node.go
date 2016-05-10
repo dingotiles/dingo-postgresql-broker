@@ -98,12 +98,11 @@ func (step AddNode) Perform() (err error) {
 }
 
 func (step AddNode) setClusterNodeBackend(backend *bkrconfig.Backend) (kvIndex uint64, err error) {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", step.cluster.Data.InstanceID, step.nodeUUID)
-	resp, err := step.cluster.EtcdClient.Set(key, backend.GUID, 0)
+	resp, err := step.cluster.AddNode(serviceinstance.Node{Id: step.nodeUUID, BackendId: backend.GUID})
 	if err != nil {
 		return 0, err
 	}
-	return resp.EtcdIndex, err
+	return resp, err
 }
 
 func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionDetails brokerapi.ProvisionDetails) error {

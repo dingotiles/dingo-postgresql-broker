@@ -1,8 +1,6 @@
 package step
 
 import (
-	"fmt"
-
 	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/pivotal-golang/lager"
 )
@@ -24,8 +22,6 @@ func (step InitCluster) Perform() (err error) {
 	logger := step.cluster.Logger
 	logger.Info("init-cluster.perform", lager.Data{"instance-id": step.cluster.Data.InstanceID, "plan-id": step.cluster.Data.PlanID})
 
-	key := fmt.Sprintf("/serviceinstances/%s/plan_id", step.cluster.Data.InstanceID)
-	_, err = step.cluster.EtcdClient.Set(key, step.cluster.Data.PlanID, 0)
-
+	err = step.cluster.Init()
 	return
 }

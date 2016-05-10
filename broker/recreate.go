@@ -37,7 +37,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 
 	// Restore port allocation from cluster.Data
 	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
-	_, err = cluster.EtcdClient.Set(key, cluster.Data.AllocatedPort, 0)
+	_, err = bkr.etcdClient.Set(key, cluster.Data.AllocatedPort, 0)
 	if err != nil {
 		logger.Error("routing-allocation.error", err)
 		return

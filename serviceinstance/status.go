@@ -34,7 +34,7 @@ func (cluster *Cluster) WaitForAllRunning() (err error) {
 // allRunning is true if state of all members is "running"
 func (cluster *Cluster) MemberStatus() (statuses string, allRunning bool, err error) {
 	key := fmt.Sprintf("/service/%s/members", cluster.Data.InstanceID)
-	resp, err := cluster.EtcdClient.Get(key, false, true)
+	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
 		cluster.Logger.Error("member-status.etcd-members", err)
 		return fmt.Sprintf("patroni member status missing for service instance %s", cluster.Data.InstanceID), false, err

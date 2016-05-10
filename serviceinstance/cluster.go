@@ -17,7 +17,7 @@ import (
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
 	Config     *bkrconfig.Config
-	EtcdClient backend.EtcdClient
+	etcdClient backend.EtcdClient
 	Logger     lager.Logger
 	Data       ClusterData
 }
@@ -25,7 +25,7 @@ type Cluster struct {
 // NewCluster creates a RealCluster from ProvisionDetails
 func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
-		EtcdClient: etcdClient,
+		etcdClient: etcdClient,
 		Config:     config,
 		Data: ClusterData{
 			InstanceID:       instanceID,
@@ -53,7 +53,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 // NewCluster creates a RealCluster from ProvisionDetails
 func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
-		EtcdClient: etcdClient,
+		etcdClient: etcdClient,
 		Config:     config,
 		Data:       *clusterdata,
 	}
@@ -75,14 +75,14 @@ func (cluster *Cluster) ClusterData() *ClusterData {
 // Exists returns true if cluster already exists
 func (cluster *Cluster) Exists() bool {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
-	_, err := cluster.EtcdClient.Get(key, false, true)
+	_, err := cluster.etcdClient.Get(key, false, true)
 	return err == nil
 }
 
 // Load the cluster information from KV store
 func (cluster *Cluster) Load() error {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
-	resp, err := cluster.EtcdClient.Get(key, false, true)
+	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
 		cluster.Logger.Error("load.etcd-get", err)
 		return err
@@ -97,11 +97,17 @@ func (cluster *Cluster) Load() error {
 	return nil
 }
 
+func (cluster *Cluster) Init() error {
+	key := fmt.Sprintf("/serviceinstances/%s/plan_id", cluster.Data.InstanceID)
+	_, err := cluster.etcdClient.Set(key, cluster.Data.PlanID, 0)
+	return err
+}
+
 // WaitForRoutingPortAllocation blocks until the routing tier has allocated a public port
 func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 	for index := 0; index < 10; index++ {
 		key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
-		resp, err := cluster.EtcdClient.Get(key, false, false)
+		resp, err := cluster.etcdClient.Get(key, false, false)
 		if err != nil {
 			cluster.Logger.Debug("provision.routing.polling", lager.Data{})
 		} else {
@@ -119,7 +125,7 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 // FIXME - currently just picking a random node - which might be the master
 func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, err error) {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
-	resp, err := cluster.EtcdClient.Get(key, false, true)
+	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
 		cluster.Logger.Error("random-replica-node.nodes", err)
 		return
@@ -131,7 +137,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 	nodeUUID = matches[1]
 
 	key = fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.Data.InstanceID, nodeUUID)
-	resp, err = cluster.EtcdClient.Get(key, false, false)
+	resp, err = cluster.etcdClient.Get(key, false, false)
 	if err != nil {
 		cluster.Logger.Error("random-replica-node.backend", err)
 		return
@@ -162,13 +168,13 @@ func (cluster *Cluster) AllAZs() (list []string) {
 
 // if any errors, assume that cluster has no running nodes yet
 func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
-	resp, err := cluster.EtcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID), false, false)
+	resp, err := cluster.etcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID), false, false)
 	if err != nil {
 		return
 	}
 	for _, clusterNode := range resp.Node.Nodes {
 		nodeKey := clusterNode.Key
-		resp, err = cluster.EtcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
+		resp, err = cluster.etcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
 		if err != nil {
 			cluster.Logger.Error("az-used.backend", err)
 			return

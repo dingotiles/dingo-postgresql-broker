@@ -18,7 +18,7 @@ const medium = 2
 
 // SetFakeSize is used by request_tests to set an initial cluster size before changes
 func setupCluster(cluster *serviceinstance.Cluster, existingBackendGUIDs []string) {
-	etcdClient := cluster.EtcdClient.(backend.FakeEtcdClient)
+	etcdClient := cluster.etcdClient.(backend.FakeEtcdClient)
 
 	nodes := make(etcd.Nodes, len(existingBackendGUIDs))
 	for i, backendGUID := range existingBackendGUIDs {

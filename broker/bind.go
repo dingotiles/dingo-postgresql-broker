@@ -28,7 +28,7 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
 
 	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
-	resp, err := cluster.EtcdClient.Get(key, false, false)
+	resp, err := bkr.etcdClient.Get(key, false, false)
 	if err != nil {
 		bkr.logger.Error("bind.routing-allocation.get", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: no published port for provisioned cluster")
