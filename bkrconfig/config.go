@@ -51,10 +51,7 @@ type Backend struct {
 
 // KVStore describes the KV store used by all the components
 type KVStore struct {
-	Type     string   `yaml:"type"`
 	Machines []string `yaml:"machines"`
-	Username string
-	Password string
 }
 
 // Callbacks allows plug'n'play scripts to be run when events have completed
