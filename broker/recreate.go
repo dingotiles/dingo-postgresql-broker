@@ -11,19 +11,19 @@ import (
 
 // Provision a new service instance
 func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
-	logger := bkr.Logger.Session("recreate", lager.Data{
+	logger := bkr.logger.Session("recreate", lager.Data{
 		"instance-id": instanceID,
 	})
 
 	logger.Info("start", lager.Data{})
 	var clusterdata *serviceinstance.ClusterData
-	err, clusterdata = serviceinstance.RestoreClusterDataBackup(instanceID, bkr.Config.Callbacks, bkr.Logger)
+	err, clusterdata = serviceinstance.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
 	if err != nil {
 		err = fmt.Errorf("Cannot recreate service from backup; unable to restore original service instance data: %s", err)
 		return
 	}
 
-	cluster := serviceinstance.NewClusterFromRestoredData(instanceID, clusterdata, bkr.EtcdClient, bkr.Config, logger)
+	cluster := serviceinstance.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
 	logger = cluster.Logger
 	logger.Info("me", lager.Data{"cluster": cluster})
 
@@ -66,6 +66,6 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		return
 	}
 	logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
-	cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
+	cluster.TriggerClusterDataBackup(bkr.config.Callbacks)
 	return
 }

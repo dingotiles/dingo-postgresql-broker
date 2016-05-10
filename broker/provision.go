@@ -11,7 +11,7 @@ import (
 
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
-	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, details, bkr.EtcdClient, bkr.Config, bkr.Logger)
+	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
 
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, acceptsIncomplete)
@@ -24,7 +24,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	canProvision := bkr.LicenseCheck.CanProvision(details.ServiceID, details.PlanID)
+	canProvision := bkr.licenseCheck.CanProvision(details.ServiceID, details.PlanID)
 	if !canProvision {
 		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
 	}
@@ -58,10 +58,10 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 			logger.Error("provision.running.error", err)
 		} else {
 
-			if bkr.Config.SupportsClusterDataBackup() {
-				cluster.TriggerClusterDataBackup(bkr.Config.Callbacks)
+			if bkr.config.SupportsClusterDataBackup() {
+				cluster.TriggerClusterDataBackup(bkr.config.Callbacks)
 				var restoredData *serviceinstance.ClusterData
-				err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.Config.Callbacks, logger)
+				err, restoredData = serviceinstance.RestoreClusterDataBackup(cluster.Data.InstanceID, bkr.config.Callbacks, logger)
 				if err != nil || !restoredData.Equals(&cluster.Data) {
 					logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": cluster.Data, "restoreddata": *restoredData})
 					go func() {

@@ -25,21 +25,21 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
-	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.EtcdClient, bkr.Config, bkr.Logger)
+	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
 
 	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
 	resp, err := cluster.EtcdClient.Get(key, false, false)
 	if err != nil {
-		bkr.Logger.Error("bind.routing-allocation.get", err)
+		bkr.logger.Error("bind.routing-allocation.get", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: no published port for provisioned cluster")
 	}
 	publicPort, err := strconv.ParseInt(resp.Node.Value, 10, 64)
 	if err != nil {
-		bkr.Logger.Error("bind.routing-allocation.parse-int", err)
+		bkr.logger.Error("bind.routing-allocation.parse-int", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: published port is not an integer (%s)", resp.Node.Value)
 	}
 
-	routerHost := bkr.Config.Router.Hostname
+	routerHost := bkr.config.Router.Hostname
 	appUsername := "dvw7DJgqzFBJC8"
 	appPassword := "jkT3TTNebfrh6C"
 	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", appUsername, appPassword, routerHost, publicPort)

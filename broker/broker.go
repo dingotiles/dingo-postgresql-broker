@@ -14,22 +14,21 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
-	Config       *bkrconfig.Config
-	EtcdClient   backend.EtcdClient
-	Backends     []bkrconfig.Backend
-	LicenseCheck *licensecheck.LicenseCheck
+	config       *bkrconfig.Config
+	etcdClient   backend.EtcdClient
+	licenseCheck *licensecheck.LicenseCheck
 
-	Logger lager.Logger
+	logger lager.Logger
 }
 
 // NewBroker is a constructor for a Broker webapp struct
 func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (bkr *Broker) {
-	bkr = &Broker{EtcdClient: etcdClient, Config: config}
+	bkr = &Broker{etcdClient: etcdClient, config: config}
 
-	bkr.Logger = bkr.setupLogger()
+	bkr.logger = bkr.setupLogger()
 
-	bkr.LicenseCheck = licensecheck.NewLicenseCheck(bkr.EtcdClient, bkr.Config, bkr.Logger)
-	bkr.LicenseCheck.DisplayQuotaStatus()
+	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.etcdClient, bkr.config, bkr.logger)
+	bkr.licenseCheck.DisplayQuotaStatus()
 
 	return
 }
@@ -37,14 +36,14 @@ func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (bkr *Br
 // Run starts the Martini webapp handler
 func (bkr *Broker) Run() {
 	credentials := brokerapi.BrokerCredentials{
-		Username: bkr.Config.Broker.Username,
-		Password: bkr.Config.Broker.Password,
+		Username: bkr.config.Broker.Username,
+		Password: bkr.config.Broker.Password,
 	}
-	port := bkr.Config.Broker.Port
+	port := bkr.config.Broker.Port
 
-	brokerAPI := brokerapi.New(bkr, bkr.Logger, credentials)
+	brokerAPI := brokerapi.New(bkr, bkr.logger, credentials)
 	http.Handle("/", brokerAPI)
-	bkr.Logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
+	bkr.logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
 }
 
 func (bkr *Broker) setupLogger() lager.Logger {
