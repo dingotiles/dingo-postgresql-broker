@@ -28,7 +28,7 @@ func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (bkr *Br
 
 	bkr.Logger = bkr.setupLogger()
 
-	bkr.LicenseCheck = licensecheck.NewLicenseCheck(bkr.Config, bkr.Logger)
+	bkr.LicenseCheck = licensecheck.NewLicenseCheck(bkr.EtcdClient, bkr.Config, bkr.Logger)
 	bkr.LicenseCheck.DisplayQuotaStatus()
 
 	return
