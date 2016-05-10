@@ -1,4 +1,4 @@
-package servicechange_test
+package scheduler_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestServiceChange(t *testing.T) {
+func Testscheduler(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Service Instance Changes Suite")
 }

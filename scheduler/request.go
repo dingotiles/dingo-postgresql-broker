@@ -1,8 +1,8 @@
-package servicechange
+package scheduler
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
-	"github.com/dingotiles/dingo-postgresql-broker/servicechange/step"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/pivotal-golang/lager"
 )
 

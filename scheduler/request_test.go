@@ -1,11 +1,11 @@
-package servicechange_test
+package scheduler_test
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
-	"github.com/dingotiles/dingo-postgresql-broker/servicechange/step"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,7 +28,7 @@ var _ = Describe("Service instance changes", func() {
 
 	Describe(".Steps", func() {
 		var cluster *cluster.Cluster
-		var req servicechange.Request
+		var req scheduler.Request
 		var steps []step.Step
 		clusterUUID := "uuid"
 		var serviceDetails brokerapi.ProvisionDetails
@@ -37,7 +37,7 @@ var _ = Describe("Service instance changes", func() {
 			BeforeEach(func() {
 				cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setFakeSize(cluster, 1, small)
-				req = servicechange.NewRequest(cluster, 1, small)
+				req = scheduler.NewRequest(cluster, 1, small)
 			})
 			It("noop", func() {
 				Ω(req.Steps()).To(Equal([]step.Step{}))
@@ -51,17 +51,17 @@ var _ = Describe("Service instance changes", func() {
 					setFakeSize(cluster, 0, small)
 				})
 				It("is initial creation", func() {
-					req = servicechange.NewRequest(cluster, 1, small)
+					req = scheduler.NewRequest(cluster, 1, small)
 					Ω(req.IsInitialProvision()).To(BeTrue())
 				})
 				It("add master node", func() {
-					req = servicechange.NewRequest(cluster, 1, small)
+					req = scheduler.NewRequest(cluster, 1, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(1))
 					Ω(steps[0]).To(BeAssignableToTypeOf(step.AddNode{}))
 				})
 				It("adds master + replica", func() {
-					req = servicechange.NewRequest(cluster, 2, small)
+					req = scheduler.NewRequest(cluster, 2, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(2))
 					Ω(steps[0]).To(BeAssignableToTypeOf(step.AddNode{}))
@@ -76,7 +76,7 @@ var _ = Describe("Service instance changes", func() {
 					setFakeSize(cluster, 2, small)
 				})
 				It("removes all nodes", func() {
-					req = servicechange.NewRequest(cluster, 0, small)
+					req = scheduler.NewRequest(cluster, 0, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(2))
 					Ω(steps[0]).To(BeAssignableToTypeOf(step.RemoveNode{}))
@@ -92,13 +92,13 @@ var _ = Describe("Service instance changes", func() {
 					setFakeSize(cluster, 1, small)
 				})
 				It("adds (replica) node", func() {
-					req = servicechange.NewRequest(cluster, 2, small)
+					req = scheduler.NewRequest(cluster, 2, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(1))
 					Ω(steps[0]).To(BeAssignableToTypeOf(step.AddNode{}))
 				})
 				It("adds multiple (replica) nodes", func() {
-					req = servicechange.NewRequest(cluster, 4, small)
+					req = scheduler.NewRequest(cluster, 4, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(3))
 					Ω(steps[0]).To(BeAssignableToTypeOf(step.AddNode{}))
@@ -115,12 +115,12 @@ var _ = Describe("Service instance changes", func() {
 					setFakeSize(cluster, 4, small)
 				})
 				It("remove (replica) node", func() {
-					req = servicechange.NewRequest(cluster, 3, small)
+					req = scheduler.NewRequest(cluster, 3, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(1))
 				})
 				It("removes (replica) nodes", func() {
-					req = servicechange.NewRequest(cluster, 1, small)
+					req = scheduler.NewRequest(cluster, 1, small)
 					steps := req.Steps()
 					Ω(steps).To(HaveLen(3))
 				})
@@ -132,7 +132,7 @@ var _ = Describe("Service instance changes", func() {
 				BeforeEach(func() {
 					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 1, small)
-					req = servicechange.NewRequest(cluster, 1, medium)
+					req = scheduler.NewRequest(cluster, 1, medium)
 				})
 				It("has steps", func() {
 					steps := req.Steps()
@@ -147,7 +147,7 @@ var _ = Describe("Service instance changes", func() {
 				BeforeEach(func() {
 					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 2, small)
-					req = servicechange.NewRequest(cluster, 4, medium)
+					req = scheduler.NewRequest(cluster, 4, medium)
 				})
 				It("has steps", func() {
 					steps := req.Steps()
@@ -163,7 +163,7 @@ var _ = Describe("Service instance changes", func() {
 				BeforeEach(func() {
 					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 6, medium)
-					req = servicechange.NewRequest(cluster, 3, small)
+					req = scheduler.NewRequest(cluster, 3, small)
 					steps = req.Steps()
 				})
 				It("is scaling down", func() {

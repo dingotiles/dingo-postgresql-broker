@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
-	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -51,7 +51,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	}
 	cluster.Data.NodeSize = 0
 	cluster.Data.NodeCount = 0
-	clusterRequest := servicechange.NewRequest(cluster, nodeCount, nodeSize)
+	clusterRequest := scheduler.NewRequest(cluster, nodeCount, nodeSize)
 	err = clusterRequest.Perform()
 	if err != nil {
 		logger.Error("provision.perform.error", err)
