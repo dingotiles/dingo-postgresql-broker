@@ -1,8 +1,8 @@
 package servicechange
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange/step"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -35,13 +35,13 @@ type Request interface {
 
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
 type RealRequest struct {
-	Cluster      *serviceinstance.Cluster
+	Cluster      *cluster.Cluster
 	NewNodeSize  int
 	NewNodeCount int
 }
 
 // NewRequest creates a RealRequest to change a service instance
-func NewRequest(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) Request {
+func NewRequest(cluster *cluster.Cluster, nodeCount, nodeSize int) Request {
 	return RealRequest{
 		Cluster:      cluster,
 		NewNodeCount: nodeCount,

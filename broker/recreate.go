@@ -3,8 +3,8 @@ package broker
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -16,14 +16,14 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	})
 
 	logger.Info("start", lager.Data{})
-	var clusterdata *serviceinstance.ClusterData
-	err, clusterdata = serviceinstance.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
+	var clusterdata *cluster.ClusterData
+	err, clusterdata = cluster.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
 	if err != nil {
 		err = fmt.Errorf("Cannot recreate service from backup; unable to restore original service instance data: %s", err)
 		return
 	}
 
-	cluster := serviceinstance.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
+	cluster := cluster.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
 	logger = cluster.Logger
 	logger.Info("me", lager.Data{"cluster": cluster})
 

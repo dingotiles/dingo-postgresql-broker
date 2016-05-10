@@ -1,4 +1,4 @@
-package serviceinstance_test
+package cluster_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +17,7 @@ const small = 1
 const medium = 2
 
 // SetFakeSize is used by request_tests to set an initial cluster size before changes
-func setupCluster(cluster *serviceinstance.Cluster, existingBackendGUIDs []string) {
+func setupCluster(cluster *cluster.Cluster, existingBackendGUIDs []string) {
 	etcdClient := cluster.etcdClient.(backend.FakeEtcdClient)
 
 	nodes := make(etcd.Nodes, len(existingBackendGUIDs))
@@ -52,7 +52,7 @@ var _ = Describe("backend broker selection", func() {
 	cfg := &bkrconfig.Config{}
 	var logger lager.Logger
 	clusterUUID := "uuid"
-	var cluster *serviceinstance.Cluster
+	var cluster *cluster.Cluster
 	var serviceDetails brokerapi.ProvisionDetails
 	var backends []*bkrconfig.Backend
 
@@ -69,7 +69,7 @@ var _ = Describe("backend broker selection", func() {
 		})
 
 		It("orders backends before cluster change from 0 to 1", func() {
-			cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+			cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 			setupCluster(cluster, []string{})
 			backends := cluster.SortedBackendsByUnusedAZs()
 			Ω(backendGUIDs(backends)).To(Equal([]string{"c1z1", "c2z1", "c3z1", "c4z2", "c5z2", "c6z2"}))
@@ -77,7 +77,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 1 to 2", func() {
 			It("has list of backends with z2 first, z1 second, c1z1 last", func() {
-				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
@@ -94,7 +94,7 @@ var _ = Describe("backend broker selection", func() {
 
 		Context("orders backends before cluster change from 2 to 3", func() {
 			It("has list of backends c1z1,c4z2 last", func() {
-				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setupCluster(cluster, []string{"c1z1", "c4z2"})
 				backends = cluster.SortedBackendsByUnusedAZs()
 				// backend broker already used is last in the list; its AZ is the last AZ
@@ -119,14 +119,14 @@ var _ = Describe("backend broker selection", func() {
 		})
 
 		It("orders backends before cluster change from 0 to 1", func() {
-			cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+			cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 			setupCluster(cluster, []string{})
 			backends := cluster.SortedBackendsByUnusedAZs()
 			Ω(backendGUIDs(backends)).To(Equal([]string{"c1z1", "c2z1", "c3z1", "c4z2", "c5z2", "c6z2", "c7z3", "c8z3", "c9z3"}))
 		})
 
 		It("orders backends with 2 x z1 and 1 x z3 already in use", func() {
-			cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+			cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 			setupCluster(cluster, []string{"c1z1", "c2z1", "c7z3"})
 			backends = cluster.SortedBackendsByUnusedAZs()
 			// backend broker already used is last in the list; its AZ is the last AZ

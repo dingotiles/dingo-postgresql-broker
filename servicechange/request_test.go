@@ -2,10 +2,10 @@ package servicechange_test
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange"
 	"github.com/dingotiles/dingo-postgresql-broker/servicechange/step"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,7 +16,7 @@ const small = 1
 const medium = 2
 
 // SetFakeSize is used by request_tests to set an initial cluster size before changes
-func setFakeSize(cluster *serviceinstance.Cluster, nodeCount, nodeSize int) {
+func setFakeSize(cluster *cluster.Cluster, nodeCount, nodeSize int) {
 	cluster.Data.NodeCount = nodeCount
 	cluster.Data.NodeSize = nodeSize
 }
@@ -27,7 +27,7 @@ var _ = Describe("Service instance changes", func() {
 	var logger lager.Logger
 
 	Describe(".Steps", func() {
-		var cluster *serviceinstance.Cluster
+		var cluster *cluster.Cluster
 		var req servicechange.Request
 		var steps []step.Step
 		clusterUUID := "uuid"
@@ -35,7 +35,7 @@ var _ = Describe("Service instance changes", func() {
 
 		Context("no change", func() {
 			BeforeEach(func() {
-				cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+				cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 				setFakeSize(cluster, 1, small)
 				req = servicechange.NewRequest(cluster, 1, small)
 			})
@@ -47,7 +47,7 @@ var _ = Describe("Service instance changes", func() {
 		Describe("new cluster", func() {
 			Context("create 1 small master", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 0, small)
 				})
 				It("is initial creation", func() {
@@ -72,7 +72,7 @@ var _ = Describe("Service instance changes", func() {
 		Describe("destroy cluster", func() {
 			Context("with 2-small", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 2, small)
 				})
 				It("removes all nodes", func() {
@@ -88,7 +88,7 @@ var _ = Describe("Service instance changes", func() {
 		Describe("grow cluster size (more replica nodes)", func() {
 			Context("1 small master", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 1, small)
 				})
 				It("adds (replica) node", func() {
@@ -111,7 +111,7 @@ var _ = Describe("Service instance changes", func() {
 		Describe("shrink cluster size (reduce replica nodes)", func() {
 			Context("4-small nodes", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 4, small)
 				})
 				It("remove (replica) node", func() {
@@ -130,7 +130,7 @@ var _ = Describe("Service instance changes", func() {
 		Describe("resize cluster nodes (bigger or smaller nodes)", func() {
 			Context("1-small becoming 1-medium", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 1, small)
 					req = servicechange.NewRequest(cluster, 1, medium)
 				})
@@ -145,7 +145,7 @@ var _ = Describe("Service instance changes", func() {
 		Describe("resize node and grow cluster count", func() {
 			Context("2-small becoming 4-medium node cluster", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 2, small)
 					req = servicechange.NewRequest(cluster, 4, medium)
 				})
@@ -161,7 +161,7 @@ var _ = Describe("Service instance changes", func() {
 
 			Context("6-medium becoming 3-small node cluster", func() {
 				BeforeEach(func() {
-					cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+					cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 					setFakeSize(cluster, 6, medium)
 					req = servicechange.NewRequest(cluster, 3, small)
 					steps = req.Steps()

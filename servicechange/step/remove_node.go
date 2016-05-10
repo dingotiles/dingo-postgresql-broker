@@ -8,7 +8,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -17,11 +17,11 @@ import (
 type RemoveNode struct {
 	nodeUUID string
 	backend  *bkrconfig.Backend
-	cluster  *serviceinstance.Cluster
+	cluster  *cluster.Cluster
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster *serviceinstance.Cluster) Step {
+func NewStepRemoveNode(cluster *cluster.Cluster) Step {
 	return RemoveNode{cluster: cluster}
 }
 

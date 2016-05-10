@@ -9,7 +9,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"
@@ -18,11 +18,11 @@ import (
 // AddNode instructs a new cluster node be added
 type AddNode struct {
 	nodeUUID string
-	cluster  *serviceinstance.Cluster
+	cluster  *cluster.Cluster
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *serviceinstance.Cluster) Step {
+func NewStepAddNode(cluster *cluster.Cluster) Step {
 	return AddNode{cluster: cluster}
 }
 
@@ -98,7 +98,7 @@ func (step AddNode) Perform() (err error) {
 }
 
 func (step AddNode) setClusterNodeBackend(backend *bkrconfig.Backend) (kvIndex uint64, err error) {
-	resp, err := step.cluster.AddNode(serviceinstance.Node{Id: step.nodeUUID, BackendId: backend.GUID})
+	resp, err := step.cluster.AddNode(cluster.Node{Id: step.nodeUUID, BackendId: backend.GUID})
 	if err != nil {
 		return 0, err
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/frodenas/brokerapi"
 )
 
@@ -25,7 +25,7 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
-	cluster := serviceinstance.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
+	cluster := cluster.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
 
 	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
 	resp, err := bkr.etcdClient.Get(key, false, false)

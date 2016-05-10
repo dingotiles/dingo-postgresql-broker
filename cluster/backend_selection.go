@@ -1,4 +1,4 @@
-package serviceinstance
+package cluster
 
 import "github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 

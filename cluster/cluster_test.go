@@ -1,9 +1,9 @@
-package serviceinstance_test
+package cluster_test
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
-	"github.com/dingotiles/dingo-postgresql-broker/serviceinstance"
+	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,7 +15,7 @@ var _ = Describe("backend broker selection", func() {
 	cfg := &bkrconfig.Config{}
 	logger := lager.NewLogger("tests")
 	clusterUUID := "uuid"
-	var cluster *serviceinstance.Cluster
+	var cluster *cluster.Cluster
 	var serviceDetails brokerapi.ProvisionDetails
 
 	It("has three AZs", func() {
@@ -30,7 +30,7 @@ var _ = Describe("backend broker selection", func() {
 			&bkrconfig.Backend{AvailabilityZone: "z3", GUID: "c8z3"},
 			&bkrconfig.Backend{AvailabilityZone: "z3", GUID: "c9z3"},
 		}
-		cluster = serviceinstance.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
+		cluster = cluster.NewClusterFromProvisionDetails(clusterUUID, serviceDetails, etcdClient, cfg, logger)
 		Ω(cluster.AllAZs()).To(Equal([]string{"z1", "z2", "z3"}))
 	})
 })
