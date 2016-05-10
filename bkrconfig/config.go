@@ -18,7 +18,6 @@ type Config struct {
 	Callbacks      Callbacks                 `yaml:"callbacks"`
 	Catalog        brokerapi.CatalogResponse `yaml:"catalog"`
 	LicenseText    string                    `yaml:"license_text"`
-	CloudFoundry   CloudFoundryAPI           `yaml:"cf"`
 	LicenseDetails *LicenseDetails
 }
 
@@ -51,7 +50,10 @@ type Backend struct {
 
 // KVStore describes the KV store used by all the components
 type KVStore struct {
+	Type     string   `yaml:"type"`
 	Machines []string `yaml:"machines"`
+	Username string
+	Password string
 }
 
 // Callbacks allows plug'n'play scripts to be run when events have completed
@@ -69,14 +71,6 @@ type CallbackCommand struct {
 // Catalog describes the services being advertised to Cloud Foundry users
 type Catalog struct {
 	Services []Service
-}
-
-// CloudFoundryAPI describes the target CF and some admin user/pass
-type CloudFoundryAPI struct {
-	API               string `yaml:"api"`
-	Username          string `yaml:"username"`
-	Password          string `yaml:"password"`
-	SkipSSLValidation bool   `yaml:"skip_ssl_validation"`
 }
 
 // LoadConfig from a YAML file
