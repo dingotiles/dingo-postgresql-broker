@@ -14,6 +14,10 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+const (
+	defaultNodeCount = 2
+)
+
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
 	Config     *bkrconfig.Config
@@ -37,6 +41,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 				Username: "pgadmin",
 				Password: NewPassword(16),
 			},
+			NodeCount: nodeCountFromProvisionDetails(details),
 		},
 	}
 	if logger != nil {
@@ -47,6 +52,21 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 		})
 	}
 	return
+}
+
+func nodeCountFromProvisionDetails(details brokerapi.ProvisionDetails) int {
+	nodeCount := defaultNodeCount
+
+	if details.Parameters["node-count"] != nil {
+		rawNodeCount := details.Parameters["node-count"]
+		nodeCount = int(rawNodeCount.(float64))
+	}
+
+	if nodeCount < 1 {
+		nodeCount = 1
+	}
+
+	return nodeCount
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails

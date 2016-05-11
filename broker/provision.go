@@ -29,18 +29,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
 	}
 
-	// 2-node default cluster
-	nodeCount := 2
-	nodeSize := 20 // meaningless at moment
-	if details.Parameters["node-count"] != nil {
-		rawNodeCount := details.Parameters["node-count"]
-		nodeCount = int(rawNodeCount.(float64))
-	}
-	if nodeCount < 1 {
-		logger.Info("provision.start.node-count-too-low", lager.Data{"node-count": nodeCount})
-		nodeCount = 1
-	}
-	clusterRequest := scheduler.NewRequest(clusterInstance, int(nodeCount), nodeSize)
+	clusterRequest := scheduler.NewRequest(clusterInstance, clusterInstance.Data.NodeCount, 20)
 
 	go func() {
 		err = clusterRequest.Perform()
