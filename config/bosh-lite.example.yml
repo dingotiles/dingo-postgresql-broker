@@ -3,25 +3,23 @@ broker:
   username: starkandwayne
   password: starkandwayne
   port: 3000
-router:
-  hostname: 54.82.6.219
-backends:
-- guid: "10.244.21.7"
-  availability_zone: "z1"
-  uri: "http://10.58.111.45:10217"
-  username: "containers"
-  password: "containers"
-- guid: "10.244.22.2"
-  availability_zone: "z2"
-  uri: "http://10.58.111.45:10222"
-  username: "containers"
-  password: "containers"
+  bind_host: 54.82.6.219
 
-kvstore:
-  type: etcd
+scheduler:
+    backends:
+    - guid: "10.244.21.7"
+      availability_zone: "z1"
+      uri: "http://10.58.111.45:10217"
+      username: "containers"
+      password: "containers"
+    - guid: "10.244.22.2"
+      availability_zone: "z2"
+      uri: "http://10.58.111.45:10222"
+      username: "containers"
+      password: "containers"
+
+etcd:
   machines: ["http://10.58.111.45:14001"]
-  username: ""
-  password: ""
 
 callbacks:
   clusterdata_backup: {cmd: jq, args: ["-r", "."]}
