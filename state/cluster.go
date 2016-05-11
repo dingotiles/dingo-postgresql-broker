@@ -15,10 +15,10 @@ type Cluster struct {
 	config     *config.Config
 	etcdClient backend.EtcdClient
 	logger     lager.Logger
-	meta       MetaData
+	meta       ClusterData
 }
 
-func (c *Cluster) MetaData() MetaData {
+func (c *Cluster) MetaData() ClusterData {
 	return c.meta
 }
 
@@ -27,7 +27,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		config:     config,
-		meta: MetaData{
+		meta: ClusterData{
 			InstanceID:       instanceID,
 			OrganizationGUID: details.OrganizationGUID,
 			PlanID:           details.PlanID,
@@ -50,7 +50,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromRestoredData(instanceID string, clusterdata *MetaData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		config:     config,

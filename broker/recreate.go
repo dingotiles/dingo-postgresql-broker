@@ -15,7 +15,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	})
 
 	logger.Info("start", lager.Data{})
-	var clusterdata *state.MetaData
+	var clusterdata *state.ClusterData
 	err, clusterdata = state.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
 	if err != nil {
 		err = fmt.Errorf("Cannot recreate service from backup; unable to restore original service instance data: %s", err)

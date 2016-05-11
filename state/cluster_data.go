@@ -19,8 +19,8 @@ type AdminCredentials struct {
 	Password string `json:"password"`
 }
 
-// MetaData describes the current request for the state of the cluster
-type MetaData struct {
+// ClusterData describes the current request for the state of the cluster
+type ClusterData struct {
 	InstanceID       string           `json:"instance_id"`
 	ServiceID        string           `json:"service_id"`
 	PlanID           string           `json:"plan_id"`
@@ -31,7 +31,7 @@ type MetaData struct {
 	AllocatedPort    string           `json:"allocated_port"`
 }
 
-func (data *MetaData) Equals(other *MetaData) bool {
+func (data *ClusterData) Equals(other *ClusterData) bool {
 	return reflect.DeepEqual(*data, *other)
 }
 func (cluster *Cluster) TriggerClusterDataBackup(callbacks config.Callbacks) {
@@ -93,7 +93,7 @@ func (cluster *Cluster) TriggerClusterDataBackup(callbacks config.Callbacks) {
 	logger.Info("clusterdata.backup.done")
 }
 
-func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, logger lager.Logger) (err error, clusterdata *MetaData) {
+func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, logger lager.Logger) (err error, clusterdata *ClusterData) {
 	callback := callbacks.ClusterDataRestore
 	if callback == nil {
 		err = fmt.Errorf("Broker not configured to support service recreation")
@@ -131,7 +131,7 @@ func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, log
 	}()
 	go func() {
 		defer wg.Done()
-		clusterdata = &MetaData{}
+		clusterdata = &ClusterData{}
 		if err := json.NewDecoder(stdout).Decode(&clusterdata); err != nil {
 			logger.Error("clusterdata.restore.marshal-error", err)
 			return
