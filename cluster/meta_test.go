@@ -5,9 +5,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ClusterData", func() {
+var _ = Describe("MetaData", func() {
 	It("Can can be Equal", func() {
-		data := &ClusterData{
+		data := &MetaData{
 			InstanceID:       "instanceID",
 			OrganizationGUID: "OrganizationGUID",
 			PlanID:           "PlanID",
@@ -17,9 +17,8 @@ var _ = Describe("ClusterData", func() {
 				Username: "pgadmin",
 				Password: "pw",
 			},
-			Parameters: nil,
 		}
-		otherData := ClusterData{
+		otherData := MetaData{
 			InstanceID:       "instanceID",
 			OrganizationGUID: "OrganizationGUID",
 			PlanID:           "PlanID",
@@ -29,7 +28,6 @@ var _ = Describe("ClusterData", func() {
 				Username: "pgadmin",
 				Password: "pw",
 			},
-			Parameters: nil,
 		}
 		Ω(otherData.Equals(data)).To(Equal(true))
 		Ω(data.Equals(&otherData)).To(Equal(true))
