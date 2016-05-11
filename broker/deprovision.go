@@ -5,7 +5,6 @@ import (
 
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -28,7 +27,7 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 		return false, err
 	}
 
-	clusterRequest := scheduler.NewRequest(cluster, 0, logger)
+	clusterRequest := bkr.scheduler.NewRequest(cluster, 0)
 	clusterRequest.Perform()
 
 	var resp *etcd.Response

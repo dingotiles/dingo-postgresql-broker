@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/frodenas/brokerapi"
 )
 
@@ -32,7 +31,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	if nodeCount < 1 {
 		return false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
 	}
-	clusterRequest := scheduler.NewRequest(cluster, int(nodeCount), bkr.logger)
+	clusterRequest := bkr.scheduler.NewRequest(cluster, int(nodeCount))
 	clusterRequest.Perform()
 	return false, nil
 }

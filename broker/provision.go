@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -39,7 +38,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Info("provision.start.node-count-too-low", lager.Data{"node-count": nodeCount})
 		nodeCount = 1
 	}
-	clusterRequest := scheduler.NewRequest(clusterInstance, int(nodeCount), logger)
+	clusterRequest := bkr.scheduler.NewRequest(clusterInstance, int(nodeCount))
 
 	go func() {
 		err = clusterRequest.Perform()

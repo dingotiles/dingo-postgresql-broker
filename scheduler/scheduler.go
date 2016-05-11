@@ -16,7 +16,3 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 		logger: logger,
 	}
 }
-
-type backend struct {
-	config config.Backend
-}

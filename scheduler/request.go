@@ -16,15 +16,17 @@ type Request struct {
 	newNodeSize  int
 	newNodeCount int
 	logger       lager.Logger
+	scheduler    *Scheduler
 }
 
 // NewRequest creates a Request to change a service instance
-func NewRequest(cluster *cluster.Cluster, nodeCount int, logger lager.Logger) Request {
+func (s *Scheduler) NewRequest(cluster *cluster.Cluster, nodeCount int) Request {
 	return Request{
 		cluster:      cluster,
 		newNodeCount: nodeCount,
 		newNodeSize:  defaultNodeSize,
-		logger:       logger,
+		logger:       s.logger,
+		scheduler:    s,
 	}
 }
 
