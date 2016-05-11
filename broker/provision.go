@@ -41,7 +41,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	clusterRequest := bkr.scheduler.NewRequest(clusterInstance, int(nodeCount))
 
 	go func() {
-		err = clusterRequest.Perform()
+		err = bkr.scheduler.Execute(clusterRequest)
 		if err != nil {
 			logger.Error("provision.perform.error", err)
 		}

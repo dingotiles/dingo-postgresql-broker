@@ -28,7 +28,7 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 	}
 
 	clusterRequest := bkr.scheduler.NewRequest(cluster, 0)
-	clusterRequest.Perform()
+	bkr.scheduler.Execute(clusterRequest)
 
 	var resp *etcd.Response
 	resp, err = bkr.etcdClient.Delete(fmt.Sprintf("/serviceinstances/%s", instanceID), true)

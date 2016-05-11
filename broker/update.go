@@ -32,6 +32,6 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		return false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
 	}
 	clusterRequest := bkr.scheduler.NewRequest(cluster, int(nodeCount))
-	clusterRequest.Perform()
+	bkr.scheduler.Execute(clusterRequest)
 	return false, nil
 }

@@ -123,23 +123,6 @@ func (req Request) isScalingIn() bool {
 	return req.newNodeCount != 0 && req.cluster.Data.NodeCount > req.newNodeCount
 }
 
-// Perform schedules the Request steps() to be performed
-func (req Request) Perform() (err error) {
-	req.logRequest()
-	if len(req.steps()) == 0 {
-		req.logger.Info("request.no-steps")
-		return
-	}
-	req.logger.Info("request.perform", lager.Data{"steps-count": len(req.steps())})
-	for _, step := range req.steps() {
-		err = step.Perform()
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
 // logRequest send the requested change to Cluster to logs
 func (req Request) logRequest() {
 	req.logger.Info("request", lager.Data{
