@@ -42,7 +42,7 @@ func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) 
 		return
 	}
 
-	data, err := json.Marshal(cluster.ClusterData())
+	data, err := json.Marshal(cluster.Data)
 	if err != nil {
 		logger.Error("clusterdata.backup.data-marshal", err)
 		return

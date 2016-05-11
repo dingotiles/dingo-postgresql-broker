@@ -86,11 +86,6 @@ func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etc
 	return
 }
 
-// ClusterData describes the current request for the state of the cluster
-func (cluster *Cluster) ClusterData() *ClusterData {
-	return &cluster.Data
-}
-
 // Exists returns true if cluster already exists
 func (cluster *Cluster) Exists() bool {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)

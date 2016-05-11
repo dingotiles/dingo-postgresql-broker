@@ -62,7 +62,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 				}
 			}
 
-			logger.Info("provision.running.success", lager.Data{"cluster": clusterInstance.ClusterData()})
+			logger.Info("provision.running.success", lager.Data{"cluster": clusterInstance.Data})
 		}
 	}()
 	return resp, true, err

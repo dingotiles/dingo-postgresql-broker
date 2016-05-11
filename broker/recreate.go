@@ -63,7 +63,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Error("provision.running.error", err)
 		return
 	}
-	logger.Info("provision.running.success", lager.Data{"cluster": cluster.ClusterData()})
+	logger.Info("provision.running.success", lager.Data{"cluster": cluster.Data})
 	cluster.TriggerClusterDataBackup(bkr.config.Callbacks)
 	return
 }
