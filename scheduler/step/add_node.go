@@ -40,10 +40,7 @@ func (step AddNode) Perform() (err error) {
 
 	// 1. Generate UUID for node to be created
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
-	params := step.cluster.Data.Parameters
-	if params == nil {
-		params = map[string]interface{}{}
-	}
+	params := map[string]interface{}{}
 	params["PATRONI_SCOPE"] = step.cluster.Data.InstanceID
 	params["NODE_NAME"] = step.nodeUUID
 	params["POSTGRES_USERNAME"] = step.cluster.Data.AdminCredentials.Username

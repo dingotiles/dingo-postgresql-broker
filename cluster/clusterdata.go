@@ -21,16 +21,15 @@ type AdminCredentials struct {
 
 // ClusterData describes the current request for the state of the cluster
 type ClusterData struct {
-	InstanceID       string                 `json:"instance_id"`
-	ServiceID        string                 `json:"service_id"`
-	PlanID           string                 `json:"plan_id"`
-	OrganizationGUID string                 `json:"organization_guid"`
-	SpaceGUID        string                 `json:"space_guid"`
-	AdminCredentials AdminCredentials       `json:"admin_credentials"`
-	Parameters       map[string]interface{} `json:"parameters"`
-	NodeCount        int                    `json:"node_count"`
-	NodeSize         int                    `json:"node_size"`
-	AllocatedPort    string                 `json:"allocated_port"`
+	InstanceID       string           `json:"instance_id"`
+	ServiceID        string           `json:"service_id"`
+	PlanID           string           `json:"plan_id"`
+	OrganizationGUID string           `json:"organization_guid"`
+	SpaceGUID        string           `json:"space_guid"`
+	AdminCredentials AdminCredentials `json:"admin_credentials"`
+	NodeCount        int              `json:"node_count"`
+	NodeSize         int              `json:"node_size"`
+	AllocatedPort    string           `json:"allocated_port"`
 }
 
 func (data *ClusterData) Equals(other *ClusterData) bool {

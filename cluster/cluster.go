@@ -37,7 +37,6 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 				Username: "pgadmin",
 				Password: NewPassword(16),
 			},
-			Parameters: details.Parameters,
 		},
 	}
 	if logger != nil {
