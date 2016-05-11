@@ -39,17 +39,17 @@ type Request interface {
 
 // RealRequest represents a user-originating request to change a service instance (grow, scale, move)
 type RealRequest struct {
-	Cluster      *cluster.Cluster
-	NewNodeSize  int
-	NewNodeCount int
+	cluster      *cluster.Cluster
+	newNodeSize  int
+	newNodeCount int
 }
 
 // NewRequest creates a RealRequest to change a service instance
 func NewRequest(cluster *cluster.Cluster, nodeCount int) Request {
 	return RealRequest{
-		Cluster:      cluster,
-		NewNodeCount: nodeCount,
-		NewNodeSize:  defaultNodeSize,
+		cluster:      cluster,
+		newNodeCount: nodeCount,
+		newNodeSize:  defaultNodeSize,
 	}
 }
 
@@ -65,56 +65,56 @@ func (req RealRequest) StepTypes() []string {
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req RealRequest) Steps() []step.Step {
-	existingNodeCount := req.Cluster.Data.NodeCount
+	existingNodeCount := req.cluster.Data.NodeCount
 	existingNodeSize := defaultNodeSize
 	steps := []step.Step{}
-	if req.NewNodeCount == 0 {
-		for i := existingNodeCount; i > req.NewNodeCount; i-- {
-			steps = append(steps, step.NewStepRemoveNode(req.Cluster))
+	if req.newNodeCount == 0 {
+		for i := existingNodeCount; i > req.newNodeCount; i-- {
+			steps = append(steps, step.NewStepRemoveNode(req.cluster))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
 		return steps
 	} else if req.IsInitialProvision() {
-		steps = append(steps, step.NewStepInitCluster(req.Cluster))
-		for i := existingNodeCount; i < req.NewNodeCount; i++ {
-			steps = append(steps, step.NewStepAddNode(req.Cluster))
+		steps = append(steps, step.NewStepInitCluster(req.cluster))
+		for i := existingNodeCount; i < req.newNodeCount; i++ {
+			steps = append(steps, step.NewStepAddNode(req.cluster))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() {
 		// if only scaling out or in; but not up or down
 		if req.IsScalingOut() {
-			for i := existingNodeCount; i < req.NewNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.Cluster))
+			for i := existingNodeCount; i < req.newNodeCount; i++ {
+				steps = append(steps, step.NewStepAddNode(req.cluster))
 			}
 		}
 		if req.IsScalingIn() {
-			for i := existingNodeCount; i > req.NewNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.Cluster))
+			for i := existingNodeCount; i > req.newNodeCount; i-- {
+				steps = append(steps, step.NewStepRemoveNode(req.cluster))
 			}
 		}
 	} else if !req.IsScalingIn() && !req.IsScalingOut() {
 		// if only scaling up or down; but not out or in
-		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
+		steps = append(steps, step.NewStepReplaceMaster(req.newNodeSize))
 		// replace remaining replicas with resized nodes
 		for i := 1; i < existingNodeCount; i++ {
-			steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
+			steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 		}
 	} else {
 		// changing both horizontal and vertical aspects of cluster
-		steps = append(steps, step.NewStepReplaceMaster(req.NewNodeSize))
+		steps = append(steps, step.NewStepReplaceMaster(req.newNodeSize))
 		if req.IsScalingOut() {
 			for i := 1; i < existingNodeCount; i++ {
-				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
+				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
-			for i := existingNodeCount; i < req.NewNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.Cluster))
+			for i := existingNodeCount; i < req.newNodeCount; i++ {
+				steps = append(steps, step.NewStepAddNode(req.cluster))
 			}
 		} else if req.IsScalingIn() {
-			for i := 1; i < req.NewNodeCount; i++ {
-				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.NewNodeSize))
+			for i := 1; i < req.newNodeCount; i++ {
+				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
-			for i := existingNodeCount; i > req.NewNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.Cluster))
+			for i := existingNodeCount; i > req.newNodeCount; i-- {
+				steps = append(steps, step.NewStepRemoveNode(req.cluster))
 			}
 		}
 	}
@@ -123,27 +123,27 @@ func (req RealRequest) Steps() []step.Step {
 
 // IsInitialProvision is true if this Request is to create the initial cluster
 func (req RealRequest) IsInitialProvision() bool {
-	return req.Cluster.Data.NodeCount == 0
+	return req.cluster.Data.NodeCount == 0
 }
 
 // IsScalingUp is true if smaller nodes requested
 func (req RealRequest) IsScalingUp() bool {
-	return req.NewNodeSize != 0 && defaultNodeSize < req.NewNodeSize
+	return req.newNodeSize != 0 && defaultNodeSize < req.newNodeSize
 }
 
 // IsScalingDown is true if bigger nodes requested
 func (req RealRequest) IsScalingDown() bool {
-	return req.NewNodeSize != 0 && defaultNodeSize > req.NewNodeSize
+	return req.newNodeSize != 0 && defaultNodeSize > req.newNodeSize
 }
 
 // IsScalingOut is true if more nodes requested
 func (req RealRequest) IsScalingOut() bool {
-	return req.NewNodeCount != 0 && req.Cluster.Data.NodeCount < req.NewNodeCount
+	return req.newNodeCount != 0 && req.cluster.Data.NodeCount < req.newNodeCount
 }
 
 // IsScalingIn is true if fewer nodes requested
 func (req RealRequest) IsScalingIn() bool {
-	return req.NewNodeCount != 0 && req.Cluster.Data.NodeCount > req.NewNodeCount
+	return req.newNodeCount != 0 && req.cluster.Data.NodeCount > req.newNodeCount
 }
 
 // Perform schedules the Request Steps() to be performed
@@ -164,14 +164,14 @@ func (req RealRequest) Perform() (err error) {
 }
 
 func (req RealRequest) logger() lager.Logger {
-	return req.Cluster.Logger
+	return req.cluster.Logger
 }
 
 // logRequest send the requested change to Cluster to logs
 func (req RealRequest) logRequest() {
 	req.logger().Info("request", lager.Data{
-		"current-node-count": req.Cluster.Data.NodeCount,
-		"new-node-count":     req.NewNodeCount,
+		"current-node-count": req.cluster.Data.NodeCount,
+		"new-node-count":     req.newNodeCount,
 		"steps":              req.StepTypes(),
 	})
 }
