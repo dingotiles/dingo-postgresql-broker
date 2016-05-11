@@ -27,7 +27,7 @@ type CredentialsHash struct {
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
 	cluster := cluster.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
 
-	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
+	key := fmt.Sprintf("/routing/allocation/%s", cluster.MetaData().InstanceID)
 	resp, err := bkr.etcdClient.Get(key, false, false)
 	if err != nil {
 		bkr.logger.Error("bind.routing-allocation.get", err)

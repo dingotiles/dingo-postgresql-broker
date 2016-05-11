@@ -19,7 +19,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	logger := bkr.logger
 	logger.Info("provision.start", lager.Data{})
 
-	if clusterInstance.Exists() {
+	if cluster.Exists(bkr.etcdClient, instanceID) {
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
@@ -58,20 +58,21 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 			if bkr.config.SupportsClusterDataBackup() {
 				clusterInstance.TriggerClusterDataBackup(bkr.config.Callbacks)
-				var restoredData *cluster.ClusterData
-				err, restoredData = cluster.RestoreClusterDataBackup(clusterInstance.Data.InstanceID, bkr.config.Callbacks, logger)
-				if err != nil || !restoredData.Equals(&clusterInstance.Data) {
-					logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": clusterInstance.Data, "restoreddata": *restoredData})
+				var restoredData *cluster.MetaData
+				err, restoredData = cluster.RestoreClusterDataBackup(clusterInstance.MetaData().InstanceID, bkr.config.Callbacks, logger)
+				metaData := clusterInstance.MetaData()
+				if err != nil || !restoredData.Equals(&metaData) {
+					logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": clusterInstance.MetaData(), "restoreddata": *restoredData})
 					go func() {
-						bkr.Deprovision(clusterInstance.Data.InstanceID, brokerapi.DeprovisionDetails{
-							PlanID:    clusterInstance.Data.PlanID,
-							ServiceID: clusterInstance.Data.ServiceID,
+						bkr.Deprovision(clusterInstance.MetaData().InstanceID, brokerapi.DeprovisionDetails{
+							PlanID:    clusterInstance.MetaData().PlanID,
+							ServiceID: clusterInstance.MetaData().ServiceID,
 						}, true)
 					}()
 				}
 			}
 
-			logger.Info("provision.running.success", lager.Data{"cluster": clusterInstance.Data})
+			logger.Info("provision.running.success", lager.Data{"cluster": clusterInstance.MetaData()})
 		}
 	}()
 	return resp, true, err

@@ -36,20 +36,20 @@ func (step AddNode) Perform() (err error) {
 	step.nodeUUID = uuid.New()
 
 	logger := step.logger
-	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.Data.InstanceID, "node-uuid": step.nodeUUID})
+	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.MetaData().InstanceID, "node-uuid": step.nodeUUID})
 
 	// 1. Generate UUID for node to be created
 	// 2. Construct backend provision request (instance_id; service_id, plan_id, org_id, space_id)
 	params := map[string]interface{}{}
-	params["PATRONI_SCOPE"] = step.cluster.Data.InstanceID
+	params["PATRONI_SCOPE"] = step.cluster.MetaData().InstanceID
 	params["NODE_NAME"] = step.nodeUUID
-	params["POSTGRES_USERNAME"] = step.cluster.Data.AdminCredentials.Username
-	params["POSTGRES_PASSWORD"] = step.cluster.Data.AdminCredentials.Password
+	params["POSTGRES_USERNAME"] = step.cluster.MetaData().AdminCredentials.Username
+	params["POSTGRES_PASSWORD"] = step.cluster.MetaData().AdminCredentials.Password
 	provisionDetails := brokerapi.ProvisionDetails{
-		OrganizationGUID: step.cluster.Data.OrganizationGUID,
-		PlanID:           step.cluster.Data.PlanID,
-		ServiceID:        step.cluster.Data.ServiceID,
-		SpaceGUID:        step.cluster.Data.SpaceGUID,
+		OrganizationGUID: step.cluster.MetaData().OrganizationGUID,
+		PlanID:           step.cluster.MetaData().PlanID,
+		ServiceID:        step.cluster.MetaData().ServiceID,
+		SpaceGUID:        step.cluster.MetaData().SpaceGUID,
 		Parameters:       params,
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)

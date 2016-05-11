@@ -55,7 +55,7 @@ func (step RemoveNode) Perform() (err error) {
 	}
 
 	logger.Info("remove-node.perform", lager.Data{
-		"instance-id": step.cluster.Data.InstanceID,
+		"instance-id": step.cluster.MetaData().InstanceID,
 		"node-uuid":   step.nodeUUID,
 		"backend":     step.backend.GUID,
 	})
@@ -80,8 +80,8 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 	buffer := &bytes.Buffer{}
 
 	deleteDetails := brokerapi.DeprovisionDetails{
-		PlanID:    step.cluster.Data.PlanID,
-		ServiceID: step.cluster.Data.ServiceID,
+		PlanID:    step.cluster.MetaData().PlanID,
+		ServiceID: step.cluster.MetaData().ServiceID,
 	}
 
 	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {

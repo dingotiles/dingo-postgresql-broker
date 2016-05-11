@@ -33,11 +33,11 @@ func (cluster *Cluster) WaitForAllRunning() (err error) {
 // MemberStatus aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
 func (cluster *Cluster) MemberStatus() (statuses string, allRunning bool, err error) {
-	key := fmt.Sprintf("/service/%s/members", cluster.Data.InstanceID)
+	key := fmt.Sprintf("/service/%s/members", cluster.meta.InstanceID)
 	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
 		cluster.logger.Error("member-status.etcd-members", err)
-		return fmt.Sprintf("patroni member status missing for service instance %s", cluster.Data.InstanceID), false, err
+		return fmt.Sprintf("patroni member status missing for service instance %s", cluster.meta.InstanceID), false, err
 	}
 
 	masterStatus := ""
@@ -48,7 +48,7 @@ func (cluster *Cluster) MemberStatus() (statuses string, allRunning bool, err er
 		err := json.Unmarshal([]byte(member.Value), &memberData)
 		if err != nil {
 			cluster.logger.Error("member-status.etcd-member", err)
-			return fmt.Sprintf("patroni member status corrupt for service instance %s", cluster.Data.InstanceID), false, err
+			return fmt.Sprintf("patroni member status corrupt for service instance %s", cluster.meta.InstanceID), false, err
 		}
 		if memberData.Role == "master" {
 			masterStatus = memberData.State

@@ -20,7 +20,7 @@ func (step InitCluster) StepType() string {
 }
 
 func (step InitCluster) Perform() (err error) {
-	step.logger.Info("init-cluster.perform", lager.Data{"instance-id": step.cluster.Data.InstanceID, "plan-id": step.cluster.Data.PlanID})
+	step.logger.Info("init-cluster.perform", lager.Data{"instance-id": step.cluster.MetaData().InstanceID, "plan-id": step.cluster.MetaData().PlanID})
 
 	err = step.cluster.Init()
 	return

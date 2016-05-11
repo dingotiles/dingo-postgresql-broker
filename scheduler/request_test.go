@@ -17,8 +17,8 @@ const medium = 2
 
 // SetFakeSize is used by request_tests to set an initial cluster size before changes
 func setFakeSize(cluster *cluster.Cluster, nodeCount, nodeSize int) {
-	cluster.Data.NodeCount = nodeCount
-	cluster.Data.NodeSize = nodeSize
+	cluster.MetaData().NodeCount = nodeCount
+	cluster.MetaData().NodeSize = nodeSize
 }
 
 var _ = Describe("Service instance changes", func() {

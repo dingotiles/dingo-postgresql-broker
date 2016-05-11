@@ -15,7 +15,11 @@ type Cluster struct {
 	config     *config.Config
 	etcdClient backend.EtcdClient
 	logger     lager.Logger
-	Data       ClusterData
+	meta       MetaData
+}
+
+func (c *Cluster) MetaData() MetaData {
+	return c.meta
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
@@ -23,7 +27,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		config:     config,
-		Data: ClusterData{
+		meta: MetaData{
 			InstanceID:       instanceID,
 			OrganizationGUID: details.OrganizationGUID,
 			PlanID:           details.PlanID,
@@ -37,20 +41,20 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 	}
 	if logger != nil {
 		cluster.logger = logger.Session("cluster", lager.Data{
-			"instance-id": cluster.Data.InstanceID,
-			"service-id":  cluster.Data.ServiceID,
-			"plan-id":     cluster.Data.PlanID,
+			"instance-id": cluster.MetaData().InstanceID,
+			"service-id":  cluster.MetaData().ServiceID,
+			"plan-id":     cluster.MetaData().PlanID,
 		})
 	}
 	return
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromRestoredData(instanceID string, clusterdata *MetaData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		config:     config,
-		Data:       *clusterdata,
+		meta:       *clusterdata,
 	}
 	if logger != nil {
 		cluster.logger = logger.Session("cluster", lager.Data{
@@ -63,43 +67,43 @@ func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etc
 }
 
 // Exists returns true if cluster already exists
-func (cluster *Cluster) Exists() bool {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
-	_, err := cluster.etcdClient.Get(key, false, true)
+func Exists(etcdClient backend.EtcdClient, instanceId string) bool {
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", instanceId)
+	_, err := etcdClient.Get(key, false, true)
 	return err == nil
 }
 
 // Load the cluster information from KV store
 func (cluster *Cluster) Load() error {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID)
 	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
 		cluster.logger.Error("load.etcd-get", err)
 		return err
 	}
-	cluster.Data.NodeCount = len(resp.Node.Nodes)
+	cluster.meta.NodeCount = len(resp.Node.Nodes)
 	cluster.logger.Info("load.state", lager.Data{
-		"node-count": cluster.Data.NodeCount,
+		"node-count": cluster.MetaData().NodeCount,
 	})
 	return nil
 }
 
 func (cluster *Cluster) Init() error {
-	key := fmt.Sprintf("/serviceinstances/%s/plan_id", cluster.Data.InstanceID)
-	_, err := cluster.etcdClient.Set(key, cluster.Data.PlanID, 0)
+	key := fmt.Sprintf("/serviceinstances/%s/plan_id", cluster.MetaData().InstanceID)
+	_, err := cluster.etcdClient.Set(key, cluster.MetaData().PlanID, 0)
 	return err
 }
 
 // WaitForRoutingPortAllocation blocks until the routing tier has allocated a public port
 func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 	for index := 0; index < 10; index++ {
-		key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
+		key := fmt.Sprintf("/routing/allocation/%s", cluster.MetaData().InstanceID)
 		resp, err := cluster.etcdClient.Get(key, false, false)
 		if err != nil {
 			cluster.logger.Debug("provision.routing.polling", lager.Data{})
 		} else {
-			cluster.Data.AllocatedPort = resp.Node.Value
-			cluster.logger.Info("provision.routing.done", lager.Data{"allocated_port": cluster.Data.AllocatedPort})
+			cluster.meta.AllocatedPort = resp.Node.Value
+			cluster.logger.Info("provision.routing.done", lager.Data{"allocated_port": cluster.MetaData().AllocatedPort})
 			return nil
 		}
 		time.Sleep(1 * time.Second)

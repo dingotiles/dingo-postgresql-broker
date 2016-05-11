@@ -42,7 +42,7 @@ func (req Request) stepTypes() []string {
 
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req Request) steps() []step.Step {
-	existingNodeCount := req.cluster.Data.NodeCount
+	existingNodeCount := req.cluster.MetaData().NodeCount
 	existingNodeSize := defaultNodeSize
 	steps := []step.Step{}
 	if req.newNodeCount == 0 {
@@ -100,7 +100,7 @@ func (req Request) steps() []step.Step {
 
 // isInitialProvision is true if this Request is to create the initial cluster
 func (req Request) isInitialProvision() bool {
-	return req.cluster.Data.NodeCount == 0
+	return req.cluster.MetaData().NodeCount == 0
 }
 
 // isScalingUp is true if smaller nodes requested
@@ -115,18 +115,18 @@ func (req Request) isScalingDown() bool {
 
 // isScalingOut is true if more nodes requested
 func (req Request) isScalingOut() bool {
-	return req.newNodeCount != 0 && req.cluster.Data.NodeCount < req.newNodeCount
+	return req.newNodeCount != 0 && req.cluster.MetaData().NodeCount < req.newNodeCount
 }
 
 // isScalingIn is true if fewer nodes requested
 func (req Request) isScalingIn() bool {
-	return req.newNodeCount != 0 && req.cluster.Data.NodeCount > req.newNodeCount
+	return req.newNodeCount != 0 && req.cluster.MetaData().NodeCount > req.newNodeCount
 }
 
 // logRequest send the requested change to Cluster to logs
 func (req Request) logRequest() {
 	req.logger.Info("request", lager.Data{
-		"current-node-count": req.cluster.Data.NodeCount,
+		"current-node-count": req.cluster.MetaData().NodeCount,
 		"new-node-count":     req.newNodeCount,
 		"steps":              req.stepTypes(),
 	})

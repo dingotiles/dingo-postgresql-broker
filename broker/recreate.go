@@ -15,18 +15,16 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	})
 
 	logger.Info("start", lager.Data{})
-	var clusterdata *cluster.ClusterData
+	var clusterdata *cluster.MetaData
 	err, clusterdata = cluster.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
 	if err != nil {
 		err = fmt.Errorf("Cannot recreate service from backup; unable to restore original service instance data: %s", err)
 		return
 	}
 
-	cluster := cluster.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
 	logger = bkr.logger
-	logger.Info("me", lager.Data{"cluster": cluster})
 
-	if cluster.Exists() {
+	if cluster.Exists(bkr.etcdClient, instanceID) {
 		logger.Info("exists")
 		err = fmt.Errorf("Service instance %s still exists in etcd, please clean it out before recreating cluster", instanceID)
 		return
@@ -34,21 +32,24 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Info("not-exists")
 	}
 
-	// Restore port allocation from cluster.Data
-	key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
-	_, err = bkr.etcdClient.Set(key, cluster.Data.AllocatedPort, 0)
+	// Restore port allocation from cluster.MetaData()
+	key := fmt.Sprintf("/routing/allocation/%s", instanceID)
+	_, err = bkr.etcdClient.Set(key, clusterdata.AllocatedPort, 0)
 	if err != nil {
 		logger.Error("routing-allocation.error", err)
 		return
 	}
-	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": cluster.Data.AllocatedPort})
+	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": clusterdata.AllocatedPort})
 
-	nodeCount := cluster.Data.NodeCount
-	if nodeCount < 1 {
-		nodeCount = 1
+	desiredNodeCount := clusterdata.NodeCount
+	if desiredNodeCount < 1 {
+		desiredNodeCount = 1
 	}
-	cluster.Data.NodeCount = 0
-	clusterRequest := bkr.scheduler.NewRequest(cluster, nodeCount)
+	clusterdata.NodeCount = 0
+
+	cluster := cluster.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
+
+	clusterRequest := bkr.scheduler.NewRequest(cluster, desiredNodeCount)
 	err = bkr.scheduler.Execute(clusterRequest)
 	if err != nil {
 		logger.Error("provision.perform.error", err)
@@ -62,7 +63,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Error("provision.running.error", err)
 		return
 	}
-	logger.Info("provision.running.success", lager.Data{"cluster": cluster.Data})
+	logger.Info("provision.running.success", lager.Data{"cluster": cluster.MetaData()})
 	cluster.TriggerClusterDataBackup(bkr.config.Callbacks)
 	return
 }
