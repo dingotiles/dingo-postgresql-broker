@@ -140,7 +140,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 
 // AllBackends is a flat list of all Backend APIs
 func (cluster *Cluster) AllBackends() (backends []*bkrconfig.Backend) {
-	return cluster.config.Backends
+	return cluster.config.Scheduler.Backends
 }
 
 // AllAZs lists of AZs offered by AllBackends()

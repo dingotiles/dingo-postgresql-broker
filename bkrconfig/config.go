@@ -12,7 +12,7 @@ import (
 // Config is the brokers configuration
 type Config struct {
 	Broker         Broker                    `yaml:"broker"`
-	Backends       []*Backend                `yaml:"backends"`
+	Scheduler      Scheduler                 `yaml:"scheduler"`
 	Etcd           Etcd                      `yaml:"etcd"`
 	Callbacks      Callbacks                 `yaml:"callbacks"`
 	Catalog        brokerapi.CatalogResponse `yaml:"catalog"`
@@ -30,6 +30,10 @@ type Broker struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	BindHost string `yaml:"bind_host"`
+}
+
+type Scheduler struct {
+	Backends []*Backend `yaml:"backends"`
 }
 
 // Backend describes a configured set of backend brokers
@@ -87,7 +91,7 @@ func LoadConfig(path string) (cfg *Config, err error) {
 		cfg.Broker.Port = 3000
 	}
 
-	for _, backend := range cfg.Backends {
+	for _, backend := range cfg.Scheduler.Backends {
 		match, err := regexp.MatchString("^http", backend.URI)
 		if !match || err != nil {
 			backend.URI = fmt.Sprintf("http://%s", backend.URI)
