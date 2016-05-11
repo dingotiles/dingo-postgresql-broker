@@ -44,14 +44,12 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	}
 	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": cluster.Data.AllocatedPort})
 
-	nodeSize := cluster.Data.NodeSize
 	nodeCount := cluster.Data.NodeCount
 	if nodeCount < 1 {
 		nodeCount = 1
 	}
-	cluster.Data.NodeSize = 0
 	cluster.Data.NodeCount = 0
-	clusterRequest := scheduler.NewRequest(cluster, nodeCount, nodeSize)
+	clusterRequest := scheduler.NewRequest(cluster, nodeCount)
 	err = clusterRequest.Perform()
 	if err != nil {
 		logger.Error("provision.perform.error", err)

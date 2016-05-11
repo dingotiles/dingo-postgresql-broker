@@ -29,7 +29,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
 	}
 
-	clusterRequest := scheduler.NewRequest(clusterInstance, clusterInstance.Data.NodeCount, 20)
+	clusterRequest := scheduler.NewRequest(clusterInstance, clusterInstance.Data.NodeCount)
 
 	go func() {
 		err = clusterRequest.Perform()

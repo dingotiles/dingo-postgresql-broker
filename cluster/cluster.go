@@ -107,11 +107,8 @@ func (cluster *Cluster) Load() error {
 		return err
 	}
 	cluster.Data.NodeCount = len(resp.Node.Nodes)
-	// TODO load current node size
-	cluster.Data.NodeSize = 20
 	cluster.Logger.Info("load.state", lager.Data{
 		"node-count": cluster.Data.NodeCount,
-		"node-size":  cluster.Data.NodeSize,
 	})
 	return nil
 }

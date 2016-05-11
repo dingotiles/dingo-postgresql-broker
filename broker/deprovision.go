@@ -28,7 +28,7 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 		return false, err
 	}
 
-	clusterRequest := scheduler.NewRequest(cluster, 0, 20)
+	clusterRequest := scheduler.NewRequest(cluster, 0)
 	clusterRequest.Perform()
 
 	var resp *etcd.Response

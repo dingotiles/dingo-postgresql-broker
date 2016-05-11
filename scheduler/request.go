@@ -6,6 +6,10 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+const (
+	defaultNodeSize = 20
+)
+
 // Request containers operations to perform a user-originating request to change a service instance (grow, scale, move)
 type Request interface {
 	// IsInitialProvision is true if this Request is to create the initial cluster
@@ -41,11 +45,11 @@ type RealRequest struct {
 }
 
 // NewRequest creates a RealRequest to change a service instance
-func NewRequest(cluster *cluster.Cluster, nodeCount, nodeSize int) Request {
+func NewRequest(cluster *cluster.Cluster, nodeCount int) Request {
 	return RealRequest{
 		Cluster:      cluster,
 		NewNodeCount: nodeCount,
-		NewNodeSize:  nodeSize,
+		NewNodeSize:  defaultNodeSize,
 	}
 }
 
@@ -62,7 +66,7 @@ func (req RealRequest) StepTypes() []string {
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req RealRequest) Steps() []step.Step {
 	existingNodeCount := req.Cluster.Data.NodeCount
-	existingNodeSize := req.Cluster.Data.NodeSize
+	existingNodeSize := defaultNodeSize
 	steps := []step.Step{}
 	if req.NewNodeCount == 0 {
 		for i := existingNodeCount; i > req.NewNodeCount; i-- {
@@ -124,12 +128,12 @@ func (req RealRequest) IsInitialProvision() bool {
 
 // IsScalingUp is true if smaller nodes requested
 func (req RealRequest) IsScalingUp() bool {
-	return req.NewNodeSize != 0 && req.Cluster.Data.NodeSize < req.NewNodeSize
+	return req.NewNodeSize != 0 && defaultNodeSize < req.NewNodeSize
 }
 
 // IsScalingDown is true if bigger nodes requested
 func (req RealRequest) IsScalingDown() bool {
-	return req.NewNodeSize != 0 && req.Cluster.Data.NodeSize > req.NewNodeSize
+	return req.NewNodeSize != 0 && defaultNodeSize > req.NewNodeSize
 }
 
 // IsScalingOut is true if more nodes requested
@@ -167,9 +171,7 @@ func (req RealRequest) logger() lager.Logger {
 func (req RealRequest) logRequest() {
 	req.logger().Info("request", lager.Data{
 		"current-node-count": req.Cluster.Data.NodeCount,
-		"current-node-size":  req.Cluster.Data.NodeSize,
 		"new-node-count":     req.NewNodeCount,
-		"new-node-size":      req.NewNodeSize,
 		"steps":              req.StepTypes(),
 	})
 }
