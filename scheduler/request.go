@@ -1,8 +1,8 @@
 package scheduler
 
 import (
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -12,7 +12,7 @@ const (
 
 // Request represents a user-originating request to change a service instance (grow, scale, move)
 type Request struct {
-	cluster      *cluster.Cluster
+	cluster      *state.Cluster
 	newNodeSize  int
 	newNodeCount int
 	logger       lager.Logger
@@ -20,7 +20,7 @@ type Request struct {
 }
 
 // NewRequest creates a Request to change a service instance
-func (s *Scheduler) NewRequest(cluster *cluster.Cluster, nodeCount int) Request {
+func (s *Scheduler) NewRequest(cluster *state.Cluster, nodeCount int) Request {
 	return Request{
 		cluster:      cluster,
 		newNodeCount: nodeCount,

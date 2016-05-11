@@ -1,4 +1,4 @@
-package cluster
+package state
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 
 var _ = Describe("MetaData", func() {
 	It("Can can be Equal", func() {
-		data := &MetaData{
+		data := &state.MetaData{
 			InstanceID:       "instanceID",
 			OrganizationGUID: "OrganizationGUID",
 			PlanID:           "PlanID",
@@ -18,7 +18,7 @@ var _ = Describe("MetaData", func() {
 				Password: "pw",
 			},
 		}
-		otherData := MetaData{
+		otherData := state.MetaData{
 			InstanceID:       "instanceID",
 			OrganizationGUID: "OrganizationGUID",
 			PlanID:           "PlanID",

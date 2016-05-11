@@ -3,7 +3,7 @@ package broker
 import (
 	"fmt"
 
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 )
 
@@ -15,7 +15,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		Parameters: updateDetails.Parameters,
 	}
 
-	cluster := cluster.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
+	cluster := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
 	err = cluster.Load()
 	if err != nil {
 		return false, err

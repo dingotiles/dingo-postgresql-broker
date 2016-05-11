@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -16,12 +16,12 @@ import (
 type RemoveNode struct {
 	nodeUUID string
 	backend  *config.Backend
-	cluster  *cluster.Cluster
+	cluster  *state.Cluster
 	logger   lager.Logger
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster *cluster.Cluster, logger lager.Logger) Step {
+func NewStepRemoveNode(cluster *state.Cluster, logger lager.Logger) Step {
 	return RemoveNode{cluster: cluster, logger: logger}
 }
 

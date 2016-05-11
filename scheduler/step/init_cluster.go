@@ -1,16 +1,16 @@
 package step
 
 import (
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 type InitCluster struct {
-	cluster *cluster.Cluster
+	cluster *state.Cluster
 	logger  lager.Logger
 }
 
-func NewStepInitCluster(cluster *cluster.Cluster, logger lager.Logger) Step {
+func NewStepInitCluster(cluster *state.Cluster, logger lager.Logger) Step {
 	return InitCluster{cluster: cluster, logger: logger}
 }
 

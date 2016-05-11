@@ -3,7 +3,7 @@ package broker
 import (
 	"fmt"
 
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 )
 
@@ -11,7 +11,7 @@ import (
 // This should not currently be called as Provision() blocks until cluster is running
 // CLEANUP: can remove code in future.
 func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperationResponse, err error) {
-	cluster := cluster.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
+	cluster := state.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
 	err = cluster.Load()
 	if err != nil {
 		return brokerapi.LastOperationResponse{

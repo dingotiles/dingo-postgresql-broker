@@ -1,12 +1,12 @@
-package cluster_test
+package state_test
 
 import (
 	"fmt"
 
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +17,7 @@ const small = 1
 const medium = 2
 
 // SetFakeSize is used by request_tests to set an initial cluster size before changes
-func setupCluster(cluster *cluster.Cluster, existingBackendGUIDs []string) {
+func setupCluster(cluster *state.Cluster, existingBackendGUIDs []string) {
 	etcdClient := cluster.etcdClient.(backend.FakeEtcdClient)
 
 	nodes := make(etcd.Nodes, len(existingBackendGUIDs))
@@ -52,7 +52,7 @@ var _ = Describe("backend broker selection", func() {
 	cfg := &config.Config{}
 	var logger lager.Logger
 	clusterUUID := "uuid"
-	var cluster *cluster.Cluster
+	var cluster *state.Cluster
 	var serviceDetails brokerapi.ProvisionDetails
 	var backends []*config.Backend
 

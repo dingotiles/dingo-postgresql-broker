@@ -2,10 +2,10 @@ package scheduler_test
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,7 +16,7 @@ const small = 1
 const medium = 2
 
 // SetFakeSize is used by request_tests to set an initial cluster size before changes
-func setFakeSize(cluster *cluster.Cluster, nodeCount, nodeSize int) {
+func setFakeSize(cluster *state.Cluster, nodeCount, nodeSize int) {
 	cluster.MetaData().NodeCount = nodeCount
 	cluster.MetaData().NodeSize = nodeSize
 }
@@ -27,7 +27,7 @@ var _ = Describe("Service instance changes", func() {
 	var logger lager.Logger
 
 	Describe(".Steps", func() {
-		var cluster *cluster.Cluster
+		var cluster *state.Cluster
 		var req scheduler.Request
 		var steps []step.Step
 		clusterUUID := "uuid"

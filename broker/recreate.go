@@ -3,7 +3,7 @@ package broker
 import (
 	"fmt"
 
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -15,8 +15,8 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	})
 
 	logger.Info("start", lager.Data{})
-	var clusterdata *cluster.MetaData
-	err, clusterdata = cluster.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
+	var clusterdata *state.MetaData
+	err, clusterdata = state.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
 	if err != nil {
 		err = fmt.Errorf("Cannot recreate service from backup; unable to restore original service instance data: %s", err)
 		return
@@ -24,7 +24,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 
 	logger = bkr.logger
 
-	if cluster.Exists(bkr.etcdClient, instanceID) {
+	if state.Exists(bkr.etcdClient, instanceID) {
 		logger.Info("exists")
 		err = fmt.Errorf("Service instance %s still exists in etcd, please clean it out before recreating cluster", instanceID)
 		return
@@ -32,7 +32,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Info("not-exists")
 	}
 
-	// Restore port allocation from cluster.MetaData()
+	// Restore port allocation from state.MetaData()
 	key := fmt.Sprintf("/routing/allocation/%s", instanceID)
 	_, err = bkr.etcdClient.Set(key, clusterdata.AllocatedPort, 0)
 	if err != nil {
@@ -47,7 +47,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	}
 	clusterdata.NodeCount = 0
 
-	cluster := cluster.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
+	cluster := state.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
 
 	clusterRequest := bkr.scheduler.NewRequest(cluster, desiredNodeCount)
 	err = bkr.scheduler.Execute(clusterRequest)

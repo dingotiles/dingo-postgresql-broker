@@ -3,14 +3,14 @@ package broker
 import (
 	"fmt"
 
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
-	clusterInstance := cluster.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
+	clusterInstance := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
 
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, acceptsIncomplete)
@@ -19,7 +19,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	logger := bkr.logger
 	logger.Info("provision.start", lager.Data{})
 
-	if cluster.Exists(bkr.etcdClient, instanceID) {
+	if state.Exists(bkr.etcdClient, instanceID) {
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
@@ -58,8 +58,8 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 			if bkr.config.SupportsClusterDataBackup() {
 				clusterInstance.TriggerClusterDataBackup(bkr.config.Callbacks)
-				var restoredData *cluster.MetaData
-				err, restoredData = cluster.RestoreClusterDataBackup(clusterInstance.MetaData().InstanceID, bkr.config.Callbacks, logger)
+				var restoredData *state.MetaData
+				err, restoredData = state.RestoreClusterDataBackup(clusterInstance.MetaData().InstanceID, bkr.config.Callbacks, logger)
 				metaData := clusterInstance.MetaData()
 				if err != nil || !restoredData.Equals(&metaData) {
 					logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": clusterInstance.MetaData(), "restoreddata": *restoredData})

@@ -15,7 +15,7 @@ The schema of etcd - as modified and used by the various components, including t
 ```
 curl -s ${ETCD_CLUSTER}/v2/keys/ | jq -r ".node.nodes[].key"
 /service
-/postgresql-patroni
+/postgresql-brokerpatroni
 /serviceinstances
 /routing
 ```
@@ -51,20 +51,20 @@ id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9d
 
 Note that the `jq -r .node.value` is passed again into `jq .`. This is because patroni stores its information as a JSON object.
 
-### `/postgresql-patroni`
+### `/postgresql-brokerpatroni`
 
 In order for a patroni process, running inside a Docker container, to discover his `host:port` combination it needs to be able to look it up in the KV store.
 
 The `registrar` service runs on each server and automatically advertises all containers' port information.
 
-`/postgresql-patroni` is where registrar documents each container's host:port binding
+`/postgresql-brokerpatroni` is where registrar documents each container's host:port binding
 
 With one running cluster of 2 nodes:
 
 ```
-curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-patroni/ | jq -r ".node.nodes[].key"
-/postgresql-patroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432
-/postgresql-patroni/1.patroni.patroni1.patroni.bosh:cf-d0cfa70a-12de-441f-94e7-65a64cb583c0:5432
+curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-brokerpatroni/ | jq -r ".node.nodes[].key"
+/postgresql-brokerpatroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432
+/postgresql-brokerpatroni/1.patroni.patroni1.patroni.bosh:cf-d0cfa70a-12de-441f-94e7-65a64cb583c0:5432
 ```
 
 The key path is `/<docker-image>/<hostname>:<internal-id>:<internal-port>`.
@@ -72,7 +72,7 @@ The key path is `/<docker-image>/<hostname>:<internal-id>:<internal-port>`.
 Each postgresql/patroni container looks itself up to discover its public `host-ip:port`.
 
 ```
-curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-patroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432 | jq -r .node.value
+curl -s ${ETCD_CLUSTER}/v2/keys/postgresql-brokerpatroni/0.patroni.patroni1.patroni.bosh:cf-cb71d10a-c84c-455f-9dbf-ff9bd1e1b8db:5432 | jq -r .node.value
 10.244.21.8:32768
 ```
 
@@ -80,7 +80,7 @@ There is currently no cluster-level information in this data structure. Instead,
 
 ### `/routing`
 
-Each service instance/cluster is allocated a public port that is exposed on each router (so it does not matter which router a TCP request is received as it will be supported by the same port).
+Each service instancestate is allocated a public port that is exposed on each router (so it does not matter which router a TCP request is received as it will be supported by the same port).
 
 The allocated port for each service instance is at `/routing/allocation/:instanceid`.
 
@@ -100,7 +100,7 @@ curl -s $ETCD_CLUSTER/v2/keys/routing/allocation | jq -r ".node.nodes[]"
 
 That is, the service instance `f1` (normally would be a long UUID string) has the public router port `33006`.
 
-The value of `/routing/nextport` is the next available public port to be assigned to the next new service instance/cluster.
+The value of `/routing/nextport` is the next available public port to be assigned to the next new service instancestate.
 
 NOTE: the `/routing` section of data is the only "permanent" data in the KV store. The allocation of a public port to each service instance represents the "contract" made with the end user. We cannot change the public port; but we can change where each service instance node/container is run etc.
 

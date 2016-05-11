@@ -1,9 +1,9 @@
-package cluster_test
+package state_test
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,7 +15,7 @@ var _ = Describe("backend broker selection", func() {
 	cfg := &config.Config{}
 	logger := lager.NewLogger("tests")
 	clusterUUID := "uuid"
-	var cluster *cluster.Cluster
+	var cluster *state.Cluster
 	var serviceDetails brokerapi.ProvisionDetails
 
 	It("has three AZs", func() {

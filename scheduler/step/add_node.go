@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dingotiles/dingo-postgresql-broker/cluster"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"
@@ -17,12 +17,12 @@ import (
 // AddNode instructs a new cluster node be added
 type AddNode struct {
 	nodeUUID string
-	cluster  *cluster.Cluster
+	cluster  *state.Cluster
 	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *cluster.Cluster, logger lager.Logger) Step {
+func NewStepAddNode(cluster *state.Cluster, logger lager.Logger) Step {
 	return AddNode{cluster: cluster, logger: logger}
 }
 
@@ -80,7 +80,7 @@ func (step AddNode) Perform() (err error) {
 		logger.Info("add-node.perform.backends.unavailable", lager.Data{"summary": "no backends available to run a container"})
 		return err
 	}
-	// 5. Store node in KV /clusters/<cluster>/nodes/<node>/backend -> backend uuid
+	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid
 	_, err = step.setClusterNodeBackend(backend)
 	if err != nil {
 		// no backends available to run a cluster
@@ -95,7 +95,7 @@ func (step AddNode) Perform() (err error) {
 }
 
 func (step AddNode) setClusterNodeBackend(backend *config.Backend) (kvIndex uint64, err error) {
-	resp, err := step.cluster.AddNode(cluster.Node{Id: step.nodeUUID, BackendId: backend.GUID})
+	resp, err := step.cluster.AddNode(state.Node{Id: step.nodeUUID, BackendId: backend.GUID})
 	if err != nil {
 		return 0, err
 	}
