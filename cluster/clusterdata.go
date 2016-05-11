@@ -35,7 +35,7 @@ func (data *ClusterData) Equals(other *ClusterData) bool {
 	return reflect.DeepEqual(*data, *other)
 }
 func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) {
-	logger := cluster.Logger
+	logger := cluster.logger
 	callback := callbacks.ClusterDataBackup
 	if callback == nil {
 		logger.Info("clusterdata.backup.noop")

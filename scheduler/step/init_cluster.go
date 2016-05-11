@@ -7,10 +7,11 @@ import (
 
 type InitCluster struct {
 	cluster *cluster.Cluster
+	logger  lager.Logger
 }
 
-func NewStepInitCluster(cluster *cluster.Cluster) Step {
-	return InitCluster{cluster: cluster}
+func NewStepInitCluster(cluster *cluster.Cluster, logger lager.Logger) Step {
+	return InitCluster{cluster: cluster, logger: logger}
 }
 
 // StepType prints the type of step
@@ -19,8 +20,7 @@ func (step InitCluster) StepType() string {
 }
 
 func (step InitCluster) Perform() (err error) {
-	logger := step.cluster.Logger
-	logger.Info("init-cluster.perform", lager.Data{"instance-id": step.cluster.Data.InstanceID, "plan-id": step.cluster.Data.PlanID})
+	step.logger.Info("init-cluster.perform", lager.Data{"instance-id": step.cluster.Data.InstanceID, "plan-id": step.cluster.Data.PlanID})
 
 	err = step.cluster.Init()
 	return

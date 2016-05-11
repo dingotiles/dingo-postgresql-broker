@@ -15,14 +15,16 @@ import (
 
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
-	nodeUUID string
-	backend  *bkrconfig.Backend
-	cluster  *cluster.Cluster
+	nodeUUID           string
+	backend            *bkrconfig.Backend
+	cluster            *cluster.Cluster
+	logger             lager.Logger
+	debugBackendTrafic bool
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster *cluster.Cluster) Step {
-	return RemoveNode{cluster: cluster}
+func NewStepRemoveNode(cluster *cluster.Cluster, logger lager.Logger, debugBackendTrafic bool) Step {
+	return RemoveNode{cluster: cluster, logger: logger, debugBackendTrafic: debugBackendTrafic}
 }
 
 // StepType prints the type of step
@@ -32,7 +34,7 @@ func (step RemoveNode) StepType() string {
 
 // Perform runs the Step action to modify the Cluster
 func (step RemoveNode) Perform() (err error) {
-	logger := step.cluster.Logger
+	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master
 	var backendID string
@@ -73,10 +75,9 @@ func (step RemoveNode) Perform() (err error) {
 }
 
 func (step RemoveNode) requestBackendRemoveNode() (err error) {
-	logger := step.cluster.Logger
+	logger := step.logger
 
 	url := fmt.Sprintf("%s/v2/service_instances/%s", step.backend.URI, step.nodeUUID)
-	// client := &http.Client{Timeout: 5}
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
@@ -96,7 +97,7 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(step.backend.Username, step.backend.Password)
-	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+	if step.debugBackendTrafic {
 		debug(httputil.DumpRequestOut(req, true))
 	}
 
@@ -105,7 +106,7 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 		logger.Error("remove-node.backend.do", err)
 		return err
 	}
-	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+	if step.debugBackendTrafic {
 		debug(httputil.DumpResponse(resp, true))
 	}
 	defer resp.Body.Close()

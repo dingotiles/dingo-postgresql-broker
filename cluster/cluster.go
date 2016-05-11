@@ -16,9 +16,9 @@ import (
 
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
-	Config     *bkrconfig.Config
+	config     *bkrconfig.Config
 	etcdClient backend.EtcdClient
-	Logger     lager.Logger
+	logger     lager.Logger
 	Data       ClusterData
 }
 
@@ -26,7 +26,7 @@ type Cluster struct {
 func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
-		Config:     config,
+		config:     config,
 		Data: ClusterData{
 			InstanceID:       instanceID,
 			OrganizationGUID: details.OrganizationGUID,
@@ -40,7 +40,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 		},
 	}
 	if logger != nil {
-		cluster.Logger = logger.Session("cluster", lager.Data{
+		cluster.logger = logger.Session("cluster", lager.Data{
 			"instance-id": cluster.Data.InstanceID,
 			"service-id":  cluster.Data.ServiceID,
 			"plan-id":     cluster.Data.PlanID,
@@ -53,11 +53,11 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
-		Config:     config,
+		config:     config,
 		Data:       *clusterdata,
 	}
 	if logger != nil {
-		cluster.Logger = logger.Session("cluster", lager.Data{
+		cluster.logger = logger.Session("cluster", lager.Data{
 			"instance-id": clusterdata.InstanceID,
 			"service-id":  clusterdata.ServiceID,
 			"plan-id":     clusterdata.PlanID,
@@ -78,11 +78,11 @@ func (cluster *Cluster) Load() error {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
 	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
-		cluster.Logger.Error("load.etcd-get", err)
+		cluster.logger.Error("load.etcd-get", err)
 		return err
 	}
 	cluster.Data.NodeCount = len(resp.Node.Nodes)
-	cluster.Logger.Info("load.state", lager.Data{
+	cluster.logger.Info("load.state", lager.Data{
 		"node-count": cluster.Data.NodeCount,
 	})
 	return nil
@@ -100,15 +100,15 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		key := fmt.Sprintf("/routing/allocation/%s", cluster.Data.InstanceID)
 		resp, err := cluster.etcdClient.Get(key, false, false)
 		if err != nil {
-			cluster.Logger.Debug("provision.routing.polling", lager.Data{})
+			cluster.logger.Debug("provision.routing.polling", lager.Data{})
 		} else {
 			cluster.Data.AllocatedPort = resp.Node.Value
-			cluster.Logger.Info("provision.routing.done", lager.Data{"allocated_port": cluster.Data.AllocatedPort})
+			cluster.logger.Info("provision.routing.done", lager.Data{"allocated_port": cluster.Data.AllocatedPort})
 			return nil
 		}
 		time.Sleep(1 * time.Second)
 	}
-	cluster.Logger.Error("provision.routing.timed-out", err, lager.Data{"err": err})
+	cluster.logger.Error("provision.routing.timed-out", err, lager.Data{"err": err})
 	return err
 }
 
@@ -118,7 +118,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.Data.InstanceID)
 	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
-		cluster.Logger.Error("random-replica-node.nodes", err)
+		cluster.logger.Error("random-replica-node.nodes", err)
 		return
 	}
 	item := rand.Intn(len(resp.Node.Nodes))
@@ -130,7 +130,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 	key = fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.Data.InstanceID, nodeUUID)
 	resp, err = cluster.etcdClient.Get(key, false, false)
 	if err != nil {
-		cluster.Logger.Error("random-replica-node.backend", err)
+		cluster.logger.Error("random-replica-node.backend", err)
 		return
 	}
 	backend = resp.Node.Value
@@ -140,7 +140,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 
 // AllBackends is a flat list of all Backend APIs
 func (cluster *Cluster) AllBackends() (backends []*bkrconfig.Backend) {
-	return cluster.Config.Backends
+	return cluster.config.Backends
 }
 
 // AllAZs lists of AZs offered by AllBackends()
@@ -167,7 +167,7 @@ func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
 		nodeKey := clusterNode.Key
 		resp, err = cluster.etcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
 		if err != nil {
-			cluster.Logger.Error("az-used.backend", err)
+			cluster.logger.Error("az-used.backend", err)
 			return
 		}
 		backendGUIDs = append(backendGUIDs, resp.Node.Value)

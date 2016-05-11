@@ -24,7 +24,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	}
 
 	cluster := cluster.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
-	logger = cluster.Logger
+	logger = bkr.logger
 	logger.Info("me", lager.Data{"cluster": cluster})
 
 	if cluster.Exists() {
@@ -49,7 +49,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		nodeCount = 1
 	}
 	cluster.Data.NodeCount = 0
-	clusterRequest := scheduler.NewRequest(cluster, nodeCount)
+	clusterRequest := scheduler.NewRequest(cluster, nodeCount, logger)
 	err = clusterRequest.Perform()
 	if err != nil {
 		logger.Error("provision.perform.error", err)

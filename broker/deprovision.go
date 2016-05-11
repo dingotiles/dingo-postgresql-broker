@@ -21,14 +21,14 @@ func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.Deprov
 	}
 
 	cluster := cluster.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
-	logger := cluster.Logger
+	logger := bkr.logger
 	err = cluster.Load()
 	if err != nil {
 		logger.Error("load", err)
 		return false, err
 	}
 
-	clusterRequest := scheduler.NewRequest(cluster, 0)
+	clusterRequest := scheduler.NewRequest(cluster, 0, logger)
 	clusterRequest.Perform()
 
 	var resp *etcd.Response

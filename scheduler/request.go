@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	defaultNodeSize = 20
+	defaultNodeSize     = 20
+	debugBackendTraffic = false
 )
 
 // Request containers operations to perform a user-originating request to change a service instance (grow, scale, move)
@@ -42,14 +43,16 @@ type RealRequest struct {
 	cluster      *cluster.Cluster
 	newNodeSize  int
 	newNodeCount int
+	logger       lager.Logger
 }
 
 // NewRequest creates a RealRequest to change a service instance
-func NewRequest(cluster *cluster.Cluster, nodeCount int) Request {
+func NewRequest(cluster *cluster.Cluster, nodeCount int, logger lager.Logger) Request {
 	return RealRequest{
 		cluster:      cluster,
 		newNodeCount: nodeCount,
 		newNodeSize:  defaultNodeSize,
+		logger:       logger,
 	}
 }
 
@@ -70,26 +73,26 @@ func (req RealRequest) Steps() []step.Step {
 	steps := []step.Step{}
 	if req.newNodeCount == 0 {
 		for i := existingNodeCount; i > req.newNodeCount; i-- {
-			steps = append(steps, step.NewStepRemoveNode(req.cluster))
+			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger, debugBackendTraffic))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
 		return steps
 	} else if req.IsInitialProvision() {
-		steps = append(steps, step.NewStepInitCluster(req.cluster))
+		steps = append(steps, step.NewStepInitCluster(req.cluster, req.logger))
 		for i := existingNodeCount; i < req.newNodeCount; i++ {
-			steps = append(steps, step.NewStepAddNode(req.cluster))
+			steps = append(steps, step.NewStepAddNode(req.cluster, req.logger, debugBackendTraffic))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() {
 		// if only scaling out or in; but not up or down
 		if req.IsScalingOut() {
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.cluster))
+				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger, debugBackendTraffic))
 			}
 		}
 		if req.IsScalingIn() {
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.cluster))
+				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger, debugBackendTraffic))
 			}
 		}
 	} else if !req.IsScalingIn() && !req.IsScalingOut() {
@@ -107,14 +110,14 @@ func (req RealRequest) Steps() []step.Step {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.cluster))
+				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger, debugBackendTraffic))
 			}
 		} else if req.IsScalingIn() {
 			for i := 1; i < req.newNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.cluster))
+				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger, debugBackendTraffic))
 			}
 		}
 	}
@@ -150,10 +153,10 @@ func (req RealRequest) IsScalingIn() bool {
 func (req RealRequest) Perform() (err error) {
 	req.logRequest()
 	if len(req.Steps()) == 0 {
-		req.logger().Info("request.no-steps")
+		req.logger.Info("request.no-steps")
 		return
 	}
-	req.logger().Info("request.perform", lager.Data{"steps-count": len(req.Steps())})
+	req.logger.Info("request.perform", lager.Data{"steps-count": len(req.Steps())})
 	for _, step := range req.Steps() {
 		err = step.Perform()
 		if err != nil {
@@ -163,13 +166,9 @@ func (req RealRequest) Perform() (err error) {
 	return
 }
 
-func (req RealRequest) logger() lager.Logger {
-	return req.cluster.Logger
-}
-
 // logRequest send the requested change to Cluster to logs
 func (req RealRequest) logRequest() {
-	req.logger().Info("request", lager.Data{
+	req.logger.Info("request", lager.Data{
 		"current-node-count": req.cluster.Data.NodeCount,
 		"new-node-count":     req.newNodeCount,
 		"steps":              req.StepTypes(),

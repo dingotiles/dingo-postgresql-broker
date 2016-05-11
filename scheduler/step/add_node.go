@@ -17,13 +17,15 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	nodeUUID string
-	cluster  *cluster.Cluster
+	nodeUUID           string
+	cluster            *cluster.Cluster
+	logger             lager.Logger
+	dumpBackendTraffic bool
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *cluster.Cluster) Step {
-	return AddNode{cluster: cluster}
+func NewStepAddNode(cluster *cluster.Cluster, logger lager.Logger, dumpBackendTraffic bool) Step {
+	return AddNode{cluster: cluster, logger: logger, dumpBackendTraffic: dumpBackendTraffic}
 }
 
 // StepType prints the type of step
@@ -35,7 +37,7 @@ func (step AddNode) StepType() string {
 func (step AddNode) Perform() (err error) {
 	step.nodeUUID = uuid.New()
 
-	logger := step.cluster.Logger
+	logger := step.logger
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.Data.InstanceID, "node-uuid": step.nodeUUID})
 
 	// 1. Generate UUID for node to be created
@@ -104,10 +106,9 @@ func (step AddNode) setClusterNodeBackend(backend *bkrconfig.Backend) (kvIndex u
 
 func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionDetails brokerapi.ProvisionDetails) error {
 	var err error
-	logger := step.cluster.Logger
+	logger := step.logger
 
 	url := fmt.Sprintf("%s/v2/service_instances/%s", backend.URI, step.nodeUUID)
-	// client := &http.Client{Timeout: 5}
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
@@ -122,7 +123,7 @@ func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionD
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(backend.Username, backend.Password)
-	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+	if step.dumpBackendTraffic {
 		debug(httputil.DumpRequestOut(req, true))
 	}
 
@@ -131,7 +132,7 @@ func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionD
 		logger.Error("request-node.backend-provision-resp", err)
 		return err
 	}
-	if step.cluster.Config.Broker.DumpBackendHTTPTraffic {
+	if step.dumpBackendTraffic {
 		debug(httputil.DumpResponse(resp, true))
 	}
 	defer resp.Body.Close()

@@ -17,8 +17,7 @@ type Broker struct {
 	config       *bkrconfig.Config
 	etcdClient   backend.EtcdClient
 	licenseCheck *licensecheck.LicenseCheck
-
-	logger lager.Logger
+	logger       lager.Logger
 }
 
 // NewBroker is a constructor for a Broker webapp struct

@@ -15,13 +15,13 @@ func (cluster *Cluster) WaitForAllRunning() (err error) {
 	waitTimeout := 120
 	waitTime := 0
 	status := ""
-	cluster.Logger.Debug("member-status.waiting-for-all-running.start", lager.Data{"waiting": waitTimeout})
+	cluster.logger.Debug("member-status.waiting-for-all-running.start", lager.Data{"waiting": waitTimeout})
 	allRunning := false
 	for ; !allRunning && waitTime < waitTimeout; waitTime++ {
 		status, allRunning, err = cluster.MemberStatus()
 		time.Sleep(1 * time.Second)
 	}
-	cluster.Logger.Debug("member-status.waiting-for-all-running.finish", lager.Data{
+	cluster.logger.Debug("member-status.waiting-for-all-running.finish", lager.Data{
 		"wait-time":      waitTime,
 		"cluster-status": status,
 		"error":          err,
@@ -36,7 +36,7 @@ func (cluster *Cluster) MemberStatus() (statuses string, allRunning bool, err er
 	key := fmt.Sprintf("/service/%s/members", cluster.Data.InstanceID)
 	resp, err := cluster.etcdClient.Get(key, false, true)
 	if err != nil {
-		cluster.Logger.Error("member-status.etcd-members", err)
+		cluster.logger.Error("member-status.etcd-members", err)
 		return fmt.Sprintf("patroni member status missing for service instance %s", cluster.Data.InstanceID), false, err
 	}
 
@@ -47,7 +47,7 @@ func (cluster *Cluster) MemberStatus() (statuses string, allRunning bool, err er
 		memberData := patroni.ServiceMemberData{}
 		err := json.Unmarshal([]byte(member.Value), &memberData)
 		if err != nil {
-			cluster.Logger.Error("member-status.etcd-member", err)
+			cluster.logger.Error("member-status.etcd-member", err)
 			return fmt.Sprintf("patroni member status corrupt for service instance %s", cluster.Data.InstanceID), false, err
 		}
 		if memberData.Role == "master" {

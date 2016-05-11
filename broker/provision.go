@@ -17,7 +17,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return bkr.Recreate(instanceID, acceptsIncomplete)
 	}
 
-	logger := clusterInstance.Logger
+	logger := bkr.logger
 	logger.Info("provision.start", lager.Data{})
 
 	if clusterInstance.Exists() {
@@ -39,7 +39,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Info("provision.start.node-count-too-low", lager.Data{"node-count": nodeCount})
 		nodeCount = 1
 	}
-	clusterRequest := scheduler.NewRequest(clusterInstance, int(nodeCount))
+	clusterRequest := scheduler.NewRequest(clusterInstance, int(nodeCount), logger)
 
 	go func() {
 		err = clusterRequest.Perform()
