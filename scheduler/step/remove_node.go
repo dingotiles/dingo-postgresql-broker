@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
@@ -15,16 +14,15 @@ import (
 
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
-	nodeUUID           string
-	backend            *bkrconfig.Backend
-	cluster            *cluster.Cluster
-	logger             lager.Logger
-	debugBackendTrafic bool
+	nodeUUID string
+	backend  *bkrconfig.Backend
+	cluster  *cluster.Cluster
+	logger   lager.Logger
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster *cluster.Cluster, logger lager.Logger, debugBackendTrafic bool) Step {
-	return RemoveNode{cluster: cluster, logger: logger, debugBackendTrafic: debugBackendTrafic}
+func NewStepRemoveNode(cluster *cluster.Cluster, logger lager.Logger) Step {
+	return RemoveNode{cluster: cluster, logger: logger}
 }
 
 // StepType prints the type of step
@@ -97,17 +95,11 @@ func (step RemoveNode) requestBackendRemoveNode() (err error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(step.backend.Username, step.backend.Password)
-	if step.debugBackendTrafic {
-		debug(httputil.DumpRequestOut(req, true))
-	}
 
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("remove-node.backend.do", err)
 		return err
-	}
-	if step.debugBackendTrafic {
-		debug(httputil.DumpResponse(resp, true))
 	}
 	defer resp.Body.Close()
 

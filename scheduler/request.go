@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	defaultNodeSize     = 20
-	debugBackendTraffic = false
+	defaultNodeSize = 20
 )
 
 // Request containers operations to perform a user-originating request to change a service instance (grow, scale, move)
@@ -73,7 +72,7 @@ func (req RealRequest) Steps() []step.Step {
 	steps := []step.Step{}
 	if req.newNodeCount == 0 {
 		for i := existingNodeCount; i > req.newNodeCount; i-- {
-			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger, debugBackendTraffic))
+			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() &&
 		!req.IsScalingIn() && !req.IsScalingOut() {
@@ -81,18 +80,18 @@ func (req RealRequest) Steps() []step.Step {
 	} else if req.IsInitialProvision() {
 		steps = append(steps, step.NewStepInitCluster(req.cluster, req.logger))
 		for i := existingNodeCount; i < req.newNodeCount; i++ {
-			steps = append(steps, step.NewStepAddNode(req.cluster, req.logger, debugBackendTraffic))
+			steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
 		}
 	} else if !req.IsScalingUp() && !req.IsScalingDown() {
 		// if only scaling out or in; but not up or down
 		if req.IsScalingOut() {
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger, debugBackendTraffic))
+				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
 			}
 		}
 		if req.IsScalingIn() {
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger, debugBackendTraffic))
+				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
 			}
 		}
 	} else if !req.IsScalingIn() && !req.IsScalingOut() {
@@ -110,14 +109,14 @@ func (req RealRequest) Steps() []step.Step {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger, debugBackendTraffic))
+				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
 			}
 		} else if req.IsScalingIn() {
 			for i := 1; i < req.newNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger, debugBackendTraffic))
+				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
 			}
 		}
 	}

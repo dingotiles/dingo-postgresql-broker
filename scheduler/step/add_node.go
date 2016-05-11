@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 
 	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
@@ -17,15 +16,14 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	nodeUUID           string
-	cluster            *cluster.Cluster
-	logger             lager.Logger
-	dumpBackendTraffic bool
+	nodeUUID string
+	cluster  *cluster.Cluster
+	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *cluster.Cluster, logger lager.Logger, dumpBackendTraffic bool) Step {
-	return AddNode{cluster: cluster, logger: logger, dumpBackendTraffic: dumpBackendTraffic}
+func NewStepAddNode(cluster *cluster.Cluster, logger lager.Logger) Step {
+	return AddNode{cluster: cluster, logger: logger}
 }
 
 // StepType prints the type of step
@@ -123,17 +121,11 @@ func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionD
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(backend.Username, backend.Password)
-	if step.dumpBackendTraffic {
-		debug(httputil.DumpRequestOut(req, true))
-	}
 
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("request-node.backend-provision-resp", err)
 		return err
-	}
-	if step.dumpBackendTraffic {
-		debug(httputil.DumpResponse(resp, true))
 	}
 	defer resp.Body.Close()
 
