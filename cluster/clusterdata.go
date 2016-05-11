@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -34,7 +34,7 @@ type ClusterData struct {
 func (data *ClusterData) Equals(other *ClusterData) bool {
 	return reflect.DeepEqual(*data, *other)
 }
-func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) {
+func (cluster *Cluster) TriggerClusterDataBackup(callbacks config.Callbacks) {
 	logger := cluster.logger
 	callback := callbacks.ClusterDataBackup
 	if callback == nil {
@@ -93,7 +93,7 @@ func (cluster *Cluster) TriggerClusterDataBackup(callbacks bkrconfig.Callbacks) 
 	logger.Info("clusterdata.backup.done")
 }
 
-func RestoreClusterDataBackup(instanceID string, callbacks bkrconfig.Callbacks, logger lager.Logger) (err error, clusterdata *ClusterData) {
+func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, logger lager.Logger) (err error, clusterdata *ClusterData) {
 	callback := callbacks.ClusterDataRestore
 	if callback == nil {
 		err = fmt.Errorf("Broker not configured to support service recreation")

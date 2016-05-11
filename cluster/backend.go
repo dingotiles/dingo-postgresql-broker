@@ -6,12 +6,12 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
 )
 
 // AllBackends is a flat list of all Backend APIs
-func (cluster *Cluster) AllBackends() (backends []*bkrconfig.Backend) {
+func (cluster *Cluster) AllBackends() (backends []*config.Backend) {
 	return cluster.config.Scheduler.Backends
 }
 
@@ -98,7 +98,7 @@ func (cluster *Cluster) sortBackendAZsByUnusedness() (vs *utils.ValSorter) {
 
 // SortedBackendsByUnusedAZs is sequence of backends to try to request new nodes for this cluster
 // It prioritizes backends in availability zones that are not currently used
-func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*bkrconfig.Backend) {
+func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*config.Backend) {
 	usedBackends, unusedBackeds := cluster.usedAndUnusedBackends()
 
 	for _, az := range cluster.sortBackendAZsByUnusedness().Keys {
@@ -114,7 +114,7 @@ func (cluster *Cluster) SortedBackendsByUnusedAZs() (backends []*bkrconfig.Backe
 	return
 }
 
-func (cluster *Cluster) usedAndUnusedBackends() (usedBackends, unusuedBackends []*bkrconfig.Backend) {
+func (cluster *Cluster) usedAndUnusedBackends() (usedBackends, unusuedBackends []*config.Backend) {
 	usedBackendGUIDs := cluster.usedBackendGUIDs()
 	for _, backend := range cluster.AllBackends() {
 		used := false

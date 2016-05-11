@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"
@@ -60,7 +60,7 @@ func (step AddNode) Perform() (err error) {
 	})
 
 	// 4. Send requests to backends until one says OK; else fail
-	var backend *bkrconfig.Backend
+	var backend *config.Backend
 	for _, backend = range backends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
@@ -94,7 +94,7 @@ func (step AddNode) Perform() (err error) {
 	return err
 }
 
-func (step AddNode) setClusterNodeBackend(backend *bkrconfig.Backend) (kvIndex uint64, err error) {
+func (step AddNode) setClusterNodeBackend(backend *config.Backend) (kvIndex uint64, err error) {
 	resp, err := step.cluster.AddNode(cluster.Node{Id: step.nodeUUID, BackendId: backend.GUID})
 	if err != nil {
 		return 0, err
@@ -102,7 +102,7 @@ func (step AddNode) setClusterNodeBackend(backend *bkrconfig.Backend) (kvIndex u
 	return resp, err
 }
 
-func (step AddNode) requestNodeViaBackend(backend *bkrconfig.Backend, provisionDetails brokerapi.ProvisionDetails) error {
+func (step AddNode) requestNodeViaBackend(backend *config.Backend, provisionDetails brokerapi.ProvisionDetails) error {
 	var err error
 	logger := step.logger
 

@@ -5,21 +5,21 @@ import (
 	"time"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
 // Cluster describes a real/proposed cluster of nodes
 type Cluster struct {
-	config     *bkrconfig.Config
+	config     *config.Config
 	etcdClient backend.EtcdClient
 	logger     lager.Logger
 	Data       ClusterData
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		config:     config,
@@ -46,7 +46,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *bkrconfig.Config, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, config *config.Config, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		config:     config,

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
 	"github.com/dingotiles/dingo-postgresql-broker/cluster"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -15,7 +15,7 @@ import (
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
 	nodeUUID string
-	backend  *bkrconfig.Backend
+	backend  *config.Backend
 	cluster  *cluster.Cluster
 	logger   lager.Logger
 }

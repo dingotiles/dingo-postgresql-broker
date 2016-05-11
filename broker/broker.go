@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/bkrconfig"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/licensecheck"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -14,14 +14,14 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
-	config       *bkrconfig.Config
+	config       *config.Config
 	etcdClient   backend.EtcdClient
 	licenseCheck *licensecheck.LicenseCheck
 	logger       lager.Logger
 }
 
 // NewBroker is a constructor for a Broker webapp struct
-func NewBroker(etcdClient backend.EtcdClient, config *bkrconfig.Config) (bkr *Broker) {
+func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (bkr *Broker) {
 	bkr = &Broker{etcdClient: etcdClient, config: config}
 
 	bkr.logger = bkr.setupLogger()

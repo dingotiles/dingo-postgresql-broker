@@ -23,7 +23,7 @@ func setFakeSize(cluster *cluster.Cluster, nodeCount, nodeSize int) {
 
 var _ = Describe("Service instance changes", func() {
 	var etcdClient backend.FakeEtcdClient
-	cfg := &bkrconfig.Config{}
+	cfg := &config.Config{}
 	var logger lager.Logger
 
 	Describe(".Steps", func() {

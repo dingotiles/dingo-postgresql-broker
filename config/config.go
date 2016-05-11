@@ -1,4 +1,4 @@
-package bkrconfig
+package config
 
 import (
 	"fmt"
