@@ -9,6 +9,7 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/licensecheck"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -20,6 +21,7 @@ type Broker struct {
 	licenseCheck *licensecheck.LicenseCheck
 	logger       lager.Logger
 	scheduler    *scheduler.Scheduler
+	state        state.State
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -27,7 +29,8 @@ func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (bkr *Broke
 	bkr = &Broker{etcdClient: etcdClient, config: config}
 
 	bkr.logger = bkr.setupLogger()
-	bkr.scheduler = bkr.setupScheduler()
+	bkr.scheduler = scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
+	bkr.state = state.NewState(etcdClient, bkr.logger)
 
 	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.etcdClient, bkr.config, bkr.logger)
 	bkr.licenseCheck.DisplayQuotaStatus()
@@ -53,8 +56,4 @@ func (bkr *Broker) setupLogger() lager.Logger {
 	logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
 	logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
 	return logger
-}
-
-func (bkr *Broker) setupScheduler() *scheduler.Scheduler {
-	return scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
 }

@@ -24,7 +24,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 
 	logger = bkr.logger
 
-	if state.Exists(bkr.etcdClient, instanceID) {
+	if bkr.state.ClusterExists(instanceID) {
 		logger.Info("exists")
 		err = fmt.Errorf("Service instance %s still exists in etcd, please clean it out before recreating cluster", instanceID)
 		return

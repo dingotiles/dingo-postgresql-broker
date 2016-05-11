@@ -66,13 +66,6 @@ func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etc
 	return
 }
 
-// Exists returns true if cluster already exists
-func Exists(etcdClient backend.EtcdClient, instanceId string) bool {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", instanceId)
-	_, err := etcdClient.Get(key, false, true)
-	return err == nil
-}
-
 // Load the cluster information from KV store
 func (cluster *Cluster) Load() error {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID)
