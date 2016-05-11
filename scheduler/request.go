@@ -28,9 +28,9 @@ func NewRequest(cluster *cluster.Cluster, nodeCount int, logger lager.Logger) Re
 	}
 }
 
-// StepTypes is the ordered sequence of workflow step types to orchestrate a service instance change
-func (req Request) StepTypes() []string {
-	steps := req.Steps()
+// stepTypes is the ordered sequence of workflow step types to orchestrate a service instance change
+func (req Request) stepTypes() []string {
+	steps := req.steps()
 	stepTypes := make([]string, len(steps))
 	for i, step := range steps {
 		stepTypes[i] = step.StepType()
@@ -38,8 +38,8 @@ func (req Request) StepTypes() []string {
 	return stepTypes
 }
 
-// Steps is the ordered sequence of workflow steps to orchestrate a service instance change
-func (req Request) Steps() []step.Step {
+// steps is the ordered sequence of workflow steps to orchestrate a service instance change
+func (req Request) steps() []step.Step {
 	existingNodeCount := req.cluster.Data.NodeCount
 	existingNodeSize := defaultNodeSize
 	steps := []step.Step{}
@@ -47,27 +47,27 @@ func (req Request) Steps() []step.Step {
 		for i := existingNodeCount; i > req.newNodeCount; i-- {
 			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
 		}
-	} else if !req.IsScalingUp() && !req.IsScalingDown() &&
-		!req.IsScalingIn() && !req.IsScalingOut() {
+	} else if !req.isScalingUp() && !req.isScalingDown() &&
+		!req.isScalingIn() && !req.isScalingOut() {
 		return steps
-	} else if req.IsInitialProvision() {
+	} else if req.isInitialProvision() {
 		steps = append(steps, step.NewStepInitCluster(req.cluster, req.logger))
 		for i := existingNodeCount; i < req.newNodeCount; i++ {
 			steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
 		}
-	} else if !req.IsScalingUp() && !req.IsScalingDown() {
+	} else if !req.isScalingUp() && !req.isScalingDown() {
 		// if only scaling out or in; but not up or down
-		if req.IsScalingOut() {
+		if req.isScalingOut() {
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
 			}
 		}
-		if req.IsScalingIn() {
+		if req.isScalingIn() {
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
 				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
 			}
 		}
-	} else if !req.IsScalingIn() && !req.IsScalingOut() {
+	} else if !req.isScalingIn() && !req.isScalingOut() {
 		// if only scaling up or down; but not out or in
 		steps = append(steps, step.NewStepReplaceMaster(req.newNodeSize))
 		// replace remaining replicas with resized nodes
@@ -77,14 +77,14 @@ func (req Request) Steps() []step.Step {
 	} else {
 		// changing both horizontal and vertical aspects of cluster
 		steps = append(steps, step.NewStepReplaceMaster(req.newNodeSize))
-		if req.IsScalingOut() {
+		if req.isScalingOut() {
 			for i := 1; i < existingNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
 			}
-		} else if req.IsScalingIn() {
+		} else if req.isScalingIn() {
 			for i := 1; i < req.newNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
@@ -96,40 +96,40 @@ func (req Request) Steps() []step.Step {
 	return steps
 }
 
-// IsInitialProvision is true if this Request is to create the initial cluster
-func (req Request) IsInitialProvision() bool {
+// isInitialProvision is true if this Request is to create the initial cluster
+func (req Request) isInitialProvision() bool {
 	return req.cluster.Data.NodeCount == 0
 }
 
-// IsScalingUp is true if smaller nodes requested
-func (req Request) IsScalingUp() bool {
+// isScalingUp is true if smaller nodes requested
+func (req Request) isScalingUp() bool {
 	return req.newNodeSize != 0 && defaultNodeSize < req.newNodeSize
 }
 
-// IsScalingDown is true if bigger nodes requested
-func (req Request) IsScalingDown() bool {
+// isScalingDown is true if bigger nodes requested
+func (req Request) isScalingDown() bool {
 	return req.newNodeSize != 0 && defaultNodeSize > req.newNodeSize
 }
 
-// IsScalingOut is true if more nodes requested
-func (req Request) IsScalingOut() bool {
+// isScalingOut is true if more nodes requested
+func (req Request) isScalingOut() bool {
 	return req.newNodeCount != 0 && req.cluster.Data.NodeCount < req.newNodeCount
 }
 
-// IsScalingIn is true if fewer nodes requested
-func (req Request) IsScalingIn() bool {
+// isScalingIn is true if fewer nodes requested
+func (req Request) isScalingIn() bool {
 	return req.newNodeCount != 0 && req.cluster.Data.NodeCount > req.newNodeCount
 }
 
-// Perform schedules the Request Steps() to be performed
+// Perform schedules the Request steps() to be performed
 func (req Request) Perform() (err error) {
 	req.logRequest()
-	if len(req.Steps()) == 0 {
+	if len(req.steps()) == 0 {
 		req.logger.Info("request.no-steps")
 		return
 	}
-	req.logger.Info("request.perform", lager.Data{"steps-count": len(req.Steps())})
-	for _, step := range req.Steps() {
+	req.logger.Info("request.perform", lager.Data{"steps-count": len(req.steps())})
+	for _, step := range req.steps() {
 		err = step.Perform()
 		if err != nil {
 			return
@@ -143,6 +143,6 @@ func (req Request) logRequest() {
 	req.logger.Info("request", lager.Data{
 		"current-node-count": req.cluster.Data.NodeCount,
 		"new-node-count":     req.newNodeCount,
-		"steps":              req.StepTypes(),
+		"steps":              req.stepTypes(),
 	})
 }
