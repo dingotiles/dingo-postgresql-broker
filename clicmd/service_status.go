@@ -14,7 +14,7 @@ import (
 // ServiceStatus displays to the terminal the status of all service clusters
 func ServiceStatus(c *cli.Context) {
 	cfg := loadConfig(c.String("config"))
-	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
+	etcdClient := backend.NewEtcdClient(cfg.Etcd.Machines, "/")
 	patroniServices, err := etcdClient.Get("/service", true, true)
 	if err != nil {
 		log.Fatal(err)

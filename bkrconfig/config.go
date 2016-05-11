@@ -14,7 +14,7 @@ type Config struct {
 	Broker         Broker                    `yaml:"broker"`
 	Router         Router                    `yaml:"router"`
 	Backends       []*Backend                `yaml:"backends"`
-	KVStore        KVStore                   `yaml:"kvstore"`
+	Etcd           Etcd                      `yaml:"etcd"`
 	Callbacks      Callbacks                 `yaml:"callbacks"`
 	Catalog        brokerapi.CatalogResponse `yaml:"catalog"`
 	LicenseText    string                    `yaml:"license_text"`
@@ -49,11 +49,8 @@ type Backend struct {
 }
 
 // KVStore describes the KV store used by all the components
-type KVStore struct {
-	Type     string   `yaml:"type"`
+type Etcd struct {
 	Machines []string `yaml:"machines"`
-	Username string
-	Password string
 }
 
 // Callbacks allows plug'n'play scripts to be run when events have completed

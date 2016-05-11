@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/codegangsta/cli"
+	"github.com/dingotiles/dingo-postgresql-broker/backend"
 )
 
 // ShowCells displays the status of each backend cell/server
 func ShowCells(c *cli.Context) {
 	cfg := loadConfig(c.String("config"))
-	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
+	etcdClient := backend.NewEtcdClient(cfg.Etcd.Machines, "/")
 	serviceinstances, err := etcdClient.Get("/serviceinstances", true, true)
 	if err != nil {
 		log.Fatal(err)

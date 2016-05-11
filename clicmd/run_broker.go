@@ -10,7 +10,7 @@ import (
 func RunBroker(c *cli.Context) {
 	cfg := loadConfig(c.String("config"))
 
-	etcdClient := backend.NewEtcdClient(cfg.KVStore.Machines, "/")
+	etcdClient := backend.NewEtcdClient(cfg.Etcd.Machines, "/")
 
 	broker := broker.NewBroker(etcdClient, cfg)
 	broker.Run()
