@@ -12,7 +12,6 @@ import (
 // Config is the brokers configuration
 type Config struct {
 	Broker         Broker                    `yaml:"broker"`
-	Router         Router                    `yaml:"router"`
 	Backends       []*Backend                `yaml:"backends"`
 	Etcd           Etcd                      `yaml:"etcd"`
 	Callbacks      Callbacks                 `yaml:"callbacks"`
@@ -31,11 +30,7 @@ type Broker struct {
 	Username               string `yaml:"username"`
 	Password               string `yaml:"password"`
 	DumpBackendHTTPTraffic bool   `yaml:"dump_backend_http_traffic"`
-}
-
-// Router advertising info
-type Router struct {
-	Hostname string `yaml:"hostname"`
+	BindHost               string `yaml:"bind_host"`
 }
 
 // Backend describes a configured set of backend brokers
