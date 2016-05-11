@@ -10,44 +10,17 @@ const (
 	defaultNodeSize = 20
 )
 
-// Request containers operations to perform a user-originating request to change a service instance (grow, scale, move)
-type Request interface {
-	// IsInitialProvision is true if this Request is to create the initial cluster
-	IsInitialProvision() bool
-
-	// Steps is the ordered sequence of workflow steps to orchestrate a service instance change
-	Steps() []step.Step
-
-	// StepTypes is the ordered sequence of workflow step types to orchestrate a service instance change
-	StepTypes() []string
-
-	// IsScalingUp is true if nodes will grow in size
-	IsScalingUp() bool
-
-	// IsScalingUp is true if nodes will shrink in size
-	IsScalingDown() bool
-
-	// IsScalingOut is true if number of nodes will increase
-	IsScalingOut() bool
-
-	// IsScalingIn is true if number of nodes will decrease
-	IsScalingIn() bool
-
-	// Perform schedules the Request Steps() to be performed
-	Perform() error
-}
-
-// RealRequest represents a user-originating request to change a service instance (grow, scale, move)
-type RealRequest struct {
+// Request represents a user-originating request to change a service instance (grow, scale, move)
+type Request struct {
 	cluster      *cluster.Cluster
 	newNodeSize  int
 	newNodeCount int
 	logger       lager.Logger
 }
 
-// NewRequest creates a RealRequest to change a service instance
+// NewRequest creates a Request to change a service instance
 func NewRequest(cluster *cluster.Cluster, nodeCount int, logger lager.Logger) Request {
-	return RealRequest{
+	return Request{
 		cluster:      cluster,
 		newNodeCount: nodeCount,
 		newNodeSize:  defaultNodeSize,
@@ -56,7 +29,7 @@ func NewRequest(cluster *cluster.Cluster, nodeCount int, logger lager.Logger) Re
 }
 
 // StepTypes is the ordered sequence of workflow step types to orchestrate a service instance change
-func (req RealRequest) StepTypes() []string {
+func (req Request) StepTypes() []string {
 	steps := req.Steps()
 	stepTypes := make([]string, len(steps))
 	for i, step := range steps {
@@ -66,7 +39,7 @@ func (req RealRequest) StepTypes() []string {
 }
 
 // Steps is the ordered sequence of workflow steps to orchestrate a service instance change
-func (req RealRequest) Steps() []step.Step {
+func (req Request) Steps() []step.Step {
 	existingNodeCount := req.cluster.Data.NodeCount
 	existingNodeSize := defaultNodeSize
 	steps := []step.Step{}
@@ -124,32 +97,32 @@ func (req RealRequest) Steps() []step.Step {
 }
 
 // IsInitialProvision is true if this Request is to create the initial cluster
-func (req RealRequest) IsInitialProvision() bool {
+func (req Request) IsInitialProvision() bool {
 	return req.cluster.Data.NodeCount == 0
 }
 
 // IsScalingUp is true if smaller nodes requested
-func (req RealRequest) IsScalingUp() bool {
+func (req Request) IsScalingUp() bool {
 	return req.newNodeSize != 0 && defaultNodeSize < req.newNodeSize
 }
 
 // IsScalingDown is true if bigger nodes requested
-func (req RealRequest) IsScalingDown() bool {
+func (req Request) IsScalingDown() bool {
 	return req.newNodeSize != 0 && defaultNodeSize > req.newNodeSize
 }
 
 // IsScalingOut is true if more nodes requested
-func (req RealRequest) IsScalingOut() bool {
+func (req Request) IsScalingOut() bool {
 	return req.newNodeCount != 0 && req.cluster.Data.NodeCount < req.newNodeCount
 }
 
 // IsScalingIn is true if fewer nodes requested
-func (req RealRequest) IsScalingIn() bool {
+func (req Request) IsScalingIn() bool {
 	return req.newNodeCount != 0 && req.cluster.Data.NodeCount > req.newNodeCount
 }
 
 // Perform schedules the Request Steps() to be performed
-func (req RealRequest) Perform() (err error) {
+func (req Request) Perform() (err error) {
 	req.logRequest()
 	if len(req.Steps()) == 0 {
 		req.logger.Info("request.no-steps")
@@ -166,7 +139,7 @@ func (req RealRequest) Perform() (err error) {
 }
 
 // logRequest send the requested change to Cluster to logs
-func (req RealRequest) logRequest() {
+func (req Request) logRequest() {
 	req.logger.Info("request", lager.Data{
 		"current-node-count": req.cluster.Data.NodeCount,
 		"new-node-count":     req.newNodeCount,
