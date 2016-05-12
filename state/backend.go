@@ -94,15 +94,15 @@ func (cluster *Cluster) sortBackendAZsByUnusedness(backends []*config.Backend) (
 // It prioritizes backends in availability zones that are not currently used
 func (cluster *Cluster) SortedBackendsByUnusedAZs(backends []*config.Backend) []*config.Backend {
 	usedBackends, unusedBackeds := cluster.usedAndUnusedBackends(backends)
+	ret := []*config.Backend{}
 
 	for _, az := range cluster.sortBackendAZsByUnusedness(backends).Keys {
 		for _, backend := range unusedBackeds {
 			if backend.AvailabilityZone == az {
-				backends = append(backends, backend)
+				ret = append(ret, backend)
 			}
 		}
 	}
-	ret := []*config.Backend{}
 	for _, backend := range usedBackends {
 		ret = append(ret, backend)
 	}
