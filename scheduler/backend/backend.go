@@ -99,3 +99,35 @@ func (b *Backend) ProvisionNode(clusterData state.ClusterData, logger lager.Logg
 	}
 	return
 }
+
+func (b *Backend) DeprovisionNode(node state.Node, logger lager.Logger) (err error) {
+	url := fmt.Sprintf("%s/v2/service_instances/%s", b.URI, node.Id)
+	client := &http.Client{}
+	buffer := &bytes.Buffer{}
+
+	deleteDetails := brokerapi.DeprovisionDetails{
+		PlanID:    node.PlanId,
+		ServiceID: node.ServiceId,
+	}
+
+	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {
+		logger.Error("remove-node.backend.encode", err)
+		return err
+	}
+	req, err := http.NewRequest("DELETE", url, buffer)
+	if err != nil {
+		logger.Error("remove-node.backend.new-req", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(b.Config.Username, b.Config.Password)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Error("remove-node.backend.do", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	return
+}

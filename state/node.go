@@ -5,6 +5,8 @@ import "fmt"
 type Node struct {
 	Id        string
 	BackendId string
+	PlanId    string
+	ServiceId string
 }
 
 func (cluster *Cluster) AddNode(node Node) (err error) {
@@ -33,7 +35,12 @@ func (cluster *Cluster) Nodes() (nodes []*Node) {
 			cluster.logger.Error("az-used.backend", err)
 			return
 		}
-		nodes = append(nodes, &Node{Id: nodeKey, BackendId: resp.Node.Value})
+		nodes = append(nodes, &Node{
+			Id:        nodeKey,
+			BackendId: resp.Node.Value,
+			PlanId:    cluster.meta.PlanID,
+			ServiceId: cluster.meta.ServiceID,
+		})
 	}
 	return nodes
 }
