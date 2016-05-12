@@ -7,13 +7,10 @@ type Node struct {
 	BackendId string
 }
 
-func (cluster *Cluster) AddNode(node Node) (kvIndex uint64, err error) {
+func (cluster *Cluster) AddNode(node Node) (err error) {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.meta.InstanceID, node.Id)
-	resp, err := cluster.etcdClient.Set(key, node.BackendId, 0)
-	if err != nil {
-		return 0, err
-	}
-	return resp.EtcdIndex, err
+	_, err = cluster.etcdClient.Set(key, node.BackendId, 0)
+	return
 }
 
 func (cluster *Cluster) RemoveNode(nodeId string) error {
@@ -22,5 +19,21 @@ func (cluster *Cluster) RemoveNode(nodeId string) error {
 	return err
 }
 
-// func (cluster *Cluster) Nodes() []*Node {
+// // if any errors, assume that cluster has no running nodes yet
+// func (cluster *Cluster) Nodes() (nodes []*Node) {
+// 	resp, err := cluster.etcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID), false, false)
+// 	if err != nil {
+// 		return
+// 	}
+
+// 	for _, clusterNode := range resp.Node.Nodes {
+// 		nodeKey := clusterNode.Key
+// 		resp, err = cluster.etcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
+// 		if err != nil {
+// 			cluster.logger.Error("az-used.backend", err)
+// 			return
+// 		}
+// 		nodes = append(nodes, &Node{Id: nodeKey, BackendId: resp.Node.Value})
+// 	}
+// 	return nodes
 // }
