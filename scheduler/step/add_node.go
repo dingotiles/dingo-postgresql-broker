@@ -56,7 +56,7 @@ func (step AddNode) Perform(backends []*config.Backend) (err error) {
 
 	sortedBackends := step.cluster.SortedBackendsByUnusedAZs(backends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
-		"sortedBackends": backends,
+		"sortedBackends": sortedBackends,
 	})
 
 	// 4. Send requests to sortedBackends until one says OK; else fail
