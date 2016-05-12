@@ -31,7 +31,8 @@ func (step AddNode) Perform() (err error) {
 	logger := step.logger
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.MetaData().InstanceID})
 
-	sortedBackends := sortedBackendsByUnusedAZs(step.cluster.UsedBackendGUIDs(), step.backends)
+	nodes := step.cluster.Nodes()
+	sortedBackends := prioritizeBackends(nodes, step.backends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
 		"sortedBackends": sortedBackends,
 	})
@@ -70,6 +71,14 @@ func (step AddNode) Perform() (err error) {
 	// 6. Return OK; timeout if routing mesh didn't do its job
 
 	return err
+}
+
+func prioritizeBackends(existingNodes []*state.Node, backends backend.Backends) backend.Backends {
+	usedBackendIds := []string{}
+	for _, node := range existingNodes {
+		usedBackendIds = append(usedBackendIds, node.Id)
+	}
+	return sortedBackendsByUnusedAZs(usedBackendIds, backends)
 }
 
 func sortedBackendsByUnusedAZs(usedBackendIds []string, backends backend.Backends) backend.Backends {
