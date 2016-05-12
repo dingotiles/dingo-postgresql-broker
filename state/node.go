@@ -1,6 +1,9 @@
 package state
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 type Node struct {
 	Id        string
@@ -28,6 +31,7 @@ func (cluster *Cluster) Nodes() (nodes []*Node) {
 		return
 	}
 
+	keyRegExp, _ := regexp.Compile("/nodes/(.*)$")
 	for _, clusterNode := range resp.Node.Nodes {
 		nodeKey := clusterNode.Key
 		resp, err = cluster.etcdClient.Get(fmt.Sprintf("%s/backend", nodeKey), false, false)
@@ -35,8 +39,9 @@ func (cluster *Cluster) Nodes() (nodes []*Node) {
 			cluster.logger.Error("az-used.backend", err)
 			return
 		}
+		nodeId := keyRegExp.FindStringSubmatch(nodeKey)[1]
 		nodes = append(nodes, &Node{
-			Id:        nodeKey,
+			Id:        nodeId,
 			BackendId: resp.Node.Value,
 			PlanId:    cluster.meta.PlanID,
 			ServiceId: cluster.meta.ServiceID,

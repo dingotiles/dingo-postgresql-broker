@@ -76,7 +76,7 @@ func (step AddNode) Perform() (err error) {
 func prioritizeBackends(existingNodes []*state.Node, backends backend.Backends) backend.Backends {
 	usedBackendIds := []string{}
 	for _, node := range existingNodes {
-		usedBackendIds = append(usedBackendIds, node.Id)
+		usedBackendIds = append(usedBackendIds, node.BackendId)
 	}
 	return sortedBackendsByUnusedAZs(usedBackendIds, backends)
 }
