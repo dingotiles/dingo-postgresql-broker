@@ -14,7 +14,6 @@ type AddNode struct {
 	cluster  *state.Cluster
 	backends backend.Backends
 	logger   lager.Logger
-	nodeUUID string
 }
 
 // NewStepAddNode creates a StepAddNode command
