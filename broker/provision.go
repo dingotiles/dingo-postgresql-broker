@@ -57,7 +57,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		} else {
 
 			if bkr.config.SupportsClusterDataBackup() {
-				clusterInstance.TriggerClusterDataBackup(bkr.config.Callbacks)
+				state.TriggerClusterDataBackup(clusterInstance.MetaData(), bkr.config.Callbacks, logger)
 				var restoredData *state.ClusterData
 				err, restoredData = state.RestoreClusterDataBackup(clusterInstance.MetaData().InstanceID, bkr.config.Callbacks, logger)
 				metaData := clusterInstance.MetaData()

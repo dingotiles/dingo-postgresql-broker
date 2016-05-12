@@ -34,15 +34,14 @@ type ClusterData struct {
 func (data *ClusterData) Equals(other *ClusterData) bool {
 	return reflect.DeepEqual(*data, *other)
 }
-func (cluster *Cluster) TriggerClusterDataBackup(callbacks config.Callbacks) {
-	logger := cluster.logger
+func TriggerClusterDataBackup(clusterData ClusterData, callbacks config.Callbacks, logger lager.Logger) {
 	callback := callbacks.ClusterDataBackup
 	if callback == nil {
 		logger.Info("clusterdata.backup.noop")
 		return
 	}
 
-	data, err := json.Marshal(cluster.meta)
+	data, err := json.Marshal(clusterData)
 	if err != nil {
 		logger.Error("clusterdata.backup.data-marshal", err)
 		return
