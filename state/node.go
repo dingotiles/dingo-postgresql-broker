@@ -15,8 +15,8 @@ func (cluster *Cluster) AddNode(node Node) (err error) {
 	return
 }
 
-func (cluster *Cluster) RemoveNode(nodeId string) error {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", cluster.meta.InstanceID, nodeId)
+func (cluster *Cluster) RemoveNode(node *Node) error {
+	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", cluster.meta.InstanceID, node.Id)
 	_, err := cluster.etcdClient.Delete(key, true)
 	return err
 }

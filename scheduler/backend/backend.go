@@ -54,6 +54,15 @@ func (b Backends) AvailabilityZone(backendId string) (string, error) {
 	return "", errors.New(fmt.Sprintf("No backend with Id %s found", backendId))
 }
 
+func (b Backends) Get(backendId string) *Backend {
+	for _, backend := range b {
+		if backend.Id == backendId {
+			return backend
+		}
+	}
+	return nil
+}
+
 func (b *Backend) ProvisionNode(clusterData state.ClusterData, logger lager.Logger) (node state.Node, err error) {
 	node = state.Node{Id: uuid.New(), BackendId: b.Id}
 	provisionDetails := brokerapi.ProvisionDetails{
@@ -100,7 +109,7 @@ func (b *Backend) ProvisionNode(clusterData state.ClusterData, logger lager.Logg
 	return
 }
 
-func (b *Backend) DeprovisionNode(node state.Node, logger lager.Logger) (err error) {
+func (b *Backend) DeprovisionNode(node *state.Node, logger lager.Logger) (err error) {
 	url := fmt.Sprintf("%s/v2/service_instances/%s", b.URI, node.Id)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}

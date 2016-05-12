@@ -1,15 +1,10 @@
 package step
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"net/http"
 
-	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
-	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -17,8 +12,6 @@ import (
 type RemoveNode struct {
 	cluster  *state.Cluster
 	backends backend.Backends
-	nodeUUID string
-	backend  *config.Backend
 	logger   lager.Logger
 }
 
@@ -34,26 +27,14 @@ func (step RemoveNode) StepType() string {
 
 // Perform runs the Step action to modify the Cluster
 func (step RemoveNode) Perform() (err error) {
-	var backends []*config.Backend
-	for _, b := range step.backends {
-		backends = append(backends, b.Config)
-	}
 	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master
-	var backendID string
-	step.nodeUUID, backendID, err = step.cluster.RandomReplicaNode()
-	if err != nil {
-		return
-	}
+	nodes := step.cluster.Nodes()
+	nodeToRemove := randomReplicaNode(nodes)
 
-	for _, backend := range backends {
-		if backend.GUID == backendID {
-			step.backend = backend
-			break
-		}
-	}
-	if step.backend == nil {
+	backend := step.backends.Get(nodeToRemove.BackendId)
+	if backend == nil {
 		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists")
 		logger.Error("remove-node.perform", err)
 		return
@@ -61,52 +42,24 @@ func (step RemoveNode) Perform() (err error) {
 
 	logger.Info("remove-node.perform", lager.Data{
 		"instance-id": step.cluster.MetaData().InstanceID,
-		"node-uuid":   step.nodeUUID,
-		"backend":     step.backend.GUID,
+		"node-uuid":   nodeToRemove.Id,
+		"backend":     backend.Id,
 	})
 
-	err = step.requestBackendRemoveNode()
+	err = backend.DeprovisionNode(nodeToRemove, logger)
 	if err != nil {
 		return nil
 	}
 
-	err = step.cluster.RemoveNode(step.nodeUUID)
+	err = step.cluster.RemoveNode(nodeToRemove)
 	if err != nil {
 		logger.Error("remove-node.nodes-delete", err)
 	}
 	return
 }
 
-func (step RemoveNode) requestBackendRemoveNode() (err error) {
-	logger := step.logger
-
-	url := fmt.Sprintf("%s/v2/service_instances/%s", step.backend.URI, step.nodeUUID)
-	client := &http.Client{}
-	buffer := &bytes.Buffer{}
-
-	deleteDetails := brokerapi.DeprovisionDetails{
-		PlanID:    step.cluster.MetaData().PlanID,
-		ServiceID: step.cluster.MetaData().ServiceID,
-	}
-
-	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {
-		logger.Error("remove-node.backend.encode", err)
-		return err
-	}
-	req, err := http.NewRequest("DELETE", url, buffer)
-	if err != nil {
-		logger.Error("remove-node.backend.new-req", err)
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(step.backend.Username, step.backend.Password)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.Error("remove-node.backend.do", err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	return
+// currently random any node, doesn't have to be a replica
+func randomReplicaNode(nodes []*state.Node) *state.Node {
+	return nodes[0]
+	// return nodes[rand.Int31n(len(nodes))]
 }
