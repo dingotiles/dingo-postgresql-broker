@@ -26,7 +26,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		rawNodeCount := details.Parameters["node-count"]
 		nodeCount = int(rawNodeCount.(float64))
 	} else {
-		nodeCount = int(cluster.MetaData().NodeCount)
+		nodeCount = int(cluster.MetaData().TargetNodeCount)
 	}
 	if nodeCount < 1 {
 		return false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")

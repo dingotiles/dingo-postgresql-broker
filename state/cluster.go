@@ -74,9 +74,9 @@ func (cluster *Cluster) Load() error {
 		cluster.logger.Error("load.etcd-get", err)
 		return err
 	}
-	cluster.meta.NodeCount = len(resp.Node.Nodes)
+	cluster.meta.TargetNodeCount = len(resp.Node.Nodes)
 	cluster.logger.Info("load.state", lager.Data{
-		"node-count": cluster.MetaData().NodeCount,
+		"node-count": cluster.MetaData().TargetNodeCount,
 	})
 	return nil
 }

@@ -27,7 +27,7 @@ type ClusterData struct {
 	OrganizationGUID string           `json:"organization_guid"`
 	SpaceGUID        string           `json:"space_guid"`
 	AdminCredentials AdminCredentials `json:"admin_credentials"`
-	NodeCount        int              `json:"node_count"`
+	TargetNodeCount  int              `json:"node_count"`
 	AllocatedPort    string           `json:"allocated_port"`
 }
 

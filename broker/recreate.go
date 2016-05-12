@@ -41,15 +41,15 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	}
 	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": clusterdata.AllocatedPort})
 
-	desiredNodeCount := clusterdata.NodeCount
-	if desiredNodeCount < 1 {
-		desiredNodeCount = 1
+	targetNodeCount := clusterdata.TargetNodeCount
+	if targetNodeCount < 1 {
+		targetNodeCount = 1
 	}
-	clusterdata.NodeCount = 0
+	clusterdata.TargetNodeCount = 0
 
 	cluster := state.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, bkr.config, logger)
 
-	clusterRequest := bkr.scheduler.NewRequest(cluster, desiredNodeCount)
+	clusterRequest := bkr.scheduler.NewRequest(cluster, targetNodeCount)
 	err = bkr.scheduler.Execute(clusterRequest)
 	if err != nil {
 		logger.Error("provision.perform.error", err)
