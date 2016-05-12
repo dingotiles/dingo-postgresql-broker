@@ -37,7 +37,7 @@ func (cluster *Cluster) RandomReplicaNode() (nodeUUID string, backend string, er
 }
 
 // AllAZs lists of AZs offered by
-func (cluster *Cluster) AllAZs(backends []*config.Backend) (list []string) {
+func AllAZs(backends []*config.Backend) (list []string) {
 	azUsage := map[string]int{}
 	for _, backend := range backends {
 		azUsage[backend.AvailabilityZone]++
@@ -51,7 +51,7 @@ func (cluster *Cluster) AllAZs(backends []*config.Backend) (list []string) {
 }
 
 // if any errors, assume that cluster has no running nodes yet
-func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
+func (cluster *Cluster) UsedBackendGUIDs() (backendGUIDs []string) {
 	resp, err := cluster.etcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID), false, false)
 	if err != nil {
 		return
@@ -71,12 +71,12 @@ func (cluster *Cluster) usedBackendGUIDs() (backendGUIDs []string) {
 // backendAZsByUnusedness sorts the availability zones in order of whether this cluster is using them or not
 // An AZ that is not being used at all will be early in the result.
 // All known AZs are included in the result
-func (cluster *Cluster) sortBackendAZsByUnusedness(backends []*config.Backend) (vs *utils.ValSorter) {
+func sortBackendAZsByUnusedness(usedBackendIds []string, backends []*config.Backend) (vs *utils.ValSorter) {
 	azUsageData := map[string]int{}
-	for _, az := range cluster.AllAZs(backends) {
+	for _, az := range AllAZs(backends) {
 		azUsageData[az] = 0
 	}
-	for _, backendGUID := range cluster.usedBackendGUIDs() {
+	for _, backendGUID := range usedBackendIds {
 		for _, backend := range backends {
 			if backend.GUID == backendGUID {
 				azUsageData[backend.AvailabilityZone]++
@@ -92,11 +92,12 @@ func (cluster *Cluster) sortBackendAZsByUnusedness(backends []*config.Backend) (
 
 // SortedBackendsByUnusedAZs is sequence of backends to try to request new nodes for this cluster
 // It prioritizes backends in availability zones that are not currently used
-func (cluster *Cluster) SortedBackendsByUnusedAZs(backends []*config.Backend) []*config.Backend {
-	usedBackends, unusedBackeds := cluster.usedAndUnusedBackends(backends)
+func SortedBackendsByUnusedAZs(usedBackendIds []string, backends []*config.Backend) []*config.Backend {
+	// cluster.usedBackendGUIDs()
+	usedBackends, unusedBackeds := usedAndUnusedBackends(usedBackendIds, backends)
 	ret := []*config.Backend{}
 
-	for _, az := range cluster.sortBackendAZsByUnusedness(backends).Keys {
+	for _, az := range sortBackendAZsByUnusedness(usedBackendIds, backends).Keys {
 		for _, backend := range unusedBackeds {
 			if backend.AvailabilityZone == az {
 				ret = append(ret, backend)
@@ -109,11 +110,10 @@ func (cluster *Cluster) SortedBackendsByUnusedAZs(backends []*config.Backend) []
 	return ret
 }
 
-func (cluster *Cluster) usedAndUnusedBackends(backends []*config.Backend) (usedBackends, unusuedBackends []*config.Backend) {
-	usedBackendGUIDs := cluster.usedBackendGUIDs()
+func usedAndUnusedBackends(usedBackendIds []string, backends []*config.Backend) (usedBackends, unusuedBackends []*config.Backend) {
 	for _, backend := range backends {
 		used := false
-		for _, usedBackendGUID := range usedBackendGUIDs {
+		for _, usedBackendGUID := range usedBackendIds {
 			if backend.GUID == usedBackendGUID {
 				usedBackends = append(usedBackends, backend)
 				used = true

@@ -61,7 +61,7 @@ func (step AddNode) Perform() (err error) {
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
-	sortedBackends := step.cluster.SortedBackendsByUnusedAZs(backends)
+	sortedBackends := state.SortedBackendsByUnusedAZs(step.cluster.UsedBackendGUIDs(), backends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
 		"sortedBackends": sortedBackends,
 	})

@@ -21,3 +21,6 @@ func (cluster *Cluster) RemoveNode(nodeId string) error {
 	_, err := cluster.etcdClient.Delete(key, true)
 	return err
 }
+
+// func (cluster *Cluster) Nodes() []*Node {
+// }
