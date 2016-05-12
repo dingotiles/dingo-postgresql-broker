@@ -2,6 +2,7 @@ package step
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -60,6 +61,6 @@ func (step RemoveNode) Perform() (err error) {
 
 // currently random any node, doesn't have to be a replica
 func randomReplicaNode(nodes []*state.Node) *state.Node {
-	return nodes[0]
-	// return nodes[rand.Int31n(len(nodes))]
+	n := rand.Intn(len(nodes))
+	return nodes[n]
 }
