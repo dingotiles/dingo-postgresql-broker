@@ -18,7 +18,6 @@ type Request struct {
 	newNodeSize  int
 	newNodeCount int
 	logger       lager.Logger
-	scheduler    *Scheduler
 }
 
 // NewRequest creates a Request to change a service instance
@@ -29,7 +28,6 @@ func (s *Scheduler) NewRequest(cluster *state.Cluster, nodeCount int) Request {
 		newNodeCount: nodeCount,
 		newNodeSize:  defaultNodeSize,
 		logger:       s.logger,
-		scheduler:    s,
 	}
 }
 
