@@ -3,6 +3,8 @@ package state
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/pivotal-golang/lager"
 )
 
 type Node struct {
@@ -13,12 +15,14 @@ type Node struct {
 }
 
 func (cluster *Cluster) AddNode(node Node) (err error) {
+	cluster.logger.Info("add-node", lager.Data{"node": node})
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.meta.InstanceID, node.Id)
 	_, err = cluster.etcdClient.Set(key, node.BackendId, 0)
 	return
 }
 
 func (cluster *Cluster) RemoveNode(node *Node) error {
+	cluster.logger.Info("remove-node", lager.Data{"node": node})
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", cluster.meta.InstanceID, node.Id)
 	_, err := cluster.etcdClient.Delete(key, true)
 	return err
