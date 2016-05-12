@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
+	"github.com/dingotiles/dingo-postgresql-broker/utils"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"
@@ -61,7 +63,7 @@ func (step AddNode) Perform() (err error) {
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
-	sortedBackends := state.SortedBackendsByUnusedAZs(step.cluster.UsedBackendGUIDs(), backends)
+	sortedBackends := sortedBackendsByUnusedAZs(step.cluster.UsedBackendGUIDs(), backends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
 		"sortedBackends": sortedBackends,
 	})
@@ -142,4 +144,75 @@ func (step AddNode) requestNodeViaBackend(backend *config.Backend, provisionDeta
 		return errors.New("unknown plan")
 	}
 	return nil
+}
+
+func sortedBackendsByUnusedAZs(usedBackendIds []string, backends []*config.Backend) []*config.Backend {
+	// cluster.usedBackendGUIDs()
+	usedBackends, unusedBackeds := usedAndUnusedBackends(usedBackendIds, backends)
+	ret := []*config.Backend{}
+
+	for _, az := range sortBackendAZsByUnusedness(usedBackendIds, backends).Keys {
+		for _, backend := range unusedBackeds {
+			if backend.AvailabilityZone == az {
+				ret = append(ret, backend)
+			}
+		}
+	}
+	for _, backend := range usedBackends {
+		ret = append(ret, backend)
+	}
+	return ret
+}
+
+// backendAZsByUnusedness sorts the availability zones in order of whether this cluster is using them or not
+// An AZ that is not being used at all will be early in the result.
+// All known AZs are included in the result
+func sortBackendAZsByUnusedness(usedBackendIds []string, backends []*config.Backend) (vs *utils.ValSorter) {
+	azUsageData := map[string]int{}
+	for _, az := range allAZs(backends) {
+		azUsageData[az] = 0
+	}
+	for _, backendGUID := range usedBackendIds {
+		for _, backend := range backends {
+			if backend.GUID == backendGUID {
+				azUsageData[backend.AvailabilityZone]++
+			}
+		}
+	}
+	vs = utils.NewValSorter(azUsageData)
+	fmt.Printf("usage %#v\n", azUsageData)
+	vs.Sort()
+	fmt.Printf("sorted %#v\n", vs)
+	return
+}
+
+func usedAndUnusedBackends(usedBackendIds []string, backends []*config.Backend) (usedBackends, unusuedBackends []*config.Backend) {
+	for _, backend := range backends {
+		used := false
+		for _, usedBackendGUID := range usedBackendIds {
+			if backend.GUID == usedBackendGUID {
+				usedBackends = append(usedBackends, backend)
+				used = true
+				break
+			}
+		}
+		if !used {
+			unusuedBackends = append(unusuedBackends, backend)
+		}
+	}
+	return
+}
+
+// AllAZs lists of AZs offered by
+func allAZs(backends []*config.Backend) (list []string) {
+	azUsage := map[string]int{}
+	for _, backend := range backends {
+		azUsage[backend.AvailabilityZone]++
+	}
+	for az := range azUsage {
+		list = append(list, az)
+	}
+	// TEST sorting AZs for benefit of tests
+	sort.Strings(list)
+	return
 }
