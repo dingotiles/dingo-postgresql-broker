@@ -1,5 +1,7 @@
 package step
 
+import "github.com/dingotiles/dingo-postgresql-broker/config"
+
 // ReplaceReplica describes an action to create a new resized replica node, then destroy an older one
 type ReplaceReplica struct {
 	CurrentNodeSize int
@@ -17,7 +19,7 @@ func (step ReplaceReplica) StepType() string {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step ReplaceReplica) Perform() error {
+func (step ReplaceReplica) Perform(backends []*config.Backend) error {
 	// logger.Info("add-step.perform", lager.Data{"implemented": false, "step": fmt.Sprintf("%#v", step)})
 	return nil
 }

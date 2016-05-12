@@ -11,6 +11,7 @@ type State interface {
 
 	// ClusterExists returns true if cluster already exists
 	ClusterExists(clusterId string) bool
+	// InitializeCluster(clusterId string) Cluster
 }
 
 type etcdState struct {
@@ -30,3 +31,6 @@ func (s *etcdState) ClusterExists(instanceId string) bool {
 	_, err := s.etcd.Get(key, false, true)
 	return err == nil
 }
+
+// func (s *etcdStater) InitializeCluster(instanceId, details brokerapi.ProvisionDetails) Cluster {
+// }

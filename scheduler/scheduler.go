@@ -25,7 +25,7 @@ func (s *Scheduler) Execute(req Request) (err error) {
 	}
 	req.logger.Info("request.perform", lager.Data{"steps-count": len(req.steps())})
 	for _, step := range req.steps() {
-		err = step.Perform()
+		err = step.Perform(s.config.Backends)
 		if err != nil {
 			return
 		}

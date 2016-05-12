@@ -32,7 +32,7 @@ func (step AddNode) StepType() string {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step AddNode) Perform() (err error) {
+func (step AddNode) Perform(backends []*config.Backend) (err error) {
 	step.nodeUUID = uuid.New()
 
 	logger := step.logger
@@ -54,14 +54,14 @@ func (step AddNode) Perform() (err error) {
 	}
 	fmt.Println(step.nodeUUID, provisionDetails)
 
-	backends := step.cluster.SortedBackendsByUnusedAZs()
-	logger.Info("add-node.perform.backends", lager.Data{
-		"backends": backends,
+	sortedBackends := step.cluster.SortedBackendsByUnusedAZs(backends)
+	logger.Info("add-node.perform.sortedBackends", lager.Data{
+		"sortedBackends": backends,
 	})
 
-	// 4. Send requests to backends until one says OK; else fail
+	// 4. Send requests to sortedBackends until one says OK; else fail
 	var backend *config.Backend
-	for _, backend = range backends {
+	for _, backend = range sortedBackends {
 		err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
 			"uri":  backend.URI,
@@ -69,21 +69,21 @@ func (step AddNode) Perform() (err error) {
 			"az":   backend.AvailabilityZone,
 		}
 		if err == nil {
-			logger.Info("add-node.perform.backends.selected", logBackend)
+			logger.Info("add-node.perform.sortedBackends.selected", logBackend)
 			break
 		} else {
-			logger.Error("add-node.perform.backends.skipped", err, logBackend)
+			logger.Error("add-node.perform.sortedBackends.skipped", err, logBackend)
 		}
 	}
 	if err != nil {
-		// no backends available to run a cluster
-		logger.Info("add-node.perform.backends.unavailable", lager.Data{"summary": "no backends available to run a container"})
+		// no sortedBackends available to run a cluster
+		logger.Info("add-node.perform.sortedBackends.unavailable", lager.Data{"summary": "no backends available to run a container"})
 		return err
 	}
 	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid
 	_, err = step.setClusterNodeBackend(backend)
 	if err != nil {
-		// no backends available to run a cluster
+		// no sortedBackends available to run a cluster
 		return err
 	}
 

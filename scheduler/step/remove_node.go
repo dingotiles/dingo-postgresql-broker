@@ -31,7 +31,7 @@ func (step RemoveNode) StepType() string {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step RemoveNode) Perform() (err error) {
+func (step RemoveNode) Perform(backends []*config.Backend) (err error) {
 	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master
@@ -41,7 +41,6 @@ func (step RemoveNode) Perform() (err error) {
 		return
 	}
 
-	backends := step.cluster.AllBackends()
 	for _, backend := range backends {
 		if backend.GUID == backendID {
 			step.backend = backend

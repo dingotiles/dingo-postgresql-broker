@@ -25,7 +25,7 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
-	cluster := state.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.config, bkr.logger)
+	cluster := state.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.logger)
 
 	key := fmt.Sprintf("/routing/allocation/%s", cluster.MetaData().InstanceID)
 	resp, err := bkr.etcdClient.Get(key, false, false)

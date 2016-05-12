@@ -15,7 +15,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		Parameters: updateDetails.Parameters,
 	}
 
-	cluster := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.config, bkr.logger)
+	cluster := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.logger)
 	err = cluster.Load()
 	if err != nil {
 		return false, err
