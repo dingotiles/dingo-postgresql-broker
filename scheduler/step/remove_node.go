@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -14,15 +15,16 @@ import (
 
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
+	cluster  *state.Cluster
+	backends backend.Backends
 	nodeUUID string
 	backend  *config.Backend
-	cluster  *state.Cluster
 	logger   lager.Logger
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster *state.Cluster, logger lager.Logger) Step {
-	return RemoveNode{cluster: cluster, logger: logger}
+func NewStepRemoveNode(cluster *state.Cluster, backends backend.Backends, logger lager.Logger) Step {
+	return RemoveNode{cluster: cluster, backends: backends, logger: logger}
 }
 
 // StepType prints the type of step
@@ -31,7 +33,11 @@ func (step RemoveNode) StepType() string {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step RemoveNode) Perform(backends []*config.Backend) (err error) {
+func (step RemoveNode) Perform() (err error) {
+	var backends []*config.Backend
+	for _, b := range step.backends {
+		backends = append(backends, b.Config)
+	}
 	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
@@ -16,14 +17,15 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	nodeUUID string
 	cluster  *state.Cluster
+	backends backend.Backends
 	logger   lager.Logger
+	nodeUUID string
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *state.Cluster, logger lager.Logger) Step {
-	return AddNode{cluster: cluster, logger: logger}
+func NewStepAddNode(cluster *state.Cluster, backends backend.Backends, logger lager.Logger) Step {
+	return AddNode{cluster: cluster, backends: backends, logger: logger}
 }
 
 // StepType prints the type of step
@@ -32,7 +34,12 @@ func (step AddNode) StepType() string {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step AddNode) Perform(backends []*config.Backend) (err error) {
+func (step AddNode) Perform() (err error) {
+	var backends []*config.Backend
+	for _, b := range step.backends {
+		backends = append(backends, b.Config)
+	}
+
 	step.nodeUUID = uuid.New()
 
 	logger := step.logger

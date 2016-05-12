@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
@@ -13,6 +14,7 @@ const (
 // Request represents a user-originating request to change a service instance (grow, scale, move)
 type Request struct {
 	cluster      *state.Cluster
+	backends     backend.Backends
 	newNodeSize  int
 	newNodeCount int
 	logger       lager.Logger
@@ -23,6 +25,7 @@ type Request struct {
 func (s *Scheduler) NewRequest(cluster *state.Cluster, nodeCount int) Request {
 	return Request{
 		cluster:      cluster,
+		backends:     s.backends,
 		newNodeCount: nodeCount,
 		newNodeSize:  defaultNodeSize,
 		logger:       s.logger,
@@ -47,7 +50,7 @@ func (req Request) steps() []step.Step {
 	steps := []step.Step{}
 	if req.newNodeCount == 0 {
 		for i := existingNodeCount; i > req.newNodeCount; i-- {
-			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
+			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.backends, req.logger))
 		}
 	} else if !req.isScalingUp() && !req.isScalingDown() &&
 		!req.isScalingIn() && !req.isScalingOut() {
@@ -55,18 +58,18 @@ func (req Request) steps() []step.Step {
 	} else if req.isInitialProvision() {
 		steps = append(steps, step.NewStepInitCluster(req.cluster, req.logger))
 		for i := existingNodeCount; i < req.newNodeCount; i++ {
-			steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
+			steps = append(steps, step.NewStepAddNode(req.cluster, req.backends, req.logger))
 		}
 	} else if !req.isScalingUp() && !req.isScalingDown() {
 		// if only scaling out or in; but not up or down
 		if req.isScalingOut() {
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
+				steps = append(steps, step.NewStepAddNode(req.cluster, req.backends, req.logger))
 			}
 		}
 		if req.isScalingIn() {
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
+				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.backends, req.logger))
 			}
 		}
 	} else if !req.isScalingIn() && !req.isScalingOut() {
@@ -84,14 +87,14 @@ func (req Request) steps() []step.Step {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i < req.newNodeCount; i++ {
-				steps = append(steps, step.NewStepAddNode(req.cluster, req.logger))
+				steps = append(steps, step.NewStepAddNode(req.cluster, req.backends, req.logger))
 			}
 		} else if req.isScalingIn() {
 			for i := 1; i < req.newNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
 			for i := existingNodeCount; i > req.newNodeCount; i-- {
-				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.logger))
+				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.backends, req.logger))
 			}
 		}
 	}

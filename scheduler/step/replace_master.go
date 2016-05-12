@@ -1,7 +1,5 @@
 package step
 
-import "github.com/dingotiles/dingo-postgresql-broker/config"
-
 // ReplaceMaster describes the new master
 type ReplaceMaster struct {
 	NewNodeSize int
@@ -18,7 +16,7 @@ func (step ReplaceMaster) StepType() string {
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step ReplaceMaster) Perform(backends []*config.Backend) error {
+func (step ReplaceMaster) Perform() error {
 	// logger.Info("add-step.perform", lager.Data{"implemented": false, "step": fmt.Sprintf("%#v", step)})
 	return nil
 

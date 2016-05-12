@@ -1,7 +1,6 @@
 package step
 
 import (
-	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
@@ -20,7 +19,7 @@ func (step InitCluster) StepType() string {
 	return "InitCluster"
 }
 
-func (step InitCluster) Perform(backends []*config.Backend) (err error) {
+func (step InitCluster) Perform() (err error) {
 	step.logger.Info("init-cluster.perform", lager.Data{"instance-id": step.cluster.MetaData().InstanceID, "plan-id": step.cluster.MetaData().PlanID})
 
 	err = step.cluster.Init()

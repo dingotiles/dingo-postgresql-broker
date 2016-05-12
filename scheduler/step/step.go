@@ -3,14 +3,12 @@ package step
 import (
 	"fmt"
 	"log"
-
-	"github.com/dingotiles/dingo-postgresql-broker/config"
 )
 
 // Step is a step in a workflow to change a cluster (grow, scale, move)
 type Step interface {
 	StepType() string
-	Perform(backends []*config.Backend) error
+	Perform() error
 }
 
 func debug(data []byte, err error) {
