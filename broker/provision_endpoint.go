@@ -27,7 +27,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 	clusterInstance, err := bkr.state.InitializeCluster(bkr.initClusterData(instanceID, details))
 	if err != nil {
-		logger.Error("provision.error", err)
+		logger.Error("init-cluster.error", err)
 		return resp, false, fmt.Errorf("Could not provision service instance. Error: %v", err)
 	}
 	clusterRequest := bkr.scheduler.NewRequest(clusterInstance)
@@ -35,7 +35,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	go func() {
 		err = bkr.scheduler.Execute(clusterRequest)
 		if err != nil {
-			logger.Error("provision.perform.error", err)
+			logger.Error("execute.error", err)
 		}
 
 		err = clusterInstance.WaitForAllRunning()
@@ -45,7 +45,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		}
 
 		if err != nil {
-			logger.Error("provision.running.error", err)
+			logger.Error("running.error", err)
 		} else {
 
 			if bkr.config.SupportsClusterDataBackup() {
@@ -64,7 +64,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 				}
 			}
 
-			logger.Info("provision.running.success", lager.Data{"cluster": clusterInstance.MetaData()})
+			logger.Info("running.success", lager.Data{"cluster": clusterInstance.MetaData()})
 		}
 	}()
 	return resp, true, err
