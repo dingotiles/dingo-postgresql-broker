@@ -47,8 +47,8 @@ func (lc *LicenseCheck) FetchQuotaStatus() (quotaStatus *QuotaStatus) {
 			var err error
 			planStatus.Usage, err = lc.ServicePlanUsage(plan.ID)
 			if err != nil {
-				lc.Logger.Error("quota-status.cf-lookup", err)
-				planStatus.LicenseStatus = "cf-unavailable"
+				lc.Logger.Error("quota-status.error", err)
+				planStatus.LicenseStatus = "unknown"
 			}
 			serviceStatus.Usage = serviceStatus.Usage + planStatus.Usage
 			serviceStatus.Quota = serviceStatus.Quota + planStatus.Quota
