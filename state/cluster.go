@@ -72,9 +72,8 @@ func (c *Cluster) SetTargetNodeCount(count int) error {
 	return nil
 }
 
-// TODO write ClusterData to etcd
 func (c *Cluster) writeState() error {
-	c.logger.Info("write-state")
+	c.logger.Info("write-state", lager.Data{"meta": c.meta})
 	key := fmt.Sprintf("/serviceinstances/%s/plan_id", c.meta.InstanceID)
 	_, err := c.etcdClient.Set(key, c.meta.PlanID, 0)
 	if err != nil {
@@ -83,7 +82,12 @@ func (c *Cluster) writeState() error {
 	}
 	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
 	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
-	return err
+	fmt.Println("json: %s", c.meta.Json())
+	if err != nil {
+		c.logger.Error("write-state.error", err)
+		return err
+	}
+	return nil
 }
 
 // TODO write ClusterData to etcd
@@ -95,7 +99,7 @@ func (c *Cluster) restoreState() error {
 		c.logger.Error("restore-state.error", err)
 		return err
 	}
-	c.meta = ClusterDataFromJson(resp.Node.Value)
+	c.meta = *structs.ClusterDataFromJson(resp.Node.Value)
 	return nil
 }
 
