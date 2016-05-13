@@ -32,37 +32,6 @@ func (c *Cluster) SetTargetNodeCount(count int) error {
 	return nil
 }
 
-func (c *Cluster) writeState() error {
-	c.logger.Info("write-state", lager.Data{"meta": c.meta})
-	key := fmt.Sprintf("/serviceinstances/%s/plan_id", c.meta.InstanceID)
-	_, err := c.etcdClient.Set(key, c.meta.PlanID, 0)
-	if err != nil {
-		c.logger.Error("write-state.error", err)
-		return err
-	}
-	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
-	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
-	fmt.Println("json: %s", c.meta.Json())
-	if err != nil {
-		c.logger.Error("write-state.error", err)
-		return err
-	}
-	return nil
-}
-
-// TODO write ClusterData to etcd
-func (c *Cluster) restoreState() error {
-	c.logger.Info("restore-state")
-	key := fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
-	resp, err := c.etcdClient.Get(key, false, false)
-	if err != nil {
-		c.logger.Error("restore-state.error", err)
-		return err
-	}
-	c.meta = *structs.ClusterDataFromJson(resp.Node.Value)
-	return nil
-}
-
 func (c *Cluster) PortAllocation() (int64, error) {
 	key := fmt.Sprintf("/routing/allocation/%s", c.meta.InstanceID)
 	resp, err := c.etcdClient.Get(key, false, false)
@@ -84,14 +53,45 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		key := fmt.Sprintf("/routing/allocation/%s", cluster.MetaData().InstanceID)
 		resp, err := cluster.etcdClient.Get(key, false, false)
 		if err != nil {
-			cluster.logger.Debug("provision.routing.polling", lager.Data{})
+			cluster.logger.Debug("cluster.wait-for-port", lager.Data{})
 		} else {
 			cluster.meta.AllocatedPort = resp.Node.Value
-			cluster.logger.Info("provision.routing.done", lager.Data{"allocated_port": cluster.MetaData().AllocatedPort})
+			cluster.logger.Info("cluster.wait-for-port", lager.Data{"allocated_port": cluster.meta.AllocatedPort})
 			return nil
 		}
 		time.Sleep(1 * time.Second)
 	}
-	cluster.logger.Error("provision.routing.timed-out", err, lager.Data{"err": err})
+	cluster.logger.Error("cluster.wait-for-port.timeout", err, lager.Data{"err": err})
 	return err
+}
+
+func (c *Cluster) writeState() error {
+	c.logger.Info("cluster.write-state", lager.Data{"meta": c.meta})
+	key := fmt.Sprintf("/serviceinstances/%s/plan_id", c.meta.InstanceID)
+	_, err := c.etcdClient.Set(key, c.meta.PlanID, 0)
+	if err != nil {
+		c.logger.Error("cluster.write-state.error", err)
+		return err
+	}
+	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
+	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
+	fmt.Println("json: %s", c.meta.Json())
+	if err != nil {
+		c.logger.Error("cluster.write-state.error", err)
+		return err
+	}
+	return nil
+}
+
+// TODO write ClusterData to etcd
+func (c *Cluster) restoreState() error {
+	c.logger.Info("cluster.restore-state")
+	key := fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
+	resp, err := c.etcdClient.Get(key, false, false)
+	if err != nil {
+		c.logger.Error("restore-state.error", err)
+		return err
+	}
+	c.meta = *structs.ClusterDataFromJson(resp.Node.Value)
+	return nil
 }
