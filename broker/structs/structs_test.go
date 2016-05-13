@@ -1,40 +1,45 @@
 package structs
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 )
 
-var _ = Describe("ClusterData", func() {
-	It("Can can be Equal", func() {
-		data := &ClusterData{
-			InstanceID:       "instanceID",
-			OrganizationGUID: "OrganizationGUID",
-			PlanID:           "PlanID",
-			ServiceID:        "ServiceID",
-			SpaceGUID:        "SpaceGUID",
-			AdminCredentials: AdminCredentials{
-				Username: "pgadmin",
-				Password: "pw",
-			},
-		}
-		otherData := ClusterData{
-			InstanceID:       "instanceID",
-			OrganizationGUID: "OrganizationGUID",
-			PlanID:           "PlanID",
-			ServiceID:        "ServiceID",
-			SpaceGUID:        "SpaceGUID",
-			AdminCredentials: AdminCredentials{
-				Username: "pgadmin",
-				Password: "pw",
-			},
-		}
-		Ω(otherData.Equals(data)).To(Equal(true))
-		Ω(data.Equals(&otherData)).To(Equal(true))
+func TestClusterData_Equals(t *testing.T) {
+	data := &ClusterData{
+		InstanceID:       "instanceID",
+		OrganizationGUID: "OrganizationGUID",
+		PlanID:           "PlanID",
+		ServiceID:        "ServiceID",
+		SpaceGUID:        "SpaceGUID",
+		AdminCredentials: AdminCredentials{
+			Username: "pgadmin",
+			Password: "pw",
+		},
+	}
+	otherData := ClusterData{
+		InstanceID:       "instanceID",
+		OrganizationGUID: "OrganizationGUID",
+		PlanID:           "PlanID",
+		ServiceID:        "ServiceID",
+		SpaceGUID:        "SpaceGUID",
+		AdminCredentials: AdminCredentials{
+			Username: "pgadmin",
+			Password: "pw",
+		},
+	}
+	if otherData.Equals(data) != true {
+		t.Errorf("ClusterData %v should be equal to %v", otherData, data)
+	}
+	if data.Equals(&otherData) != true {
+		t.Errorf("ClusterData %v should be equal to %v", data, otherData)
+	}
 
-		otherData.InstanceID = "otherID"
+	otherData.InstanceID = "otherID"
 
-		Ω(otherData.Equals(data)).To(Equal(false))
-		Ω(data.Equals(&otherData)).To(Equal(false))
-	})
-})
+	if otherData.Equals(data) == true {
+		t.Errorf("ClusterData %v should not be equal to %v", otherData, data)
+	}
+	if data.Equals(&otherData) == true {
+		t.Errorf("ClusterData %v should not be equal to %v", data, otherData)
+	}
+}
