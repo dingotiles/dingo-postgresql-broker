@@ -14,6 +14,7 @@ type State interface {
 	ClusterExists(instanceID string) bool
 	InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error)
 	LoadCluster(instanceID string) (*Cluster, error)
+	DeleteCluster(cluster *Cluster) error
 }
 
 type etcdState struct {
@@ -63,4 +64,12 @@ func (s *etcdState) LoadCluster(instanceID string) (*Cluster, error) {
 		return nil, err
 	}
 	return cluster, nil
+}
+
+func (s *etcdState) DeleteCluster(cluster *Cluster) error {
+	if err := cluster.deleteState(); err != nil {
+		s.logger.Error("state.delete-cluster.error", err, lager.Data{"cluster": cluster.MetaData()})
+		return err
+	}
+	return nil
 }

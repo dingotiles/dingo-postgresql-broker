@@ -93,3 +93,35 @@ func (c *Cluster) restoreState() error {
 	c.meta = *structs.ClusterDataFromJson(resp.Node.Value)
 	return nil
 }
+
+func (c *Cluster) deleteState() error {
+	var lastError error
+	resp, err := c.etcdClient.Delete(fmt.Sprintf("/serviceinstances/%s", c.meta.InstanceID), true)
+	if err != nil {
+		c.logger.Error("cluster.delete-state.err", err, lager.Data{"etcd-response": resp})
+		lastError = err
+	}
+	resp, err = c.etcdClient.Delete(fmt.Sprintf("/routing/allocation/%s", c.meta.InstanceID), true)
+	if err != nil {
+		c.logger.Error("cluster.delete-allocation.err", err, lager.Data{"etcd-response": resp})
+		lastError = err
+	}
+
+	// clear out etcd data that would eventually timeout; to allow immediate recreation if required by user
+	resp, err = c.etcdClient.Delete(fmt.Sprintf("/service/%s/members", c.meta.InstanceID), true)
+	if err != nil {
+		c.logger.Error("cluster.delete-members.err", err, lager.Data{"etcd-response": resp})
+		lastError = err
+	}
+	resp, err = c.etcdClient.Delete(fmt.Sprintf("/service/%s/optime", c.meta.InstanceID), true)
+	if err != nil {
+		c.logger.Error("cluster.delete-optime.err", err, lager.Data{"etcd-response": resp})
+		lastError = err
+	}
+	resp, err = c.etcdClient.Delete(fmt.Sprintf("/service/%s/leader", c.meta.InstanceID), true)
+	if err != nil {
+		c.logger.Error("cluster.delete-leader.err", err, lager.Data{"etcd-response": resp})
+		lastError = err
+	}
+	return lastError
+}
