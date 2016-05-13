@@ -61,18 +61,13 @@ func NewClusterFromRestoredData(instanceID string, clusterdata *structs.ClusterD
 	return
 }
 
-// Load the cluster information from KV store
-func (cluster *Cluster) Load() error {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID)
-	resp, err := cluster.etcdClient.Get(key, false, true)
+func (c *Cluster) SetTargetNodeCount(count int) error {
+	c.meta.TargetNodeCount = count
+	err := c.writeState()
 	if err != nil {
-		cluster.logger.Error("load.etcd-get", err)
+		c.logger.Error("set-target-node-count.error", err)
 		return err
 	}
-	cluster.meta.TargetNodeCount = len(resp.Node.Nodes)
-	cluster.logger.Info("load.state", lager.Data{
-		"node-count": cluster.MetaData().TargetNodeCount,
-	})
 	return nil
 }
 
@@ -85,7 +80,27 @@ func (c *Cluster) writeState() error {
 		c.logger.Error("write-state.error", err)
 		return err
 	}
+	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
+	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
 	return err
+}
+
+// TODO write ClusterData to etcd
+func (c *Cluster) restoreState() error {
+	c.logger.Info("restore-state")
+	key := fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
+	_, err := c.etcdClient.Set(key, c.meta.PlanID, 0)
+	if err != nil {
+		c.logger.Error("restore-state.error", err)
+		return err
+	}
+	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
+	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
+	if err != nil {
+		c.logger.Error("restore-state.error", err)
+		return err
+	}
+	return nil
 }
 
 func (c *Cluster) PortAllocation() (int64, error) {

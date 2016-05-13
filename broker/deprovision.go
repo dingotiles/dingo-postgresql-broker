@@ -4,29 +4,20 @@ import (
 	"fmt"
 
 	"github.com/coreos/go-etcd/etcd"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
 // Deprovision service instance
 func (bkr *Broker) Deprovision(instanceID string, deprovDetails brokerapi.DeprovisionDetails, acceptsIncomplete bool) (async bool, err error) {
-	details := brokerapi.ProvisionDetails{
-		ServiceID: deprovDetails.ServiceID,
-		PlanID:    deprovDetails.PlanID,
-	}
-	if details.ServiceID == "" || details.PlanID == "" {
+	if deprovDetails.ServiceID == "" || deprovDetails.PlanID == "" {
 		return false, fmt.Errorf("API error - provide service_id and plan_id as URL parameters")
 	}
 
-	cluster := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.logger)
 	logger := bkr.logger
-	err = cluster.Load()
-	if err != nil {
-		logger.Error("load", err)
-		return false, err
-	}
+	cluster, err := bkr.state.LoadCluster(instanceID)
 
+	cluster.SetTargetNodeCount(0)
 	clusterRequest := bkr.scheduler.NewRequest(cluster)
 	bkr.scheduler.Execute(clusterRequest)
 

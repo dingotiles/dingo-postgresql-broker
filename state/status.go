@@ -26,7 +26,6 @@ func (cluster *Cluster) WaitForAllRunning() (err error) {
 		"cluster-status": status,
 		"error":          err,
 	})
-	cluster.Load()
 	return err
 }
 

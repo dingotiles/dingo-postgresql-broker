@@ -46,7 +46,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 	if targetNodeCount < 1 {
 		targetNodeCount = 1
 	}
-	clusterdata.TargetNodeCount = 0
+	clusterdata.TargetNodeCount = 2
 
 	cluster := state.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, logger)
 

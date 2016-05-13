@@ -55,21 +55,17 @@ func (s *etcdState) InitializeCluster(clusterData *structs.ClusterData) (*Cluste
 
 // TODO hanled errors
 func (s *etcdState) LoadCluster(instanceID string) (*Cluster, error) {
-	clusterData, _ := s.loadClusterData(instanceID)
-	return &Cluster{
+	cluster := &Cluster{
 		etcdClient: s.etcd,
 		logger: s.logger.Session("cluster", lager.Data{
-			"instance-id": clusterData.InstanceID,
-			"service-id":  clusterData.ServiceID,
-			"plan-id":     clusterData.PlanID,
+			"instance-id": instanceID,
 		}),
-		meta: *clusterData,
-	}, nil
-}
-
-// TODO load clusterData from ETCD
-func (s *etcdState) loadClusterData(instanceID string) (*structs.ClusterData, error) {
-	return &structs.ClusterData{
-		InstanceID: instanceID,
-	}, nil
+		meta: structs.ClusterData{InstanceID: instanceID},
+	}
+	err := cluster.restoreState()
+	if err != nil {
+		s.logger.Error("state.load-cluster.error", err)
+		return nil, err
+	}
+	return cluster, nil
 }

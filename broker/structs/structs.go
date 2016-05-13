@@ -1,6 +1,9 @@
 package structs
 
-import "reflect"
+import (
+	"encoding/json"
+	"reflect"
+)
 
 type AdminCredentials struct {
 	Username string `json:"username"`
@@ -28,4 +31,15 @@ type Node struct {
 
 func (data *ClusterData) Equals(other *ClusterData) bool {
 	return reflect.DeepEqual(*data, *other)
+}
+
+func (c *ClusterData) Json() string {
+	data, _ := json.Marshal(c)
+	return (string(data))
+}
+
+func ClusterDataFromJson(jsonString string) *ClusterData {
+	data := ClusterData{}
+	json.Unmarshal([]byte(jsonString), &data)
+	return &data
 }

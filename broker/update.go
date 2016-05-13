@@ -3,7 +3,6 @@ package broker
 import (
 	"fmt"
 
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 )
 
@@ -15,11 +14,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		Parameters: updateDetails.Parameters,
 	}
 
-	cluster := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.logger)
-	err = cluster.Load()
-	if err != nil {
-		return false, err
-	}
+	cluster, err := bkr.state.LoadCluster(instanceID)
 
 	var nodeCount int
 	if details.Parameters["node-count"] != nil {
@@ -31,6 +26,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	if nodeCount < 1 {
 		return false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
 	}
+	cluster.SetTargetNodeCount(nodeCount)
 	clusterRequest := bkr.scheduler.NewRequest(cluster)
 	bkr.scheduler.Execute(clusterRequest)
 	return false, nil
