@@ -12,17 +12,11 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
 	defer logger.Info("stop")
 
-	details := brokerapi.ProvisionDetails{
-		ServiceID:  updateDetails.ServiceID,
-		PlanID:     updateDetails.PlanID,
-		Parameters: updateDetails.Parameters,
-	}
-
 	cluster, err := bkr.state.LoadCluster(instanceID)
 
 	var nodeCount int
-	if details.Parameters["node-count"] != nil {
-		rawNodeCount := details.Parameters["node-count"]
+	if updateDetails.Parameters["node-count"] != nil {
+		rawNodeCount := updateDetails.Parameters["node-count"]
 		nodeCount = int(rawNodeCount.(float64))
 	} else {
 		nodeCount = int(cluster.MetaData().TargetNodeCount)
