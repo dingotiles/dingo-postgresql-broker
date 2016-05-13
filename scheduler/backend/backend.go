@@ -15,7 +15,7 @@ import (
 )
 
 type Backend struct {
-	Id               string
+	ID               string
 	URI              string
 	Config           *config.Backend
 	AvailabilityZone string
@@ -25,7 +25,7 @@ type Backends []*Backend
 
 func NewBackend(config *config.Backend) *Backend {
 	return &Backend{
-		Id:               config.GUID,
+		ID:               config.GUID,
 		Config:           config,
 		AvailabilityZone: config.AvailabilityZone,
 		URI:              config.URI,
@@ -45,18 +45,18 @@ func (b Backends) AllAvailabilityZones() []string {
 	return keys
 }
 
-func (b Backends) AvailabilityZone(backendId string) (string, error) {
+func (b Backends) AvailabilityZone(backendID string) (string, error) {
 	for _, backend := range b {
-		if backend.Id == backendId {
+		if backend.ID == backendID {
 			return backend.AvailabilityZone, nil
 		}
 	}
-	return "", errors.New(fmt.Sprintf("No backend with Id %s found", backendId))
+	return "", errors.New(fmt.Sprintf("No backend with ID %s found", backendID))
 }
 
-func (b Backends) Get(backendId string) *Backend {
+func (b Backends) Get(backendID string) *Backend {
 	for _, backend := range b {
-		if backend.Id == backendId {
+		if backend.ID == backendID {
 			return backend
 		}
 	}
@@ -64,7 +64,7 @@ func (b Backends) Get(backendId string) *Backend {
 }
 
 func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Logger) (node structs.Node, err error) {
-	node = structs.Node{Id: uuid.New(), BackendId: b.Id}
+	node = structs.Node{ID: uuid.New(), BackendID: b.ID}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterData.OrganizationGUID,
 		PlanID:           clusterData.PlanID,
@@ -72,13 +72,13 @@ func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Lo
 		SpaceGUID:        clusterData.SpaceGUID,
 		Parameters: map[string]interface{}{
 			"PATRONI_SCOPE":     clusterData.InstanceID,
-			"NODE_NAME":         node.Id,
+			"NODE_NAME":         node.ID,
 			"POSTGRES_USERNAME": clusterData.AdminCredentials.Username,
 			"POSTGRES_PASSWORD": clusterData.AdminCredentials.Password,
 		},
 	}
 
-	url := fmt.Sprintf("%s/v2/service_instances/%s", b.Config.URI, node.Id)
+	url := fmt.Sprintf("%s/v2/service_instances/%s", b.Config.URI, node.ID)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
@@ -110,13 +110,13 @@ func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Lo
 }
 
 func (b *Backend) DeprovisionNode(node *structs.Node, logger lager.Logger) (err error) {
-	url := fmt.Sprintf("%s/v2/service_instances/%s", b.URI, node.Id)
+	url := fmt.Sprintf("%s/v2/service_instances/%s", b.URI, node.ID)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
 	deleteDetails := brokerapi.DeprovisionDetails{
-		PlanID:    node.PlanId,
-		ServiceID: node.ServiceId,
+		PlanID:    node.PlanID,
+		ServiceID: node.ServiceID,
 	}
 
 	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {

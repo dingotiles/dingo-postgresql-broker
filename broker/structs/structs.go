@@ -20,10 +20,10 @@ type ClusterData struct {
 }
 
 type Node struct {
-	Id        string
-	BackendId string
-	PlanId    string
-	ServiceId string
+	ID        string
+	BackendID string
+	PlanID    string
+	ServiceID string
 }
 
 func (data *ClusterData) Equals(other *ClusterData) bool {

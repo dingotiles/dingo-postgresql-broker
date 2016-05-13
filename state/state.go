@@ -10,8 +10,8 @@ import (
 type State interface {
 
 	// ClusterExists returns true if cluster already exists
-	ClusterExists(clusterId string) bool
-	// InitializeCluster(clusterId string) Cluster
+	ClusterExists(clusterID string) bool
+	// InitializeCluster(clusterID string) Cluster
 }
 
 type etcdState struct {
@@ -26,11 +26,11 @@ func NewState(etcdClient backend.EtcdClient, logger lager.Logger) State {
 	}
 }
 
-func (s *etcdState) ClusterExists(instanceId string) bool {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", instanceId)
+func (s *etcdState) ClusterExists(instanceID string) bool {
+	key := fmt.Sprintf("/serviceinstances/%s/nodes", instanceID)
 	_, err := s.etcd.Get(key, false, true)
 	return err == nil
 }
 
-// func (s *etcdStater) InitializeCluster(instanceId, details brokerapi.ProvisionDetails) Cluster {
+// func (s *etcdStater) InitializeCluster(instanceID, details brokerapi.ProvisionDetails) Cluster {
 // }

@@ -35,7 +35,7 @@ func (step RemoveNode) Perform() (err error) {
 	nodes := step.cluster.Nodes()
 	nodeToRemove := randomReplicaNode(nodes)
 
-	backend := step.backends.Get(nodeToRemove.BackendId)
+	backend := step.backends.Get(nodeToRemove.BackendID)
 	if backend == nil {
 		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists")
 		logger.Error("remove-node.perform", err)
@@ -44,8 +44,8 @@ func (step RemoveNode) Perform() (err error) {
 
 	logger.Info("remove-node.perform", lager.Data{
 		"instance-id": step.cluster.MetaData().InstanceID,
-		"node-uuid":   nodeToRemove.Id,
-		"backend":     backend.Id,
+		"node-uuid":   nodeToRemove.ID,
+		"backend":     backend.ID,
 	})
 
 	err = backend.DeprovisionNode(nodeToRemove, logger)

@@ -10,14 +10,14 @@ import (
 
 func (cluster *Cluster) AddNode(node structs.Node) (err error) {
 	cluster.logger.Info("add-node", lager.Data{"node": node})
-	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.meta.InstanceID, node.Id)
-	_, err = cluster.etcdClient.Set(key, node.BackendId, 0)
+	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.meta.InstanceID, node.ID)
+	_, err = cluster.etcdClient.Set(key, node.BackendID, 0)
 	return
 }
 
 func (cluster *Cluster) RemoveNode(node *structs.Node) error {
 	cluster.logger.Info("remove-node", lager.Data{"node": node})
-	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", cluster.meta.InstanceID, node.Id)
+	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", cluster.meta.InstanceID, node.ID)
 	_, err := cluster.etcdClient.Delete(key, true)
 	return err
 }
@@ -37,12 +37,12 @@ func (cluster *Cluster) Nodes() (nodes []*structs.Node) {
 			cluster.logger.Error("az-used.backend", err)
 			return
 		}
-		nodeId := keyRegExp.FindStringSubmatch(nodeKey)[1]
+		nodeID := keyRegExp.FindStringSubmatch(nodeKey)[1]
 		nodes = append(nodes, &structs.Node{
-			Id:        nodeId,
-			BackendId: resp.Node.Value,
-			PlanId:    cluster.meta.PlanID,
-			ServiceId: cluster.meta.ServiceID,
+			ID:        nodeID,
+			BackendID: resp.Node.Value,
+			PlanID:    cluster.meta.PlanID,
+			ServiceID: cluster.meta.ServiceID,
 		})
 	}
 	return nodes

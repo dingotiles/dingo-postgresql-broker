@@ -42,10 +42,10 @@ func (step AddNode) Perform() (err error) {
 	var provisionedNode structs.Node
 	for _, backend := range sortedBackends {
 		provisionedNode, err = backend.ProvisionNode(step.cluster.MetaData(), step.logger)
-		// nodeId, err = step.requestNodeViaBackend(backend, provisionDetails)
+		// nodeID, err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
 			"uri":  backend.URI,
-			"guid": backend.Id,
+			"guid": backend.ID,
 			"az":   backend.AvailabilityZone,
 		}
 		if err == nil {
@@ -75,18 +75,18 @@ func (step AddNode) Perform() (err error) {
 }
 
 func prioritizeBackends(existingNodes []*structs.Node, backends backend.Backends) backend.Backends {
-	usedBackendIds := []string{}
+	usedBackendIDs := []string{}
 	for _, node := range existingNodes {
-		usedBackendIds = append(usedBackendIds, node.BackendId)
+		usedBackendIDs = append(usedBackendIDs, node.BackendID)
 	}
-	return sortedBackendsByUnusedAZs(usedBackendIds, backends)
+	return sortedBackendsByUnusedAZs(usedBackendIDs, backends)
 }
 
-func sortedBackendsByUnusedAZs(usedBackendIds []string, backends backend.Backends) backend.Backends {
-	usedBackends, unusedBackeds := usedAndUnusedBackends(usedBackendIds, backends)
+func sortedBackendsByUnusedAZs(usedBackendIDs []string, backends backend.Backends) backend.Backends {
+	usedBackends, unusedBackeds := usedAndUnusedBackends(usedBackendIDs, backends)
 	ret := backend.Backends{}
 
-	for _, az := range sortBackendAZsByUnusedness(usedBackendIds, backends).Keys {
+	for _, az := range sortBackendAZsByUnusedness(usedBackendIDs, backends).Keys {
 		for _, backend := range unusedBackeds {
 			if backend.AvailabilityZone == az {
 				ret = append(ret, backend)
@@ -102,13 +102,13 @@ func sortedBackendsByUnusedAZs(usedBackendIds []string, backends backend.Backend
 // backendAZsByUnusedness sorts the availability zones in order of whether this cluster is using them or not
 // An AZ that is not being used at all will be early in the result.
 // All known AZs are included in the result
-func sortBackendAZsByUnusedness(usedBackendIds []string, backends backend.Backends) (vs *utils.ValSorter) {
+func sortBackendAZsByUnusedness(usedBackendIDs []string, backends backend.Backends) (vs *utils.ValSorter) {
 	azUsageData := map[string]int{}
 	for _, az := range backends.AllAvailabilityZones() {
 		azUsageData[az] = 0
 	}
-	for _, backendId := range usedBackendIds {
-		if az, err := backends.AvailabilityZone(backendId); err != nil {
+	for _, backendID := range usedBackendIDs {
+		if az, err := backends.AvailabilityZone(backendID); err != nil {
 			azUsageData[az]++
 		}
 	}
@@ -119,11 +119,11 @@ func sortBackendAZsByUnusedness(usedBackendIds []string, backends backend.Backen
 	return
 }
 
-func usedAndUnusedBackends(usedBackendIds []string, backends backend.Backends) (usedBackends, unusuedBackends backend.Backends) {
+func usedAndUnusedBackends(usedBackendIDs []string, backends backend.Backends) (usedBackends, unusuedBackends backend.Backends) {
 	for _, backend := range backends {
 		used := false
-		for _, usedBackendId := range usedBackendIds {
-			if backend.Id == usedBackendId {
+		for _, usedBackendID := range usedBackendIDs {
+			if backend.ID == usedBackendID {
 				usedBackends = append(usedBackends, backend)
 				used = true
 				break
