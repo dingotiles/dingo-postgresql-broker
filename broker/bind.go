@@ -2,9 +2,7 @@ package broker
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 )
 
@@ -25,18 +23,12 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
-	cluster := state.NewClusterFromProvisionDetails(instanceID, brokerapi.ProvisionDetails{}, bkr.etcdClient, bkr.logger)
+	cluster, err := bkr.state.LoadCluster(instanceID)
 
-	key := fmt.Sprintf("/routing/allocation/%s", cluster.MetaData().InstanceID)
-	resp, err := bkr.etcdClient.Get(key, false, false)
+	publicPort, err := cluster.PortAllocation()
 	if err != nil {
-		bkr.logger.Error("bind.routing-allocation.get", err)
-		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: no published port for provisioned cluster")
-	}
-	publicPort, err := strconv.ParseInt(resp.Node.Value, 10, 64)
-	if err != nil {
-		bkr.logger.Error("bind.routing-allocation.parse-int", err)
-		return brokerapi.BindingResponse{}, fmt.Errorf("Internal error: published port is not an integer (%s)", resp.Node.Value)
+		bkr.logger.Error("bind.get-port", err)
+		return brokerapi.BindingResponse{}, fmt.Errorf("Could not determin the public port")
 	}
 
 	routerHost := bkr.config.Broker.BindHost

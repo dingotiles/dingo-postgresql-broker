@@ -11,8 +11,9 @@ import (
 type State interface {
 
 	// ClusterExists returns true if cluster already exists
-	ClusterExists(clusterID string) bool
+	ClusterExists(instanceID string) bool
 	InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error)
+	LoadCluster(instanceID string) (*Cluster, error)
 }
 
 type etcdState struct {
@@ -50,4 +51,25 @@ func (s *etcdState) InitializeCluster(clusterData *structs.ClusterData) (*Cluste
 	}
 
 	return cluster, nil
+}
+
+// TODO hanled errors
+func (s *etcdState) LoadCluster(instanceID string) (*Cluster, error) {
+	clusterData, _ := s.loadClusterData(instanceID)
+	return &Cluster{
+		etcdClient: s.etcd,
+		logger: s.logger.Session("cluster", lager.Data{
+			"instance-id": clusterData.InstanceID,
+			"service-id":  clusterData.ServiceID,
+			"plan-id":     clusterData.PlanID,
+		}),
+		meta: *clusterData,
+	}, nil
+}
+
+// TODO load clusterData from ETCD
+func (s *etcdState) loadClusterData(instanceID string) (*structs.ClusterData, error) {
+	return &structs.ClusterData{
+		InstanceID: instanceID,
+	}, nil
 }

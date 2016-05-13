@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
@@ -75,6 +76,7 @@ func (cluster *Cluster) Load() error {
 	return nil
 }
 
+// TODO write ClusterData to etcd
 func (c *Cluster) writeState() error {
 	c.logger.Info("write-state")
 	key := fmt.Sprintf("/serviceinstances/%s/plan_id", c.meta.InstanceID)
@@ -84,6 +86,21 @@ func (c *Cluster) writeState() error {
 		return err
 	}
 	return err
+}
+
+func (c *Cluster) PortAllocation() (int64, error) {
+	key := fmt.Sprintf("/routing/allocation/%s", c.meta.InstanceID)
+	resp, err := c.etcdClient.Get(key, false, false)
+	if err != nil {
+		c.logger.Error("routing-allocation.get", err)
+		return 0, err
+	}
+	publicPort, err := strconv.ParseInt(resp.Node.Value, 10, 64)
+	if err != nil {
+		c.logger.Error("bind.routing-allocation.parse-int", err)
+		return 0, err
+	}
+	return publicPort, nil
 }
 
 // WaitForRoutingPortAllocation blocks until the routing tier has allocated a public port
