@@ -26,7 +26,7 @@ func (c *Cluster) SetTargetNodeCount(count int) error {
 	c.meta.TargetNodeCount = count
 	err := c.writeState()
 	if err != nil {
-		c.logger.Error("set-target-node-count.error", err)
+		c.logger.Error("cluster.set-target-node-count.error", err)
 		return err
 	}
 	return nil
@@ -67,12 +67,12 @@ func (c *Cluster) PortAllocation() (int64, error) {
 	key := fmt.Sprintf("/routing/allocation/%s", c.meta.InstanceID)
 	resp, err := c.etcdClient.Get(key, false, false)
 	if err != nil {
-		c.logger.Error("routing-allocation.get", err)
+		c.logger.Error("cluster.routing-allocation.get", err)
 		return 0, err
 	}
 	publicPort, err := strconv.ParseInt(resp.Node.Value, 10, 64)
 	if err != nil {
-		c.logger.Error("bind.routing-allocation.parse-int", err)
+		c.logger.Error("cluster.routing-allocation.parse-int", err)
 		return 0, err
 	}
 	return publicPort, nil

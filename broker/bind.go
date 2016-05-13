@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/frodenas/brokerapi"
+	"github.com/pivotal-golang/lager"
 )
 
 // CredentialsHash represents the set of binding credentials returned
@@ -23,7 +24,13 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
+	bkr.logger.Info("bind", lager.Data{"instanceID": instanceID})
+
 	cluster, err := bkr.state.LoadCluster(instanceID)
+	if err != nil {
+		bkr.logger.Error("bind.load-cluster.error", err)
+		return brokerapi.BindingResponse{}, fmt.Errorf("Cloud not load cluster %s", instanceID)
+	}
 
 	publicPort, err := cluster.PortAllocation()
 	if err != nil {

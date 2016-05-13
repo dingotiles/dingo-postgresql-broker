@@ -37,12 +37,8 @@ func (s *etcdState) ClusterExists(instanceID string) bool {
 func (s *etcdState) InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error) {
 	cluster := &Cluster{
 		etcdClient: s.etcd,
-		logger: s.logger.Session("cluster", lager.Data{
-			"instance-id": clusterData.InstanceID,
-			"service-id":  clusterData.ServiceID,
-			"plan-id":     clusterData.PlanID,
-		}),
-		meta: *clusterData,
+		logger:     s.logger,
+		meta:       *clusterData,
 	}
 	err := cluster.writeState()
 	if err != nil {
@@ -53,7 +49,6 @@ func (s *etcdState) InitializeCluster(clusterData *structs.ClusterData) (*Cluste
 	return cluster, nil
 }
 
-// TODO hanled errors
 func (s *etcdState) LoadCluster(instanceID string) (*Cluster, error) {
 	cluster := &Cluster{
 		etcdClient: s.etcd,
