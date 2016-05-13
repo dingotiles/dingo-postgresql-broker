@@ -32,6 +32,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	clusterInstance, err := bkr.state.InitializeCluster(bkr.initClusterData(instanceID, details))
 	if err != nil {
 		logger.Error("provision.error", err)
+		return resp, false, fmt.Errorf("Could not provision service instance. Error: %v", err)
 	}
 	clusterRequest := bkr.scheduler.NewRequest(clusterInstance, clusterInstance.MetaData().TargetNodeCount)
 
