@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
@@ -60,7 +61,7 @@ func (step RemoveNode) Perform() (err error) {
 }
 
 // currently random any node, doesn't have to be a replica
-func randomReplicaNode(nodes []*state.Node) *state.Node {
+func randomReplicaNode(nodes []*structs.Node) *structs.Node {
 	n := rand.Intn(len(nodes))
 	return nodes[n]
 }

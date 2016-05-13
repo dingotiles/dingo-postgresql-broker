@@ -9,7 +9,6 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pborman/uuid"
 	"github.com/pivotal-golang/lager"
@@ -64,8 +63,8 @@ func (b Backends) Get(backendId string) *Backend {
 	return nil
 }
 
-func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Logger) (node state.Node, err error) {
-	node = state.Node{Id: uuid.New(), BackendId: b.Id}
+func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Logger) (node structs.Node, err error) {
+	node = structs.Node{Id: uuid.New(), BackendId: b.Id}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterData.OrganizationGUID,
 		PlanID:           clusterData.PlanID,
@@ -105,12 +104,12 @@ func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Lo
 	// FIXME: If resp.StatusCode not 200 or 201, then try next
 	if resp.StatusCode >= 400 {
 		// FIXME: allow return of this error to end user
-		return state.Node{}, errors.New("unknown plan")
+		return structs.Node{}, errors.New("unknown plan")
 	}
 	return
 }
 
-func (b *Backend) DeprovisionNode(node *state.Node, logger lager.Logger) (err error) {
+func (b *Backend) DeprovisionNode(node *structs.Node, logger lager.Logger) (err error) {
 	url := fmt.Sprintf("%s/v2/service_instances/%s", b.URI, node.Id)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}

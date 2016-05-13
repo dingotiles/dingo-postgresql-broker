@@ -19,6 +19,13 @@ type ClusterData struct {
 	AllocatedPort    string           `json:"allocated_port"`
 }
 
+type Node struct {
+	Id        string
+	BackendId string
+	PlanId    string
+	ServiceId string
+}
+
 func (data *ClusterData) Equals(other *ClusterData) bool {
 	return reflect.DeepEqual(*data, *other)
 }

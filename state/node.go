@@ -4,24 +4,18 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/pivotal-golang/lager"
 )
 
-type Node struct {
-	Id        string
-	BackendId string
-	PlanId    string
-	ServiceId string
-}
-
-func (cluster *Cluster) AddNode(node Node) (err error) {
+func (cluster *Cluster) AddNode(node structs.Node) (err error) {
 	cluster.logger.Info("add-node", lager.Data{"node": node})
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s/backend", cluster.meta.InstanceID, node.Id)
 	_, err = cluster.etcdClient.Set(key, node.BackendId, 0)
 	return
 }
 
-func (cluster *Cluster) RemoveNode(node *Node) error {
+func (cluster *Cluster) RemoveNode(node *structs.Node) error {
 	cluster.logger.Info("remove-node", lager.Data{"node": node})
 	key := fmt.Sprintf("/serviceinstances/%s/nodes/%s", cluster.meta.InstanceID, node.Id)
 	_, err := cluster.etcdClient.Delete(key, true)
@@ -29,7 +23,7 @@ func (cluster *Cluster) RemoveNode(node *Node) error {
 }
 
 // if any errors, assume that cluster has no running nodes yet
-func (cluster *Cluster) Nodes() (nodes []*Node) {
+func (cluster *Cluster) Nodes() (nodes []*structs.Node) {
 	resp, err := cluster.etcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID), false, false)
 	if err != nil {
 		return
@@ -44,7 +38,7 @@ func (cluster *Cluster) Nodes() (nodes []*Node) {
 			return
 		}
 		nodeId := keyRegExp.FindStringSubmatch(nodeKey)[1]
-		nodes = append(nodes, &Node{
+		nodes = append(nodes, &structs.Node{
 			Id:        nodeId,
 			BackendId: resp.Node.Value,
 			PlanId:    cluster.meta.PlanID,

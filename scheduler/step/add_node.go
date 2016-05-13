@@ -3,6 +3,7 @@ package step
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
@@ -38,7 +39,7 @@ func (step AddNode) Perform() (err error) {
 	})
 
 	// 4. Send requests to sortedBackends until one says OK; else fail
-	var provisionedNode state.Node
+	var provisionedNode structs.Node
 	for _, backend := range sortedBackends {
 		provisionedNode, err = backend.ProvisionNode(step.cluster.MetaData(), step.logger)
 		// nodeId, err = step.requestNodeViaBackend(backend, provisionDetails)
@@ -73,7 +74,7 @@ func (step AddNode) Perform() (err error) {
 	return err
 }
 
-func prioritizeBackends(existingNodes []*state.Node, backends backend.Backends) backend.Backends {
+func prioritizeBackends(existingNodes []*structs.Node, backends backend.Backends) backend.Backends {
 	usedBackendIds := []string{}
 	for _, node := range existingNodes {
 		usedBackendIds = append(usedBackendIds, node.BackendId)
