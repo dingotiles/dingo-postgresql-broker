@@ -14,7 +14,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 
 	if err := bkr.assertUpdatePrecondition(instanceID); err != nil {
 		logger.Error("preconditions.error", err)
-		return brokerapi.BindingResponse{}, err
+		return false, err
 	}
 
 	cluster, err := bkr.state.LoadCluster(instanceID)
