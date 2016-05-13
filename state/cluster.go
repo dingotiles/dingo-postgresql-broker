@@ -75,7 +75,6 @@ func (c *Cluster) writeState() error {
 	}
 	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
 	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
-	fmt.Println("json: %s", c.meta.Json())
 	if err != nil {
 		c.logger.Error("cluster.write-state.error", err)
 		return err
@@ -83,7 +82,6 @@ func (c *Cluster) writeState() error {
 	return nil
 }
 
-// TODO write ClusterData to etcd
 func (c *Cluster) restoreState() error {
 	c.logger.Info("cluster.restore-state")
 	key := fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
