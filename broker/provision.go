@@ -34,7 +34,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		logger.Error("provision.error", err)
 		return resp, false, fmt.Errorf("Could not provision service instance. Error: %v", err)
 	}
-	clusterRequest := bkr.scheduler.NewRequest(clusterInstance, clusterInstance.MetaData().TargetNodeCount)
+	clusterRequest := bkr.scheduler.NewRequest(clusterInstance)
 
 	go func() {
 		err = bkr.scheduler.Execute(clusterRequest)

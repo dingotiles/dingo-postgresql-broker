@@ -50,7 +50,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 
 	cluster := state.NewClusterFromRestoredData(instanceID, clusterdata, bkr.etcdClient, logger)
 
-	clusterRequest := bkr.scheduler.NewRequest(cluster, targetNodeCount)
+	clusterRequest := bkr.scheduler.NewRequest(cluster)
 	err = bkr.scheduler.Execute(clusterRequest)
 	if err != nil {
 		logger.Error("provision.perform.error", err)
