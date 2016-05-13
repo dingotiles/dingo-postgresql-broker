@@ -12,6 +12,11 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
+	if err := bkr.assertUpdatePrecondition(instanceID); err != nil {
+		logger.Error("preconditions.error", err)
+		return brokerapi.BindingResponse{}, err
+	}
+
 	cluster, err := bkr.state.LoadCluster(instanceID)
 
 	var nodeCount int
@@ -28,4 +33,11 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	clusterRequest := bkr.scheduler.NewRequest(cluster)
 	bkr.scheduler.Execute(clusterRequest)
 	return false, nil
+}
+
+func (bkr *Broker) assertUpdatePrecondition(instanceID string) error {
+	if bkr.state.ClusterExists(instanceID) == false {
+		return fmt.Errorf("Service instance %s doesn't exist", instanceID)
+	}
+	return nil
 }
