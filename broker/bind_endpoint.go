@@ -24,18 +24,23 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
-	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("bind", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
+
+	if err := bkr.assertBindPrecondition(instanceID); err != nil {
+		logger.Error("preconditions.error", err)
+		return brokerapi.BindingResponse{}, err
+	}
 
 	cluster, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
-		bkr.logger.Error("bind.load-cluster.error", err)
+		bkr.logger.Error("load-cluster.error", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Cloud not load cluster %s", instanceID)
 	}
 
 	publicPort, err := cluster.PortAllocation()
 	if err != nil {
-		bkr.logger.Error("bind.get-port", err)
+		bkr.logger.Error("get-port.error", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Could not determin the public port")
 	}
 
@@ -62,4 +67,11 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 			// SuperuserJDBCURI:  superuserJDBCURI,
 		},
 	}, nil
+}
+
+func (bkr *Broker) assertBindPrecondition(instanceID string) error {
+	if bkr.state.ClusterExists(instanceID) == false {
+		return fmt.Errorf("Service instance %s doesn't exist", instanceID)
+	}
+	return nil
 }
