@@ -12,7 +12,7 @@ import (
 // CLEANUP: can remove code in future.
 func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperationResponse, err error) {
 	logger := bkr.newLoggingSession("last-opration", lager.Data{"instanceID": instanceID})
-	defer logger.Info("stop")
+	defer logger.Info("done")
 
 	cluster, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {

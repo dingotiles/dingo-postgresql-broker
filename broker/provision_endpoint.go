@@ -18,7 +18,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	}
 
 	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
-	defer logger.Info("stop")
+	defer logger.Info("done")
 
 	if err = bkr.assertProvisionPrecondition(instanceID, details); err != nil {
 		logger.Error("preconditions.error", err)

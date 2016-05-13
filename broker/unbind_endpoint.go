@@ -8,6 +8,6 @@ import (
 // Unbind to remove access to service instance
 func (bkr *Broker) Unbind(instanceID string, bindingID string, details brokerapi.UnbindDetails) error {
 	logger := bkr.newLoggingSession("unbind", lager.Data{"instanceID": instanceID})
-	defer logger.Info("stop")
+	defer logger.Info("done")
 	return nil
 }

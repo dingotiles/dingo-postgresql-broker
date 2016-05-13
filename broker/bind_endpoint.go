@@ -25,7 +25,7 @@ type CredentialsHash struct {
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
-	defer logger.Info("stop")
+	defer logger.Info("done")
 
 	cluster, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {

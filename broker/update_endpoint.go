@@ -10,7 +10,7 @@ import (
 // Update service instance
 func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetails, acceptsIncomplete bool) (async bool, err error) {
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
-	defer logger.Info("stop")
+	defer logger.Info("done")
 
 	cluster, err := bkr.state.LoadCluster(instanceID)
 
