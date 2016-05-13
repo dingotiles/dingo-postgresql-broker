@@ -18,7 +18,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	}
 
 	logger := bkr.logger
-	logger.Info("provision.start", lager.Data{})
+	logger.Info("provision.start")
 
 	if bkr.state.ClusterExists(instanceID) {
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
