@@ -11,11 +11,9 @@ import (
 
 // Provision a new service instance
 func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
-	logger := bkr.logger.Session("recreate", lager.Data{
-		"instance-id": instanceID,
-	})
+	logger := bkr.newLoggingSession("recreate", lager.Data{})
+	defer logger.Info("stop")
 
-	logger.Info("start", lager.Data{})
 	var clusterdata *structs.ClusterData
 	err, clusterdata = state.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
 	if err != nil {

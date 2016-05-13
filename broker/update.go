@@ -4,10 +4,14 @@ import (
 	"fmt"
 
 	"github.com/frodenas/brokerapi"
+	"github.com/pivotal-golang/lager"
 )
 
 // Update service instance
 func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetails, acceptsIncomplete bool) (async bool, err error) {
+	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
+	defer logger.Info("stop")
+
 	details := brokerapi.ProvisionDetails{
 		ServiceID:  updateDetails.ServiceID,
 		PlanID:     updateDetails.PlanID,

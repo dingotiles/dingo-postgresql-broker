@@ -17,8 +17,8 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return bkr.Recreate(instanceID, acceptsIncomplete)
 	}
 
-	logger := bkr.logger
-	logger.Info("provision.start")
+	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
+	defer logger.Info("stop")
 
 	if bkr.state.ClusterExists(instanceID) {
 		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)

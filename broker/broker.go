@@ -57,3 +57,9 @@ func (bkr *Broker) setupLogger() lager.Logger {
 	logger.RegisterSink(lager.NewWriterSink(os.Stderr, lager.ERROR))
 	return logger
 }
+
+func (bkr *Broker) newLoggingSession(action string, data lager.Data) lager.Logger {
+	logger := bkr.logger.Session(action, data)
+	logger.Info("start")
+	return logger
+}
