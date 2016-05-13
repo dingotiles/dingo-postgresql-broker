@@ -9,10 +9,10 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+const defaultNodeCount = 2
+
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
-	clusterInstance := state.NewClusterFromProvisionDetails(instanceID, details, bkr.etcdClient, bkr.logger)
-
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, acceptsIncomplete)
 	}
@@ -29,17 +29,11 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
 	}
 
-	// 2-node default cluster
-	nodeCount := 2
-	if details.Parameters["node-count"] != nil {
-		rawNodeCount := details.Parameters["node-count"]
-		nodeCount = int(rawNodeCount.(float64))
+	clusterInstance, err := bkr.state.InitializeCluster(bkr.initClusterData(instanceID, details))
+	if err != nil {
+		logger.Error("provision.error", err)
 	}
-	if nodeCount < 1 {
-		logger.Info("provision.start.node-count-too-low", lager.Data{"node-count": nodeCount})
-		nodeCount = 1
-	}
-	clusterRequest := bkr.scheduler.NewRequest(clusterInstance, int(nodeCount))
+	clusterRequest := bkr.scheduler.NewRequest(clusterInstance, clusterInstance.MetaData().TargetNodeCount)
 
 	go func() {
 		err = bkr.scheduler.Execute(clusterRequest)
@@ -77,4 +71,23 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		}
 	}()
 	return resp, true, err
+}
+
+func (bkr *Broker) initClusterData(instanceID string, details brokerapi.ProvisionDetails) *structs.ClusterData {
+	targetNodeCount := defaultNodeCount
+	if rawNodeCount := details.Parameters["node-count"]; rawNodeCount != nil {
+		targetNodeCount = int(rawNodeCount.(float64))
+	}
+	return &structs.ClusterData{
+		InstanceID:       instanceID,
+		OrganizationGUID: details.OrganizationGUID,
+		PlanID:           details.PlanID,
+		ServiceID:        details.ServiceID,
+		SpaceGUID:        details.SpaceGUID,
+		TargetNodeCount:  targetNodeCount,
+		AdminCredentials: structs.AdminCredentials{
+			Username: "pgadmin",
+			Password: NewPassword(16),
+		},
+	}
 }

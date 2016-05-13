@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -11,7 +12,7 @@ type State interface {
 
 	// ClusterExists returns true if cluster already exists
 	ClusterExists(clusterID string) bool
-	// InitializeCluster(clusterID string) Cluster
+	InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error)
 }
 
 type etcdState struct {
@@ -32,5 +33,21 @@ func (s *etcdState) ClusterExists(instanceID string) bool {
 	return err == nil
 }
 
-// func (s *etcdStater) InitializeCluster(instanceID, details brokerapi.ProvisionDetails) Cluster {
-// }
+func (s *etcdState) InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error) {
+	cluster := &Cluster{
+		etcdClient: s.etcd,
+		logger: s.logger.Session("cluster", lager.Data{
+			"instance-id": clusterData.InstanceID,
+			"service-id":  clusterData.ServiceID,
+			"plan-id":     clusterData.PlanID,
+		}),
+		meta: *clusterData,
+	}
+	err := cluster.writeState()
+	if err != nil {
+		s.logger.Error("state.initialize-cluster.error", err)
+		return nil, err
+	}
+
+	return cluster, nil
+}

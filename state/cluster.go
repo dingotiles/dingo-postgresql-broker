@@ -31,10 +31,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 			PlanID:           details.PlanID,
 			ServiceID:        details.ServiceID,
 			SpaceGUID:        details.SpaceGUID,
-			AdminCredentials: structs.AdminCredentials{
-				Username: "pgadmin",
-				Password: NewPassword(16),
-			},
+			AdminCredentials: structs.AdminCredentials{},
 		},
 	}
 	if logger != nil {
@@ -81,6 +78,17 @@ func (cluster *Cluster) Load() error {
 func (cluster *Cluster) Init() error {
 	key := fmt.Sprintf("/serviceinstances/%s/plan_id", cluster.MetaData().InstanceID)
 	_, err := cluster.etcdClient.Set(key, cluster.MetaData().PlanID, 0)
+	return err
+}
+
+func (c *Cluster) writeState() error {
+	c.logger.Info("write-state")
+	key := fmt.Sprintf("/serviceinstances/%s/plan_id", c.meta.InstanceID)
+	_, err := c.etcdClient.Set(key, c.meta.PlanID, 0)
+	if err != nil {
+		c.logger.Error("write-state.error", err)
+		return err
+	}
 	return err
 }
 
