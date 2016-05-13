@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
@@ -63,7 +64,7 @@ func (b Backends) Get(backendId string) *Backend {
 	return nil
 }
 
-func (b *Backend) ProvisionNode(clusterData state.ClusterData, logger lager.Logger) (node state.Node, err error) {
+func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Logger) (node state.Node, err error) {
 	node = state.Node{Id: uuid.New(), BackendId: b.Id}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterData.OrganizationGUID,

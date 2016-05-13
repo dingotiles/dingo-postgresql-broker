@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -13,10 +14,10 @@ import (
 type Cluster struct {
 	etcdClient backend.EtcdClient
 	logger     lager.Logger
-	meta       ClusterData
+	meta       structs.ClusterData
 }
 
-func (c *Cluster) MetaData() ClusterData {
+func (c *Cluster) MetaData() structs.ClusterData {
 	return c.meta
 }
 
@@ -24,13 +25,13 @@ func (c *Cluster) MetaData() ClusterData {
 func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
-		meta: ClusterData{
+		meta: structs.ClusterData{
 			InstanceID:       instanceID,
 			OrganizationGUID: details.OrganizationGUID,
 			PlanID:           details.PlanID,
 			ServiceID:        details.ServiceID,
 			SpaceGUID:        details.SpaceGUID,
-			AdminCredentials: AdminCredentials{
+			AdminCredentials: structs.AdminCredentials{
 				Username: "pgadmin",
 				Password: NewPassword(16),
 			},
@@ -47,7 +48,7 @@ func NewClusterFromProvisionDetails(instanceID string, details brokerapi.Provisi
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromRestoredData(instanceID string, clusterdata *ClusterData, etcdClient backend.EtcdClient, logger lager.Logger) (cluster *Cluster) {
+func NewClusterFromRestoredData(instanceID string, clusterdata *structs.ClusterData, etcdClient backend.EtcdClient, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
 		meta:       *clusterdata,

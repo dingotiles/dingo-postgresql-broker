@@ -7,34 +7,14 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"reflect"
 	"sync"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
 )
 
-type AdminCredentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-// ClusterData describes the current request for the state of the cluster
-type ClusterData struct {
-	InstanceID       string           `json:"instance_id"`
-	ServiceID        string           `json:"service_id"`
-	PlanID           string           `json:"plan_id"`
-	OrganizationGUID string           `json:"organization_guid"`
-	SpaceGUID        string           `json:"space_guid"`
-	AdminCredentials AdminCredentials `json:"admin_credentials"`
-	TargetNodeCount  int              `json:"node_count"`
-	AllocatedPort    string           `json:"allocated_port"`
-}
-
-func (data *ClusterData) Equals(other *ClusterData) bool {
-	return reflect.DeepEqual(*data, *other)
-}
-func TriggerClusterDataBackup(clusterData ClusterData, callbacks config.Callbacks, logger lager.Logger) {
+func TriggerClusterDataBackup(clusterData structs.ClusterData, callbacks config.Callbacks, logger lager.Logger) {
 	callback := callbacks.ClusterDataBackup
 	if callback == nil {
 		logger.Info("clusterdata.backup.noop")
@@ -92,7 +72,7 @@ func TriggerClusterDataBackup(clusterData ClusterData, callbacks config.Callback
 	logger.Info("clusterdata.backup.done")
 }
 
-func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, logger lager.Logger) (err error, clusterdata *ClusterData) {
+func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, logger lager.Logger) (err error, clusterdata *structs.ClusterData) {
 	callback := callbacks.ClusterDataRestore
 	if callback == nil {
 		err = fmt.Errorf("Broker not configured to support service recreation")
@@ -130,7 +110,7 @@ func RestoreClusterDataBackup(instanceID string, callbacks config.Callbacks, log
 	}()
 	go func() {
 		defer wg.Done()
-		clusterdata = &ClusterData{}
+		clusterdata = &structs.ClusterData{}
 		if err := json.NewDecoder(stdout).Decode(&clusterdata); err != nil {
 			logger.Error("clusterdata.restore.marshal-error", err)
 			return

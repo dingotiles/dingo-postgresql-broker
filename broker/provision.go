@@ -3,6 +3,7 @@ package broker
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -58,7 +59,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 			if bkr.config.SupportsClusterDataBackup() {
 				state.TriggerClusterDataBackup(clusterInstance.MetaData(), bkr.config.Callbacks, logger)
-				var restoredData *state.ClusterData
+				var restoredData *structs.ClusterData
 				err, restoredData = state.RestoreClusterDataBackup(clusterInstance.MetaData().InstanceID, bkr.config.Callbacks, logger)
 				metaData := clusterInstance.MetaData()
 				if err != nil || !restoredData.Equals(&metaData) {
