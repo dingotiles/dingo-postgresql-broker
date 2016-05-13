@@ -19,7 +19,7 @@ func (bkr *Broker) Deprovision(instanceID string, details brokerapi.DeprovisionD
 
 	cluster, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
-		logger.Error("load-cluster", err)
+		logger.Error("load-cluster.error", err)
 		return false, err
 	}
 
