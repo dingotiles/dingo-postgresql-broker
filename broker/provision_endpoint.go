@@ -20,13 +20,9 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
 	defer logger.Info("stop")
 
-	if bkr.state.ClusterExists(instanceID) {
-		return resp, false, fmt.Errorf("service instance %s already exists", instanceID)
-	}
-
-	canProvision := bkr.licenseCheck.CanProvision(details.ServiceID, details.PlanID)
-	if !canProvision {
-		return resp, false, fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
+	if err = bkr.assertProvisionPrecondition(instanceID, details); err != nil {
+		logger.Error("preconditions.error", err)
+		return resp, false, err
 	}
 
 	clusterInstance, err := bkr.state.InitializeCluster(bkr.initClusterData(instanceID, details))
@@ -91,4 +87,17 @@ func (bkr *Broker) initClusterData(instanceID string, details brokerapi.Provisio
 			Password: NewPassword(16),
 		},
 	}
+}
+
+func (bkr *Broker) assertProvisionPrecondition(instanceID string, details brokerapi.ProvisionDetails) error {
+	if bkr.state.ClusterExists(instanceID) {
+		return fmt.Errorf("service instance %s already exists", instanceID)
+	}
+
+	canProvision := bkr.licenseCheck.CanProvision(details.ServiceID, details.PlanID)
+	if !canProvision {
+		return fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
+	}
+
+	return nil
 }
