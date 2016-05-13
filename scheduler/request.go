@@ -54,7 +54,6 @@ func (req Request) steps() []step.Step {
 		!req.isScalingIn() && !req.isScalingOut() {
 		return steps
 	} else if req.isInitialProvision() {
-		steps = append(steps, step.NewStepInitCluster(req.cluster, req.logger))
 		for i := existingNodeCount; i < req.newNodeCount; i++ {
 			steps = append(steps, step.NewStepAddNode(req.cluster, req.backends, req.logger))
 		}

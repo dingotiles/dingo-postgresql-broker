@@ -75,12 +75,6 @@ func (cluster *Cluster) Load() error {
 	return nil
 }
 
-func (cluster *Cluster) Init() error {
-	key := fmt.Sprintf("/serviceinstances/%s/plan_id", cluster.MetaData().InstanceID)
-	_, err := cluster.etcdClient.Set(key, cluster.MetaData().PlanID, 0)
-	return err
-}
-
 func (c *Cluster) writeState() error {
 	c.logger.Info("write-state")
 	key := fmt.Sprintf("/serviceinstances/%s/plan_id", c.meta.InstanceID)
