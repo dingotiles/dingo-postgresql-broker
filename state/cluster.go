@@ -7,7 +7,6 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -20,22 +19,6 @@ type Cluster struct {
 
 func (c *Cluster) MetaData() structs.ClusterData {
 	return c.meta
-}
-
-// NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromRestoredData(instanceID string, clusterdata *structs.ClusterData, etcdClient backend.EtcdClient, logger lager.Logger) (cluster *Cluster) {
-	cluster = &Cluster{
-		etcdClient: etcdClient,
-		meta:       *clusterdata,
-	}
-	if logger != nil {
-		cluster.logger = logger.Session("cluster", lager.Data{
-			"instance-id": clusterdata.InstanceID,
-			"service-id":  clusterdata.ServiceID,
-			"plan-id":     clusterdata.PlanID,
-		})
-	}
-	return
 }
 
 func (c *Cluster) SetTargetNodeCount(count int) error {

@@ -46,12 +46,16 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		clusterdata.TargetNodeCount = 2
 	}
 
-	cluster := brk.state.InitializeCluster(clusterData)
+	cluster, err := bkr.state.InitializeCluster(clusterdata)
+	if err != nil {
+		logger.Error("recreate.initialize.error", err)
+		return resp, false, err
+	}
 
 	clusterRequest := bkr.scheduler.NewRequest(cluster)
 	err = bkr.scheduler.Execute(clusterRequest)
 	if err != nil {
-		logger.Error("provision.perform.error", err)
+		logger.Error("recreate.execute.error", err)
 		return resp, false, err
 	}
 
