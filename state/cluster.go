@@ -23,29 +23,6 @@ func (c *Cluster) MetaData() structs.ClusterData {
 }
 
 // NewCluster creates a RealCluster from ProvisionDetails
-func NewClusterFromProvisionDetails(instanceID string, details brokerapi.ProvisionDetails, etcdClient backend.EtcdClient, logger lager.Logger) (cluster *Cluster) {
-	cluster = &Cluster{
-		etcdClient: etcdClient,
-		meta: structs.ClusterData{
-			InstanceID:       instanceID,
-			OrganizationGUID: details.OrganizationGUID,
-			PlanID:           details.PlanID,
-			ServiceID:        details.ServiceID,
-			SpaceGUID:        details.SpaceGUID,
-			AdminCredentials: structs.AdminCredentials{},
-		},
-	}
-	if logger != nil {
-		cluster.logger = logger.Session("cluster", lager.Data{
-			"instance-id": cluster.MetaData().InstanceID,
-			"service-id":  cluster.MetaData().ServiceID,
-			"plan-id":     cluster.MetaData().PlanID,
-		})
-	}
-	return
-}
-
-// NewCluster creates a RealCluster from ProvisionDetails
 func NewClusterFromRestoredData(instanceID string, clusterdata *structs.ClusterData, etcdClient backend.EtcdClient, logger lager.Logger) (cluster *Cluster) {
 	cluster = &Cluster{
 		etcdClient: etcdClient,
