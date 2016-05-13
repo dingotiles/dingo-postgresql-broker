@@ -62,6 +62,7 @@ func NewClusterFromRestoredData(instanceID string, clusterdata *structs.ClusterD
 }
 
 func (c *Cluster) SetTargetNodeCount(count int) error {
+	c.restoreState()
 	c.meta.TargetNodeCount = count
 	err := c.writeState()
 	if err != nil {
@@ -89,17 +90,12 @@ func (c *Cluster) writeState() error {
 func (c *Cluster) restoreState() error {
 	c.logger.Info("restore-state")
 	key := fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
-	_, err := c.etcdClient.Set(key, c.meta.PlanID, 0)
+	resp, err := c.etcdClient.Get(key, false, false)
 	if err != nil {
 		c.logger.Error("restore-state.error", err)
 		return err
 	}
-	key = fmt.Sprintf("/serviceinstances/%s/meta", c.meta.InstanceID)
-	_, err = c.etcdClient.Set(key, c.meta.Json(), 0)
-	if err != nil {
-		c.logger.Error("restore-state.error", err)
-		return err
-	}
+	c.meta = ClusterDataFromJson(resp.Node.Value)
 	return nil
 }
 
