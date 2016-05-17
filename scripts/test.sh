@@ -6,7 +6,7 @@ if [[ ! -x "$(command -v etcd)" ]]; then
 fi
 
 # Create a temp dir and clean it up on exit
-TEMPDIR=`mktemp -d -t broker-test.etcd`
+TEMPDIR=`mktemp -d -t broker-test.XXX`
 trap "rm -rf $TEMPDIR" EXIT HUP INT QUIT TERM
 
 etcd --data-dir ${TEMPDIR} > /dev/null 2>&1 &
