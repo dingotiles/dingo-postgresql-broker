@@ -9,4 +9,4 @@ inputs:
 - name: broker-ci
 
 run:
-  path: broker-ci/tasks/run-tests.sh
+  path: broker-ci/ci/tasks/run-tests.sh
