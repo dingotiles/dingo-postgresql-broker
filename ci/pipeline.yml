@@ -12,7 +12,7 @@ jobs:
     - {get: pipeline-ci-image, trigger: true}
     - put: docker-image-ci
       params:
-        build: boshrelease-ci-task/ci/ci_image
+        build: pipeline-ci-image/ci/ci_image
 
 resources:
 - name: pipeline-ci-image
