@@ -6,6 +6,7 @@ image_resource:
 
 inputs:
 - name: broker
+  path: broker/src/github.com/dingotiles/dingo-postgresql-broker
 - name: broker-ci
 
 run:
