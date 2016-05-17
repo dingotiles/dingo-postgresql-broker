@@ -1,7 +1,7 @@
 ---
 groups:
-# - name: dingo-postgresql-broker
-#   jobs: [unit-test]
+- name: dingo-postgresql-broker
+  jobs: [test]
 - name: ci-image
   jobs: [build-task-image]
 
@@ -13,6 +13,14 @@ jobs:
     - put: docker-image-ci
       params:
         build: pipeline-ci-image/ci/ci_image
+- name: test
+  plan:
+  - aggregate:
+    - {get: broker, trigger: true}
+    - get: broker-ci
+  - task: tests
+    file: broker-ci/ci/tasks/tests.yml
+
 
 resources:
 - name: pipeline-ci-image
@@ -30,3 +38,17 @@ resources:
     username: {{docker-hub-username}}
     password: {{docker-hub-password}}
     repository: dingotiles/dingo-postgresql-broker-pipeline
+
+- name: broker-ci
+  type: git
+  source:
+    uri: git@github.com:dingotiles/dingo-postgresql-broker.git
+    branch: {{pipeline-branch}}
+    private_key: {{github-private-key}}
+
+- name: broker
+  type: git
+  source:
+    uri: git@github.com:dingotiles/dingo-postgresql-broker.git
+    branch: {{pipeline-branch}}
+    private_key: {{github-private-key}}
