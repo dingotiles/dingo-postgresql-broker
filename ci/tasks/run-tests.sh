@@ -3,4 +3,4 @@
 set -e
 
 cd broker
-scripts/tests.sh
+scripts/test.sh
