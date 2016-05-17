@@ -18,8 +18,8 @@ jobs:
   - aggregate:
     - {get: broker, trigger: true}
     - get: broker-ci
-  - task: tests
-    file: broker-ci/ci/tasks/tests.yml
+  - task: run-tests
+    file: broker-ci/ci/tasks/run-tests.yml
 
 
 resources:
