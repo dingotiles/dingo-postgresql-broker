@@ -1,0 +1,32 @@
+---
+groups:
+# - name: dingo-postgresql-broker
+#   jobs: [unit-test]
+- name: ci-image
+  jobs: [build-task-image]
+
+jobs:
+- name: build-task-image
+  serial: true
+  plan:
+    - {get: pipeline-ci-image, trigger: true}
+    - put: docker-image-ci
+      params:
+        build: boshrelease-ci-task/ci/ci_image
+
+resources:
+- name: pipeline-ci-image
+  type: git
+  source:
+    uri: git@github.com:dingotiles/dingo-postgresql-broker.git
+    branch: {{pipeline-branch}}
+    private_key: {{github-private-key}}
+    paths: [ci/ci_image/*]
+
+- name: docker-image-ci
+  type: docker-image
+  source:
+    email: {{docker-hub-email}}
+    username: {{docker-hub-username}}
+    password: {{docker-hub-password}}
+    repository: dingotiles/dingo-postgresql-broker-pipeline
