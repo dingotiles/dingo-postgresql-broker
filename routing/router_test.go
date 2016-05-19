@@ -8,7 +8,6 @@ import (
 
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/testutil"
-	"github.com/pivotal-golang/lager"
 )
 
 func resetEtcd(t *testing.T, prefix string) {
@@ -33,26 +32,14 @@ func resetEtcd(t *testing.T, prefix string) {
 	return
 }
 
-type logAdapter struct {
-	t *testing.T
-}
-
-func (l logAdapter) Log(level lager.LogLevel, msg []byte) {
-	l.t.Logf("Logged message: %s", string(msg))
-}
-func testLogger(t *testing.T) lager.Logger {
-	logger := lager.NewLogger("router-test")
-	logger.RegisterSink(logAdapter{t: t})
-	return logger
-}
-
 func TestRouter_InitialPort(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestRouter_InitialPort"
 	resetEtcd(t, testPrefix)
+	logger := testutil.NewTestLogger(testPrefix, t)
 
-	router, err := NewRouterWithPrefix(testutil.LocalEtcdConfig, testPrefix, testLogger(t))
+	router, err := NewRouterWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
 	if err != nil {
 		t.Fatal("Could not create a new router", err)
 	}
@@ -72,8 +59,9 @@ func TestRouter_ConcurrentPortAllocation(t *testing.T) {
 
 	testPrefix := "TestRouter_ConcurrentPortAllocation"
 	resetEtcd(t, testPrefix)
+	logger := testutil.NewTestLogger(testPrefix, t)
 
-	router, err := NewRouterWithPrefix(testutil.LocalEtcdConfig, testPrefix, testLogger(t))
+	router, err := NewRouterWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
 	if err != nil {
 		t.Fatalf("Could not create a new router", err)
 	}
