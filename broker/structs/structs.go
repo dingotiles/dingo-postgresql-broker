@@ -5,6 +5,31 @@ import (
 	"reflect"
 )
 
+type ClusterRecreationData struct {
+	InstanceID       string           `json:"instance_id"`
+	ServiceID        string           `json:"service_id"`
+	PlanID           string           `json:"plan_id"`
+	OrganizationGUID string           `json:"organization_guid"`
+	SpaceGUID        string           `json:"space_guid"`
+	AdminCredentials AdminCredentials `json:"admin_credentials"`
+	AllocatedPort    int              `json:"allocated_port"`
+}
+
+type ClusterState struct {
+	InstanceID       string           `json:"instance_id"`
+	ServiceID        string           `json:"service_id"`
+	PlanID           string           `json:"plan_id"`
+	OrganizationGUID string           `json:"organization_guid"`
+	SpaceGUID        string           `json:"space_guid"`
+	AdminCredentials AdminCredentials `json:"admin_credentials"`
+	AllocatedPort    string           `json:"allocated_port"`
+	Nodes            []Node           `json:"nodes"`
+}
+
+type ClusterFeatures struct {
+	NodeCount int `json:"node_count"`
+}
+
 type AdminCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
