@@ -9,6 +9,12 @@
 			"revision": "cf1f63a7274872768d4037305d572b70b1199397"
 		},
 		{
+			"checksumSHA1": "Fa/Hw0ByZgcIDU5iG+Jt0MdeYYg=",
+			"path": "github.com/coreos/etcd/client",
+			"revision": "deb21d3da5227297bccab753103e0c1e7afddf4b",
+			"revisionTime": "2016-05-13T20:24:36Z"
+		},
+		{
 			"checksumSHA1": "BJXHEdzHxRPmVnt6GFaPpwgns2c=",
 			"comment": "v2.0.0-38-g003851b",
 			"path": "github.com/coreos/go-etcd/etcd",
