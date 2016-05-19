@@ -11,8 +11,20 @@
 		{
 			"checksumSHA1": "Fa/Hw0ByZgcIDU5iG+Jt0MdeYYg=",
 			"path": "github.com/coreos/etcd/client",
-			"revision": "deb21d3da5227297bccab753103e0c1e7afddf4b",
-			"revisionTime": "2016-05-13T20:24:36Z"
+			"revision": "62b4d1cef733a60935f9b0ce97b3f80307f90560",
+			"revisionTime": "2016-05-18T22:52:21Z"
+		},
+		{
+			"checksumSHA1": "mKIXx1kDwmVmdIpZ3pJtRBuUKso=",
+			"path": "github.com/coreos/etcd/pkg/pathutil",
+			"revision": "62b4d1cef733a60935f9b0ce97b3f80307f90560",
+			"revisionTime": "2016-05-18T22:52:21Z"
+		},
+		{
+			"checksumSHA1": "kGLbveUJwLvoqg9yeWAnY0BQXtA=",
+			"path": "github.com/coreos/etcd/pkg/types",
+			"revision": "62b4d1cef733a60935f9b0ce97b3f80307f90560",
+			"revisionTime": "2016-05-18T22:52:21Z"
 		},
 		{
 			"checksumSHA1": "BJXHEdzHxRPmVnt6GFaPpwgns2c=",
