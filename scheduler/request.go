@@ -46,9 +46,12 @@ func (req Request) stepTypes() []string {
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (req Request) steps() []step.Step {
 	existingNodeSize := defaultNodeSize
+	targetNodeCount := req.targetNodeCount
+	currentNodeCount := req.currentNodeCount
+
 	steps := []step.Step{}
-	if req.targetNodeCount == 0 {
-		for i := req.currentNodeCount; i > req.targetNodeCount; i-- {
+	if targetNodeCount == 0 {
+		for i := currentNodeCount; i > targetNodeCount; i-- {
 			steps = append(steps, step.NewStepRemoveNode(req.cluster, req.backends, req.logger))
 		}
 	} else if !req.isScalingUp() && !req.isScalingDown() &&
@@ -57,12 +60,12 @@ func (req Request) steps() []step.Step {
 	} else if !req.isScalingUp() && !req.isScalingDown() {
 		// if only scaling out or in; but not up or down
 		if req.isScalingOut() {
-			for i := req.currentNodeCount; i < req.targetNodeCount; i++ {
+			for i := currentNodeCount; i < targetNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.cluster, req.backends, req.logger))
 			}
 		}
 		if req.isScalingIn() {
-			for i := req.currentNodeCount; i > req.targetNodeCount; i-- {
+			for i := currentNodeCount; i > targetNodeCount; i-- {
 				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.backends, req.logger))
 			}
 		}
@@ -70,24 +73,24 @@ func (req Request) steps() []step.Step {
 		// if only scaling up or down; but not out or in
 		steps = append(steps, step.NewStepReplaceMaster(req.newNodeSize))
 		// replace remaining replicas with resized nodes
-		for i := 1; i < req.currentNodeCount; i++ {
+		for i := 1; i < currentNodeCount; i++ {
 			steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 		}
 	} else {
 		// changing both horizontal and vertical aspects of cluster
 		steps = append(steps, step.NewStepReplaceMaster(req.newNodeSize))
 		if req.isScalingOut() {
-			for i := 1; i < req.currentNodeCount; i++ {
+			for i := 1; i < currentNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
-			for i := req.currentNodeCount; i < req.targetNodeCount; i++ {
+			for i := currentNodeCount; i < targetNodeCount; i++ {
 				steps = append(steps, step.NewStepAddNode(req.cluster, req.backends, req.logger))
 			}
 		} else if req.isScalingIn() {
-			for i := 1; i < req.targetNodeCount; i++ {
+			for i := 1; i < targetNodeCount; i++ {
 				steps = append(steps, step.NewStepReplaceReplica(existingNodeSize, req.newNodeSize))
 			}
-			for i := req.currentNodeCount; i > req.targetNodeCount; i-- {
+			for i := currentNodeCount; i > targetNodeCount; i-- {
 				steps = append(steps, step.NewStepRemoveNode(req.cluster, req.backends, req.logger))
 			}
 		}
