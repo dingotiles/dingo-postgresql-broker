@@ -23,6 +23,10 @@ type Router struct {
 	logger lager.Logger
 }
 
+func NewRouter(etcdConfig config.Etcd, logger lager.Logger) (*Router, error) {
+	return NewRouterWithPrefix(etcdConfig, "", logger)
+}
+
 func NewRouterWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (*Router, error) {
 	router := &Router{
 		prefix: prefix,
@@ -47,7 +51,7 @@ func (r *Router) AllocatePort() (int, error) {
 	r.logger.Info("allocate-port")
 
 	ctx := context.TODO()
-	key := r.etcdKey(r.prefix, nextPortKey)
+	key := fmt.Sprintf("%s/%s", r.prefix, nextPortKey)
 
 	var err error
 	for i := 0; i < maxNumberOfRetries; i++ {
@@ -69,6 +73,43 @@ func (r *Router) AllocatePort() (int, error) {
 	return 0, err
 }
 
+func (r *Router) AssignPortToCluster(clusterID string, port int) error {
+	r.logger.Info("assign-port-to-cluster", lager.Data{
+		"clusterID": clusterID,
+		"port":      port,
+	})
+
+	ctx := context.TODO()
+	key := fmt.Sprintf("%s/service/%s", r.prefix, clusterID)
+
+	_, err := r.etcd.Set(ctx, key, fmt.Sprintf("%d", port), &etcd.SetOptions{
+		PrevExist: etcd.PrevNoExist,
+	})
+	if err != nil {
+		r.logger.Error("assign-port-to-cluster.set", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *Router) RemoveClusterAssignment(clusterID string) error {
+	r.logger.Info("remove-cluster-assignment", lager.Data{
+		"clusterID": clusterID,
+	})
+
+	ctx := context.TODO()
+	key := fmt.Sprintf("%s/service/%s", r.prefix, clusterID)
+
+	_, err := r.etcd.Delete(ctx, key, &etcd.DeleteOptions{})
+	if err != nil {
+		r.logger.Error("remove-cluster-assignment.delete", err)
+		return err
+	}
+
+	return nil
+}
+
 func (r *Router) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	client, err := etcd.New(etcd.Config{Endpoints: cfg.Machines})
 	if err != nil {
@@ -82,7 +123,7 @@ func (r *Router) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 
 func (r *Router) initializePort() error {
 	ctx := context.TODO()
-	key := r.etcdKey(r.prefix, nextPortKey)
+	key := fmt.Sprintf("%s/%s", r.prefix, nextPortKey)
 
 	r.logger.Info("initialize-port", lager.Data{"key": nextPortKey})
 
@@ -131,8 +172,4 @@ func (r *Router) increaseNextPort(ctx context.Context, key string, current int) 
 	})
 
 	return err
-}
-
-func (r *Router) etcdKey(prefix, key string) string {
-	return fmt.Sprintf("%s/%s", prefix, key)
 }
