@@ -14,6 +14,18 @@ import (
 	"github.com/pborman/uuid"
 )
 
+func TestCallbacks_Configures(t *testing.T) {
+	t.Parallel()
+
+	testPrefix := "TestCallbacks_WriteRecreationData"
+	logger := testutil.NewTestLogger(testPrefix, t)
+
+	callbacks := NewCallbacks(config.Callbacks{}, logger)
+	if want, got := false, callbacks.Configured(); want != got {
+		t.Fatalf("Callbacks should not be configures")
+	}
+}
+
 func TestCallbacks_WriteRecreationData(t *testing.T) {
 	t.Parallel()
 

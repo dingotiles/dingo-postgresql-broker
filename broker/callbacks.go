@@ -29,6 +29,10 @@ func NewCallbacks(config config.Callbacks, logger lager.Logger) *Callbacks {
 	return callbacks
 }
 
+func (c *Callbacks) Configured() bool {
+	return c.backupCallback != nil && c.restoreCallback != nil
+}
+
 func (c *Callbacks) WriteRecreationData(clusterData structs.ClusterRecreationData) {
 	callback := c.backupCallback
 	logger := c.logger
