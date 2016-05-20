@@ -80,8 +80,7 @@ func (r *Router) AssignPortToCluster(clusterID string, port int) error {
 	})
 
 	ctx := context.TODO()
-	key := fmt.Sprintf("%s/service/%s", r.prefix, clusterID)
-
+	key := fmt.Sprintf("%s/service/%s/port", r.prefix, clusterID)
 	_, err := r.etcd.Set(ctx, key, fmt.Sprintf("%d", port), &etcd.SetOptions{
 		PrevExist: etcd.PrevNoExist,
 	})
@@ -99,7 +98,7 @@ func (r *Router) RemoveClusterAssignment(clusterID string) error {
 	})
 
 	ctx := context.TODO()
-	key := fmt.Sprintf("%s/service/%s", r.prefix, clusterID)
+	key := fmt.Sprintf("%s/service/%s/port", r.prefix, clusterID)
 
 	_, err := r.etcd.Delete(ctx, key, &etcd.DeleteOptions{})
 	if err != nil {
