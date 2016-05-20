@@ -1,6 +1,9 @@
 package clicmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/broker"
@@ -12,6 +15,12 @@ func RunBroker(c *cli.Context) {
 
 	etcdClient := backend.NewEtcdClient(cfg.Etcd.Machines, "/")
 
-	broker := broker.NewBroker(etcdClient, cfg)
+	broker, err := broker.NewBroker(etcdClient, cfg)
+	if err != nil {
+		fmt.Println("Could not start broker")
+		os.Exit(1)
+		return
+	}
+
 	broker.Run()
 }

@@ -34,6 +34,7 @@ func NewState(etcdConfig config.Etcd, etcdClient backend.EtcdClient, logger lage
 	state := &etcdState{
 		etcd:   etcdClient,
 		logger: logger,
+		prefix: "",
 	}
 
 	var err error

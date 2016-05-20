@@ -8,6 +8,7 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/licensecheck"
+	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
@@ -18,6 +19,7 @@ import (
 type Broker struct {
 	config       *config.Config
 	etcdClient   backend.EtcdClient
+	router       *routing.Router
 	licenseCheck *licensecheck.LicenseCheck
 	logger       lager.Logger
 	scheduler    *scheduler.Scheduler
@@ -25,21 +27,31 @@ type Broker struct {
 }
 
 // NewBroker is a constructor for a Broker webapp struct
-func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (bkr *Broker) {
-	bkr = &Broker{etcdClient: etcdClient, config: config}
+func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (*Broker, error) {
+	bkr := &Broker{
+		etcdClient: etcdClient,
+		config:     config,
+	}
 
 	bkr.logger = bkr.setupLogger()
 	bkr.scheduler = scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
 	var err error
 	bkr.state, err = state.NewState(config.Etcd, etcdClient, bkr.logger)
 	if err != nil {
-		return nil
+		bkr.logger.Error("new-broker.new-state", err)
+		return nil, err
+	}
+
+	bkr.router, err = routing.NewRouter(config.Etcd, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-router", err)
+		return nil, err
 	}
 
 	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.etcdClient, bkr.config, bkr.logger)
 	bkr.licenseCheck.DisplayQuotaStatus()
 
-	return
+	return bkr, nil
 }
 
 // Run starts the Martini webapp handler
