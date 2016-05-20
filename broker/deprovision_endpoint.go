@@ -23,8 +23,8 @@ func (bkr *Broker) Deprovision(instanceID string, details brokerapi.DeprovisionD
 		return false, err
 	}
 
-	bkr.scheduler.StopCluster(clusterState)
-	bkr.state.DeleteCluster(cluster)
+	bkr.scheduler.StopCluster(cluster)
+	bkr.state.DeleteClusterState(instanceID)
 	bkr.router.RemoveClusterAssignment(instanceID)
 
 	return false, nil
