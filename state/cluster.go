@@ -55,7 +55,8 @@ func (cluster *Cluster) WaitForRoutingPortAllocation() (err error) {
 		if err != nil {
 			cluster.logger.Debug("cluster.wait-for-port", lager.Data{})
 		} else {
-			cluster.meta.AllocatedPort = resp.Node.Value
+			port, _ := strconv.Atoi(resp.Node.Value)
+			cluster.meta.AllocatedPort = port
 			cluster.logger.Info("cluster.wait-for-port", lager.Data{"allocated_port": cluster.meta.AllocatedPort})
 			return nil
 		}

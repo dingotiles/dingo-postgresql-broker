@@ -22,7 +22,7 @@ type ClusterState struct {
 	OrganizationGUID string           `json:"organization_guid"`
 	SpaceGUID        string           `json:"space_guid"`
 	AdminCredentials AdminCredentials `json:"admin_credentials"`
-	AllocatedPort    string           `json:"allocated_port"`
+	AllocatedPort    int              `json:"allocated_port"`
 	nodes            []*Node          `json:"nodes"`
 }
 
@@ -86,7 +86,7 @@ type ClusterData struct {
 	SpaceGUID        string           `json:"space_guid"`
 	AdminCredentials AdminCredentials `json:"admin_credentials"`
 	TargetNodeCount  int              `json:"node_count"`
-	AllocatedPort    string           `json:"allocated_port"`
+	AllocatedPort    int              `json:"allocated_port"`
 }
 
 type Node struct {
