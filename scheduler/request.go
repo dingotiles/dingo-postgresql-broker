@@ -1,18 +1,17 @@
 package scheduler
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
-const (
-	defaultNodeSize = 20
-)
-
 // Request represents a user-originating request to change a service instance (grow, scale, move)
 type Request struct {
+	clusterState     structs.ClusterState
+	features         structs.ClusterFeatures
 	cluster          *state.Cluster
 	backends         backend.Backends
 	newNodeSize      int

@@ -5,20 +5,19 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
 	"github.com/pivotal-golang/lager"
 )
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	cluster  *state.Cluster
+	cluster  structs.Cluster
 	backends backend.Backends
 	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *state.Cluster, backends backend.Backends, logger lager.Logger) Step {
+func NewStepAddNode(cluster structs.Cluster, backends backend.Backends, logger lager.Logger) Step {
 	return AddNode{cluster: cluster, backends: backends, logger: logger}
 }
 

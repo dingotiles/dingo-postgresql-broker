@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/pivotal-golang/lager"
@@ -20,6 +21,22 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 
 	s.backends = s.initBackends(config.Backends)
 	return s
+}
+
+func (s *Scheduler) RunCluster(cluster structs.ClusterState, features structs.ClusterFeatures) (structs.ClusterState, error) {
+	plan := s.newPlan(&cluster, features)
+
+	s.logger.Info("scheduler.run-cluster", lager.Data{
+		"plan":        plan,
+		"steps-count": len(plan.steps()),
+	})
+	for _, step := range plan.steps() {
+		err := step.Perform()
+		if err != nil {
+			return cluster, err
+		}
+	}
+	return cluster, nil
 }
 
 func (s *Scheduler) Execute(req Request) (err error) {

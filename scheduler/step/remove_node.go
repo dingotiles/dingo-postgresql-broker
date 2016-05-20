@@ -6,19 +6,18 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
-	cluster  *state.Cluster
+	cluster  structs.Cluster
 	backends backend.Backends
 	logger   lager.Logger
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster *state.Cluster, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveNode(cluster structs.Cluster, backends backend.Backends, logger lager.Logger) Step {
 	return RemoveNode{cluster: cluster, backends: backends, logger: logger}
 }
 

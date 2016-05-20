@@ -23,7 +23,48 @@ type ClusterState struct {
 	SpaceGUID        string           `json:"space_guid"`
 	AdminCredentials AdminCredentials `json:"admin_credentials"`
 	AllocatedPort    string           `json:"allocated_port"`
-	Nodes            []Node           `json:"nodes"`
+	nodes            []*Node          `json:"nodes"`
+}
+
+func (c *ClusterState) NodeCount() int {
+	return len(c.nodes)
+}
+
+type Cluster interface {
+	Nodes() []*Node
+	AddNode(Node) error
+	RemoveNode(*Node) error
+	MetaData() ClusterData
+}
+
+func (c *ClusterState) Nodes() []*Node {
+	return c.nodes
+}
+
+func (c *ClusterState) AddNode(node Node) error {
+	c.nodes = append(c.nodes, &node)
+	return nil
+}
+
+func (c *ClusterState) RemoveNode(node *Node) error {
+	for i, n := range c.nodes {
+		if n.ID == node.ID {
+			c.nodes = append(c.nodes[:i], c.nodes[i+1:]...)
+			break
+		}
+	}
+	return nil
+}
+
+func (c *ClusterState) MetaData() ClusterData {
+	return ClusterData{
+		InstanceID:       c.InstanceID,
+		ServiceID:        c.ServiceID,
+		PlanID:           c.PlanID,
+		OrganizationGUID: c.OrganizationGUID,
+		SpaceGUID:        c.SpaceGUID,
+		AdminCredentials: c.AdminCredentials,
+	}
 }
 
 type ClusterFeatures struct {
