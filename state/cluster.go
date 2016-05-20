@@ -33,7 +33,7 @@ func (c *Cluster) SetTargetNodeCount(count int) error {
 }
 
 func (c *Cluster) PortAllocation() (int64, error) {
-	key := fmt.Sprintf("/routing/allocation/%s", c.meta.InstanceID)
+	key := fmt.Sprintf("/service/%s/port", c.meta.InstanceID)
 	resp, err := c.etcdClient.Get(key, false, false)
 	if err != nil {
 		c.logger.Error("cluster.routing-allocation.get", err)
