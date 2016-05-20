@@ -64,6 +64,7 @@ func (c *ClusterState) MetaData() ClusterData {
 		OrganizationGUID: c.OrganizationGUID,
 		SpaceGUID:        c.SpaceGUID,
 		AdminCredentials: c.AdminCredentials,
+		AllocatedPort:    c.AllocatedPort,
 	}
 }
 

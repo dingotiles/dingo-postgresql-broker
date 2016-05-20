@@ -30,7 +30,11 @@ func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (bkr *Broke
 
 	bkr.logger = bkr.setupLogger()
 	bkr.scheduler = scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
-	bkr.state = state.NewState(etcdClient, bkr.logger)
+	var err error
+	bkr.state, err = state.NewState(config.Etcd, etcdClient, bkr.logger)
+	if err != nil {
+		return nil
+	}
 
 	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.etcdClient, bkr.config, bkr.logger)
 	bkr.licenseCheck.DisplayQuotaStatus()

@@ -3,8 +3,10 @@ package state
 import (
 	"fmt"
 
+	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -15,20 +17,44 @@ type State interface {
 	InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error)
 	LoadCluster(instanceID string) (*Cluster, error)
 	DeleteCluster(cluster *Cluster) error
+	SaveCluster(cluster structs.ClusterState) error
 }
 
 type etcdState struct {
-	etcd   backend.EtcdClient
-	logger lager.Logger
+	etcd    backend.EtcdClient
+	etcdApi etcd.KeysAPI
+	logger  lager.Logger
 }
 
-func NewState(etcdClient backend.EtcdClient, logger lager.Logger) State {
-	return &etcdState{
+func NewState(etcdConfig config.Etcd, etcdClient backend.EtcdClient, logger lager.Logger) (State, error) {
+	state := &etcdState{
 		etcd:   etcdClient,
 		logger: logger,
 	}
+
+	var err error
+	state.etcdApi, err = state.setupEtcd(etcdConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
+func (s *etcdState) SaveCluster(cluster structs.ClusterState) error {
+	return nil
+}
+
+func (s *etcdState) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
+	client, err := etcd.New(etcd.Config{Endpoints: cfg.Machines})
+	if err != nil {
+		return nil, err
+	}
+
+	api := etcd.NewKeysAPI(client)
+
+	return api, nil
+}
 func (s *etcdState) ClusterExists(instanceID string) bool {
 	key := fmt.Sprintf("/serviceinstances/%s/nodes", instanceID)
 	_, err := s.etcd.Get(key, false, true)
