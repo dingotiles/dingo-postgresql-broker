@@ -22,6 +22,7 @@ type State interface {
 	DeleteCluster(cluster *Cluster) error
 	SaveCluster(cluster structs.ClusterState) error
 	LoadClusterState(instanceID string) (structs.ClusterState, error)
+	DeleteClusterState(instanceID string) error
 }
 
 type etcdState struct {
@@ -85,7 +86,7 @@ func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
 	planKey := fmt.Sprintf("%s/service/%s/plan_id", s.prefix, clusterState.InstanceID)
 	_, err = s.etcdApi.Set(ctx, planKey, clusterState.PlanID, &etcd.SetOptions{})
 	if err != nil {
-		s.logger.Error("save-cluster.set-plan-id", err)
+		s.logger.Error("save-cluster.set-plan-id.error", err)
 		return err
 	}
 
@@ -174,4 +175,54 @@ func (s *etcdState) LoadClusterState(instanceID string) (structs.ClusterState, e
 	}
 	json.Unmarshal([]byte(resp.Node.Value), &cluster)
 	return cluster, nil
+}
+
+func (s *etcdState) DeleteClusterState(instanceID string) error {
+	ctx := context.TODO()
+	s.logger.Info("state.delete-cluster-state")
+	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
+	planKey := fmt.Sprintf("%s/service/%s/plan_id", s.prefix, instanceID)
+
+	var lastError error
+	_, err := s.etcdApi.Delete(ctx, key, &etcd.DeleteOptions{})
+	if err != nil {
+		s.logger.Error("state.delete-cluster-state", err)
+		lastError = err
+	}
+	_, err = s.etcdApi.Delete(ctx, planKey, &etcd.DeleteOptions{})
+	if err != nil {
+		s.logger.Error("state.delete-cluster-state", err)
+		lastError = err
+	}
+
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/serviceinstances/%s", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
+	if err != nil {
+		s.logger.Error("cluster.delete-state.err", err)
+		lastError = err
+	}
+
+	err = s.deletePatroniState(ctx, instanceID)
+	if err != nil {
+		s.logger.Error("cluster.delete-patroni-state", err)
+	}
+
+	return lastError
+}
+
+func (s *etcdState) deletePatroniState(ctx context.Context, instanceID string) error {
+	var lastError, err error
+	// clear out etcd data that would eventually timeout; to allow immediate recreation if required by user
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/members", s.prefix, instanceID), &etcd.DeleteOptions{})
+	if err != nil {
+		lastError = err
+	}
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/optime", s.prefix, instanceID), &etcd.DeleteOptions{})
+	if err != nil {
+		lastError = err
+	}
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/leader", s.prefix, instanceID), &etcd.DeleteOptions{})
+	if err != nil {
+		lastError = err
+	}
+	return lastError
 }

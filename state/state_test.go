@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"testing"
 
 	etcd "github.com/coreos/etcd/client"
@@ -111,5 +112,48 @@ func TestState_LoadClusterState(t *testing.T) {
 	loadedState, err := state.LoadClusterState(instanceID)
 	if !reflect.DeepEqual(clusterState, loadedState) {
 		t.Fatalf("Failed to load ClusterState")
+	}
+}
+
+func TestState_DeleteClusterState(t *testing.T) {
+	t.Parallel()
+
+	testPrefix := "TestState_DeleteClusterState"
+	etcdApi := resetEtcd(t, testPrefix)
+	logger := testutil.NewTestLogger(testPrefix, t)
+
+	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	if err != nil {
+		t.Fatalf("Could not create state", err)
+	}
+
+	instanceID := uuid.New()
+	planID := uuid.New()
+	clusterState := structs.ClusterState{
+		InstanceID:       instanceID,
+		OrganizationGUID: "OrganizationGUID",
+		PlanID:           planID,
+		ServiceID:        "ServiceID",
+		SpaceGUID:        "SpaceGUID",
+	}
+	err = state.SaveCluster(clusterState)
+	if err != nil {
+		t.Fatalf("SaveCluster failed %s", err)
+	}
+
+	err = state.DeleteClusterState(instanceID)
+	if err != nil {
+		t.Fatalf("DeleteClusterState failed %s", err)
+	}
+
+	key := fmt.Sprintf("%s/service/%s/state", testPrefix, instanceID)
+	_, err = etcdApi.Get(context.Background(), key, &etcd.GetOptions{})
+	if err == nil {
+		t.Fatalf("Was expecting error 'Key not found'")
+	} else {
+		notFoundRegExp, _ := regexp.Compile("Key not found")
+		if notFoundRegExp.FindString(err.Error()) != "Key not found" {
+			t.Fatalf("An error other than 'Key not found' occured %s", err)
+		}
 	}
 }
