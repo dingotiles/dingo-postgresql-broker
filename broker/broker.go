@@ -24,6 +24,7 @@ type Broker struct {
 	logger       lager.Logger
 	scheduler    *scheduler.Scheduler
 	state        state.State
+	callbacks    *Callbacks
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -34,6 +35,7 @@ func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (*Broker, e
 	}
 
 	bkr.logger = bkr.setupLogger()
+	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
 	bkr.scheduler = scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
 	var err error
 	bkr.state, err = state.NewState(config.Etcd, etcdClient, bkr.logger)
