@@ -39,6 +39,22 @@ func (s *Scheduler) RunCluster(cluster structs.ClusterState, features structs.Cl
 	return cluster, nil
 }
 
+func (s *Scheduler) StopCluster(cluster structs.ClusterState) (structs.ClusterState, error) {
+	plan := s.newPlan(&cluster, structs.ClusterFeatures{NodeCount: 0})
+
+	s.logger.Info("scheduler.stop-cluster", lager.Data{
+		"plan":        plan,
+		"steps-count": len(plan.steps()),
+	})
+	for _, step := range plan.steps() {
+		err := step.Perform()
+		if err != nil {
+			return cluster, err
+		}
+	}
+	return cluster, nil
+}
+
 func (s *Scheduler) Execute(req Request) (err error) {
 	req.logRequest()
 	if len(req.steps()) == 0 {
