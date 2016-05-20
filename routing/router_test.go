@@ -30,7 +30,6 @@ func resetEtcd(t *testing.T, prefix string) etcd.KeysAPI {
 	})
 	if err != nil {
 		t.Logf("Could not delete etcd dir %s, Error: %s", prefix, err)
-		return nil
 	}
 	return etcdApi
 }
