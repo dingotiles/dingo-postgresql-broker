@@ -31,13 +31,12 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Info("not-exists")
 	}
 
-	// Restore port allocation from state.MetaData()
-	key := fmt.Sprintf("/routing/allocation/%s", instanceID)
-	_, err = bkr.etcdClient.Set(key, fmt.Sprintf("%d", clusterdata.AllocatedPort), 0)
+	err = bkr.router.AssignPortToCluster(schedulerCluster.InstanceID, port)
 	if err != nil {
-		logger.Error("routing-allocation.error", err)
+		logger.Error("assign-port", err)
 		return
 	}
+
 	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": clusterdata.AllocatedPort})
 
 	if clusterdata.TargetNodeCount < 1 {
