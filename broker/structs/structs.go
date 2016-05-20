@@ -30,6 +30,18 @@ func (c *ClusterState) NodeCount() int {
 	return len(c.nodes)
 }
 
+func (c *ClusterState) RecreationData() ClusterRecreationData {
+	return ClusterRecreationData{
+		InstanceID:       c.InstanceID,
+		ServiceID:        c.ServiceID,
+		PlanID:           c.PlanID,
+		OrganizationGUID: c.OrganizationGUID,
+		SpaceGUID:        c.SpaceGUID,
+		AdminCredentials: c.AdminCredentials,
+		AllocatedPort:    c.AllocatedPort,
+	}
+}
+
 type Cluster interface {
 	Nodes() []*Node
 	AddNode(Node) error

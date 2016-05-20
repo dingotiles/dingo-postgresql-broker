@@ -93,7 +93,7 @@ func (c *Callbacks) WriteRecreationData(clusterData structs.ClusterRecreationDat
 	logger.Info("callbacks.write-data.done")
 }
 
-func (c *Callbacks) RestoreClusterDataBackup(instanceID string) (*structs.ClusterRecreationData, error) {
+func (c *Callbacks) RestoreRecreationData(instanceID string) (*structs.ClusterRecreationData, error) {
 	callback := c.restoreCallback
 	logger := c.logger
 

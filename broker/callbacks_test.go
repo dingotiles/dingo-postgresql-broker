@@ -117,7 +117,7 @@ func TestCallbacks_RestoreRecreationData(t *testing.T) {
 
 	// test that it retrieves the data from stdout
 	callbacks := NewCallbacks(cfg, logger)
-	restoredData, err := callbacks.RestoreClusterDataBackup(instanceID)
+	restoredData, err := callbacks.RestoreRecreationData(instanceID)
 	if err != nil {
 		t.Fatalf("Could not open file %s, Err: %s", fileName, err)
 	}
@@ -134,7 +134,7 @@ func TestCallbacks_RestoreRecreationData(t *testing.T) {
 		},
 	}
 	callbacks = NewCallbacks(cfg, logger)
-	_, err = callbacks.RestoreClusterDataBackup(instanceID)
+	_, err = callbacks.RestoreRecreationData(instanceID)
 
 	fileContent, err := ioutil.ReadFile(fileName)
 	if err != nil {
