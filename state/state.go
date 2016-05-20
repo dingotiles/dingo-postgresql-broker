@@ -1,7 +1,10 @@
 package state
 
 import (
+	"encoding/json"
 	"fmt"
+
+	"golang.org/x/net/context"
 
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
@@ -23,6 +26,7 @@ type State interface {
 type etcdState struct {
 	etcd    backend.EtcdClient
 	etcdApi etcd.KeysAPI
+	prefix  string
 	logger  lager.Logger
 }
 
@@ -41,7 +45,62 @@ func NewState(etcdConfig config.Etcd, etcdClient backend.EtcdClient, logger lage
 	return state, nil
 }
 
-func (s *etcdState) SaveCluster(cluster structs.ClusterState) error {
+func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (State, error) {
+	state := &etcdState{
+		prefix: prefix,
+		etcd:   backend.NewEtcdClient(etcdConfig.Machines, prefix),
+		logger: logger,
+	}
+
+	var err error
+	state.etcdApi, err = state.setupEtcd(etcdConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
+}
+
+func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
+	s.logger.Info("save-clusterState", lager.Data{
+		"cluster": clusterState,
+	})
+
+	ctx := context.TODO()
+	key := fmt.Sprintf("%s/service/%s/state", s.prefix, clusterState.InstanceID)
+
+	data, err := json.Marshal(clusterState)
+	if err != nil {
+		s.logger.Error("save-cluster.marshal", err)
+	}
+
+	_, err = s.etcdApi.Set(ctx, key, string(data), &etcd.SetOptions{})
+	if err != nil {
+		s.logger.Error("save-cluster.set", err)
+		return err
+	}
+
+	planKey := fmt.Sprintf("%s/service/%s/plan_id", s.prefix, clusterState.InstanceID)
+	_, err = s.etcdApi.Set(ctx, planKey, clusterState.PlanID, &etcd.SetOptions{})
+	if err != nil {
+		s.logger.Error("save-cluster.set-plan-id", err)
+		return err
+	}
+
+	cluster := &Cluster{
+		etcdClient: s.etcd,
+		logger:     s.logger,
+		meta:       clusterState.MetaData(),
+	}
+	err = cluster.writeState()
+	if err != nil {
+		s.logger.Error("save-cluster.write-state", err)
+		return err
+	}
+	for _, n := range clusterState.Nodes() {
+		cluster.AddNode(*n)
+	}
+
 	return nil
 }
 
