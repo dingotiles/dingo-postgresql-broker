@@ -2,9 +2,9 @@ package broker
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -25,67 +25,59 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, err
 	}
 
-	clusterInstance, err := bkr.state.InitializeCluster(bkr.initClusterData(instanceID, details))
-	if err != nil {
-		logger.Error("init-cluster.error", err)
-		return resp, false, fmt.Errorf("Could not provision service instance. Error: %v", err)
+	port, err := bkr.router.AllocatePort()
+	clusterState := bkr.initClusterState(instanceID, port, details)
+	if bkr.callbacks.Configured() {
+		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
+		data, err := bkr.callbacks.RestoreRecreationData(clusterState.InstanceID)
+		if !reflect.DeepEqual(clusterState.RecreationData(), data) {
+			logger.Error("recreation-data.failure", err)
+			return resp, false, err
+		}
 	}
-	clusterRequest := bkr.scheduler.NewRequest(clusterInstance)
 
 	go func() {
-		err = bkr.scheduler.Execute(clusterRequest)
+		features := bkr.initClusterFeatures(details)
+		schedulerCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
-			logger.Error("execute.error", err)
+			logger.Error("run-cluster", err)
 		}
 
-		err = clusterInstance.WaitForAllRunning()
-		if err == nil {
-			// if cluster is running, then wait until routing port operational
-			err = clusterInstance.WaitForRoutingPortAllocation()
+		err = bkr.router.AssignPortToCluster(schedulerCluster.InstanceID, port)
+		if err != nil {
+			logger.Error("assign-port", err)
 		}
 
+		err = bkr.state.SaveCluster(schedulerCluster)
 		if err != nil {
-			logger.Error("running.error", err)
-		} else {
-
-			if bkr.config.SupportsClusterDataBackup() {
-				state.TriggerClusterDataBackup(clusterInstance.MetaData(), bkr.config.Callbacks, logger)
-				var restoredData *structs.ClusterData
-				err, restoredData = state.RestoreClusterDataBackup(clusterInstance.MetaData().InstanceID, bkr.config.Callbacks, logger)
-				metaData := clusterInstance.MetaData()
-				if err != nil || !restoredData.Equals(&metaData) {
-					logger.Error("clusterdata.backup.failure", err, lager.Data{"clusterdata": clusterInstance.MetaData(), "restoreddata": *restoredData})
-					go func() {
-						bkr.Deprovision(clusterInstance.MetaData().InstanceID, brokerapi.DeprovisionDetails{
-							PlanID:    clusterInstance.MetaData().PlanID,
-							ServiceID: clusterInstance.MetaData().ServiceID,
-						}, true)
-					}()
-				}
-			}
-
-			logger.Info("running.success", lager.Data{"cluster": clusterInstance.MetaData()})
+			logger.Error("assign-port", err)
 		}
 	}()
 	return resp, true, err
 }
 
-func (bkr *Broker) initClusterData(instanceID string, details brokerapi.ProvisionDetails) *structs.ClusterData {
-	targetNodeCount := defaultNodeCount
-	if rawNodeCount := details.Parameters["node-count"]; rawNodeCount != nil {
-		targetNodeCount = int(rawNodeCount.(float64))
-	}
-	return &structs.ClusterData{
+func (bkr *Broker) initClusterState(instanceID string, port int, details brokerapi.ProvisionDetails) structs.ClusterState {
+	return structs.ClusterState{
 		InstanceID:       instanceID,
 		OrganizationGUID: details.OrganizationGUID,
 		PlanID:           details.PlanID,
 		ServiceID:        details.ServiceID,
 		SpaceGUID:        details.SpaceGUID,
-		TargetNodeCount:  targetNodeCount,
+		AllocatedPort:    port,
 		AdminCredentials: structs.AdminCredentials{
 			Username: "pgadmin",
 			Password: NewPassword(16),
 		},
+	}
+}
+
+func (bkr *Broker) initClusterFeatures(details brokerapi.ProvisionDetails) structs.ClusterFeatures {
+	targetNodeCount := defaultNodeCount
+	if rawNodeCount := details.Parameters["node-count"]; rawNodeCount != nil {
+		targetNodeCount = int(rawNodeCount.(float64))
+	}
+	return structs.ClusterFeatures{
+		NodeCount: targetNodeCount,
 	}
 }
 
