@@ -46,7 +46,7 @@ func TestCallbacks_WriteRecreationData(t *testing.T) {
 		},
 	}
 
-	recreationData := structs.ClusterRecreationData{
+	recreationData := &structs.ClusterRecreationData{
 		InstanceID:       "instanceID",
 		OrganizationGUID: "OrganizationGUID",
 		PlanID:           "PlanID",
@@ -67,7 +67,7 @@ func TestCallbacks_WriteRecreationData(t *testing.T) {
 		t.Fatalf("Could not open file %s, Err: %s", fileName, err)
 	}
 
-	writtenData := structs.ClusterRecreationData{}
+	writtenData := &structs.ClusterRecreationData{}
 	json.Unmarshal(rawData, &writtenData)
 
 	if !reflect.DeepEqual(recreationData, writtenData) {

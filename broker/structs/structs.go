@@ -30,8 +30,8 @@ func (c *ClusterState) NodeCount() int {
 	return len(c.nodes)
 }
 
-func (c *ClusterState) RecreationData() ClusterRecreationData {
-	return ClusterRecreationData{
+func (c *ClusterState) RecreationData() *ClusterRecreationData {
+	return &ClusterRecreationData{
 		InstanceID:       c.InstanceID,
 		ServiceID:        c.ServiceID,
 		PlanID:           c.PlanID,

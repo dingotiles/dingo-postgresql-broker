@@ -33,7 +33,7 @@ func (c *Callbacks) Configured() bool {
 	return c.backupCallback != nil && c.restoreCallback != nil
 }
 
-func (c *Callbacks) WriteRecreationData(clusterData structs.ClusterRecreationData) {
+func (c *Callbacks) WriteRecreationData(clusterData *structs.ClusterRecreationData) {
 	callback := c.backupCallback
 	logger := c.logger
 
