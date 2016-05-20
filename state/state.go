@@ -21,6 +21,7 @@ type State interface {
 	LoadCluster(instanceID string) (*Cluster, error)
 	DeleteCluster(cluster *Cluster) error
 	SaveCluster(cluster structs.ClusterState) error
+	LoadClusterState(instanceID string) (structs.ClusterState, error)
 }
 
 type etcdState struct {
@@ -158,4 +159,19 @@ func (s *etcdState) DeleteCluster(cluster *Cluster) error {
 		return err
 	}
 	return nil
+}
+
+func (s *etcdState) LoadClusterState(instanceID string) (structs.ClusterState, error) {
+	var cluster structs.ClusterState
+	ctx := context.TODO()
+	s.logger.Info("state.load-cluster-state")
+	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
+
+	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
+	if err != nil {
+		s.logger.Error("state.load-cluster-state.error", err)
+		return cluster, err
+	}
+	json.Unmarshal([]byte(resp.Node.Value), &cluster)
+	return cluster, nil
 }

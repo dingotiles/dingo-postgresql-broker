@@ -81,3 +81,35 @@ func TestState_SaveCluster(t *testing.T) {
 		t.Fatalf("PlanID did not match. Want %s, got %s", want, got)
 	}
 }
+
+func TestState_LoadClusterState(t *testing.T) {
+	t.Parallel()
+
+	testPrefix := "TestState_LoadClusterState"
+	resetEtcd(t, testPrefix)
+	logger := testutil.NewTestLogger(testPrefix, t)
+
+	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	if err != nil {
+		t.Fatalf("Could not create state", err)
+	}
+
+	instanceID := uuid.New()
+	planID := uuid.New()
+	clusterState := structs.ClusterState{
+		InstanceID:       instanceID,
+		OrganizationGUID: "OrganizationGUID",
+		PlanID:           planID,
+		ServiceID:        "ServiceID",
+		SpaceGUID:        "SpaceGUID",
+	}
+	err = state.SaveCluster(clusterState)
+	if err != nil {
+		t.Fatalf("SaveCluster failed %s", err)
+	}
+
+	loadedState, err := state.LoadClusterState(instanceID)
+	if !reflect.DeepEqual(clusterState, loadedState) {
+		t.Fatalf("Failed to load ClusterState")
+	}
+}
