@@ -81,9 +81,7 @@ func (r *Router) AssignPortToCluster(clusterID string, port int) error {
 
 	ctx := context.TODO()
 	key := fmt.Sprintf("%s/service/%s/port", r.prefix, clusterID)
-	_, err := r.etcd.Set(ctx, key, fmt.Sprintf("%d", port), &etcd.SetOptions{
-		PrevExist: etcd.PrevNoExist,
-	})
+	_, err := r.etcd.Set(ctx, key, fmt.Sprintf("%d", port), &etcd.SetOptions{})
 	if err != nil {
 		r.logger.Error("assign-port-to-cluster.set", err)
 		return err
