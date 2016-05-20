@@ -31,7 +31,7 @@ func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp bro
 		logger.Info("not-exists")
 	}
 
-	err = bkr.router.AssignPortToCluster(schedulerCluster.InstanceID, port)
+	err = bkr.router.AssignPortToCluster(instanceID, clusterdata.AllocatedPort)
 	if err != nil {
 		logger.Error("assign-port", err)
 		return
