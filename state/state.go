@@ -155,7 +155,7 @@ func (s *etcdState) deletePatroniState(ctx context.Context, instanceID string) e
 	if err != nil {
 		lastError = err
 	}
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/optime", s.prefix, instanceID), &etcd.DeleteOptions{})
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/optime", s.prefix, instanceID), &etcd.DeleteOptions{Dir: true})
 	if err != nil {
 		lastError = err
 	}
