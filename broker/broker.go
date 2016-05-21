@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/licensecheck"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
@@ -18,7 +17,6 @@ import (
 // Broker is the core struct for the Broker webapp
 type Broker struct {
 	config       *config.Config
-	etcdClient   backend.EtcdClient
 	router       *routing.Router
 	licenseCheck *licensecheck.LicenseCheck
 	logger       lager.Logger
@@ -28,17 +26,16 @@ type Broker struct {
 }
 
 // NewBroker is a constructor for a Broker webapp struct
-func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (*Broker, error) {
+func NewBroker(config *config.Config) (*Broker, error) {
 	bkr := &Broker{
-		etcdClient: etcdClient,
-		config:     config,
+		config: config,
 	}
 
 	bkr.logger = bkr.setupLogger()
 	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
 	bkr.scheduler = scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
 	var err error
-	bkr.state, err = state.NewState(config.Etcd, etcdClient, bkr.logger)
+	bkr.state, err = state.NewState(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-state", err)
 		return nil, err
@@ -50,7 +47,7 @@ func NewBroker(etcdClient backend.EtcdClient, config *config.Config) (*Broker, e
 		return nil, err
 	}
 
-	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.etcdClient, bkr.config, bkr.logger)
+	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.config, bkr.logger)
 	bkr.licenseCheck.DisplayQuotaStatus()
 
 	return bkr, nil

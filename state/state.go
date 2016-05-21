@@ -7,7 +7,6 @@ import (
 	"golang.org/x/net/context"
 
 	etcd "github.com/coreos/etcd/client"
-	"github.com/dingotiles/dingo-postgresql-broker/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
@@ -23,15 +22,13 @@ type State interface {
 }
 
 type etcdState struct {
-	etcd    backend.EtcdClient
 	etcdApi etcd.KeysAPI
 	prefix  string
 	logger  lager.Logger
 }
 
-func NewState(etcdConfig config.Etcd, etcdClient backend.EtcdClient, logger lager.Logger) (State, error) {
+func NewState(etcdConfig config.Etcd, logger lager.Logger) (State, error) {
 	state := &etcdState{
-		etcd:   etcdClient,
 		logger: logger,
 		prefix: "",
 	}
@@ -48,7 +45,6 @@ func NewState(etcdConfig config.Etcd, etcdClient backend.EtcdClient, logger lage
 func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (State, error) {
 	state := &etcdState{
 		prefix: prefix,
-		etcd:   backend.NewEtcdClient(etcdConfig.Machines, prefix),
 		logger: logger,
 	}
 

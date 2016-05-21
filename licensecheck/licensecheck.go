@@ -14,10 +14,10 @@ type LicenseCheck struct {
 }
 
 // NewLicenseCheck creates LicenseCheck
-func NewLicenseCheck(etcd backend.EtcdClient, config *config.Config, baseLogger lager.Logger) (lc *LicenseCheck) {
+func NewLicenseCheck(config *config.Config, baseLogger lager.Logger) (lc *LicenseCheck) {
 	return &LicenseCheck{
 		Config: config,
-		etcd:   etcd,
+		etcd:   backend.NewEtcdClient(config.Etcd.Machines, ""),
 		Logger: baseLogger.Session("license-check"),
 	}
 }

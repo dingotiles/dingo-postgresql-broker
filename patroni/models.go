@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dingotiles/dingo-postgresql-broker/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -19,7 +20,8 @@ type ServiceMemberData struct {
 
 // MemberStatus aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
-func MemberStatus(instanceID string, etcdClient backend.EtcdClient, logger lager.Logger) (statuses string, allRunning bool, err error) {
+func MemberStatus(instanceID string, etcdConf config.Etcd, logger lager.Logger) (statuses string, allRunning bool, err error) {
+	etcdClient := backend.NewEtcdClient(etcdConf.Machines, "")
 	key := fmt.Sprintf("/service/%s/members", instanceID)
 	resp, err := etcdClient.Get(key, false, true)
 	if err != nil {

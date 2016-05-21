@@ -13,7 +13,7 @@ func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperatio
 	logger := bkr.newLoggingSession("last-opration", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	clusterStatus, allRunning, err := patroni.MemberStatus(instanceID, bkr.etcdClient, logger)
+	clusterStatus, allRunning, err := patroni.MemberStatus(instanceID, bkr.config.Etcd, logger)
 
 	state := brokerapi.LastOperationInProgress
 	if allRunning {
