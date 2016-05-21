@@ -55,22 +55,6 @@ func (s *Scheduler) StopCluster(cluster structs.ClusterState) (structs.ClusterSt
 	return cluster, nil
 }
 
-func (s *Scheduler) Execute(req Request) (err error) {
-	req.logRequest()
-	if len(req.steps()) == 0 {
-		req.logger.Info("request.no-steps")
-		return
-	}
-	req.logger.Info("request.perform", lager.Data{"steps-count": len(req.steps())})
-	for _, step := range req.steps() {
-		err = step.Perform()
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
 func (s *Scheduler) initBackends(config []*config.Backend) backend.Backends {
 
 	var backends []*backend.Backend
