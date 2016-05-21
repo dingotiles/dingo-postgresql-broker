@@ -39,17 +39,17 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 	go func() {
 		features := bkr.clusterFeaturesFromProvisionDetails(details)
-		schedulerCluster, err := bkr.scheduler.RunCluster(clusterState, features)
+		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
 		}
 
-		err = bkr.router.AssignPortToCluster(schedulerCluster.InstanceID, port)
+		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, port)
 		if err != nil {
 			logger.Error("assign-port", err)
 		}
 
-		err = bkr.state.SaveCluster(schedulerCluster)
+		err = bkr.state.SaveCluster(scheduledCluster)
 		if err != nil {
 			logger.Error("assign-port", err)
 		}
