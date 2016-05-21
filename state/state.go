@@ -17,9 +17,6 @@ type State interface {
 
 	// ClusterExists returns true if cluster already exists
 	ClusterExists(instanceID string) bool
-	InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error)
-	LoadCluster(instanceID string) (*Cluster, error)
-	DeleteCluster(cluster *Cluster) error
 	SaveCluster(cluster structs.ClusterState) error
 	LoadClusterState(instanceID string) (structs.ClusterState, error)
 	DeleteClusterState(instanceID string) error
@@ -90,20 +87,6 @@ func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
 		return err
 	}
 
-	cluster := &Cluster{
-		etcdClient: s.etcd,
-		logger:     s.logger,
-		meta:       clusterState.MetaData(),
-	}
-	err = cluster.writeState()
-	if err != nil {
-		s.logger.Error("save-cluster.write-state", err)
-		return err
-	}
-	for _, n := range clusterState.Nodes {
-		cluster.AddNode(*n)
-	}
-
 	return nil
 }
 
@@ -122,46 +105,6 @@ func (s *etcdState) ClusterExists(instanceID string) bool {
 	_, err := s.etcd.Get(key, false, true)
 	return err == nil
 }
-
-func (s *etcdState) InitializeCluster(clusterData *structs.ClusterData) (*Cluster, error) {
-	cluster := &Cluster{
-		etcdClient: s.etcd,
-		logger:     s.logger,
-		meta:       *clusterData,
-	}
-	err := cluster.writeState()
-	if err != nil {
-		s.logger.Error("state.initialize-cluster.error", err)
-		return nil, err
-	}
-
-	return cluster, nil
-}
-
-func (s *etcdState) LoadCluster(instanceID string) (*Cluster, error) {
-	cluster := &Cluster{
-		etcdClient: s.etcd,
-		logger: s.logger.Session("cluster", lager.Data{
-			"instance-id": instanceID,
-		}),
-		meta: structs.ClusterData{InstanceID: instanceID},
-	}
-	err := cluster.restoreState()
-	if err != nil {
-		s.logger.Error("state.load-cluster.error", err)
-		return nil, err
-	}
-	return cluster, nil
-}
-
-func (s *etcdState) DeleteCluster(cluster *Cluster) error {
-	if err := cluster.deleteState(); err != nil {
-		s.logger.Error("state.delete-cluster.error", err, lager.Data{"cluster": cluster.MetaData()})
-		return err
-	}
-	return nil
-}
-
 func (s *etcdState) LoadClusterState(instanceID string) (structs.ClusterState, error) {
 	var cluster structs.ClusterState
 	ctx := context.TODO()
@@ -192,12 +135,6 @@ func (s *etcdState) DeleteClusterState(instanceID string) error {
 	_, err = s.etcdApi.Delete(ctx, planKey, &etcd.DeleteOptions{})
 	if err != nil {
 		s.logger.Error("state.delete-cluster-state", err)
-		lastError = err
-	}
-
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/serviceinstances/%s", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
-	if err != nil {
-		s.logger.Error("cluster.delete-state.err", err)
 		lastError = err
 	}
 
