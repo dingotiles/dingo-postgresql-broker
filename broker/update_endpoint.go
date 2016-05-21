@@ -22,11 +22,10 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		logger.Error("load-cluster.error", err)
 		return false, err
 	}
-	cluster, err := bkr.state.LoadCluster(instanceID)
 
 	go func() {
-		features := bkr.clusterFeatures(details)
-		schedulerCluster, err := bkr.scheduler.RunCluster(clusterState, features)
+		features := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
+		schedulerCluster, err := bkr.scheduler.RunCluster(cluster, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
 		}
