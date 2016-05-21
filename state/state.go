@@ -151,15 +151,15 @@ func (s *etcdState) DeleteClusterState(instanceID string) error {
 func (s *etcdState) deletePatroniState(ctx context.Context, instanceID string) error {
 	var lastError, err error
 	// clear out etcd data that would eventually timeout; to allow immediate recreation if required by user
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/members", s.prefix, instanceID), &etcd.DeleteOptions{})
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/members", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
 	if err != nil {
 		lastError = err
 	}
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/optime", s.prefix, instanceID), &etcd.DeleteOptions{Dir: true})
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/optime", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
 	if err != nil {
 		lastError = err
 	}
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/leader", s.prefix, instanceID), &etcd.DeleteOptions{})
+	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/leader", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
 	if err != nil {
 		lastError = err
 	}
