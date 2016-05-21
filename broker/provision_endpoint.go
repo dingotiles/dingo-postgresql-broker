@@ -37,7 +37,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	}
 
 	go func() {
-		features := bkr.initClusterFeatures(details)
+		features := bkr.clusterFeatures(details)
 		schedulerCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
@@ -68,16 +68,6 @@ func (bkr *Broker) initClusterState(instanceID string, port int, details brokera
 			Username: "pgadmin",
 			Password: NewPassword(16),
 		},
-	}
-}
-
-func (bkr *Broker) initClusterFeatures(details brokerapi.ProvisionDetails) structs.ClusterFeatures {
-	targetNodeCount := defaultNodeCount
-	if rawNodeCount := details.Parameters["node-count"]; rawNodeCount != nil {
-		targetNodeCount = int(rawNodeCount.(float64))
-	}
-	return structs.ClusterFeatures{
-		NodeCount: targetNodeCount,
 	}
 }
 

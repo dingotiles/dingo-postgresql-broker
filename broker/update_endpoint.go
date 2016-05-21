@@ -17,22 +17,26 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		return false, err
 	}
 
+	cluster, err := bkr.state.LoadClusterState(instanceID)
+	if err != nil {
+		logger.Error("load-cluster.error", err)
+		return false, err
+	}
 	cluster, err := bkr.state.LoadCluster(instanceID)
 
-	var nodeCount int
-	if updateDetails.Parameters["node-count"] != nil {
-		rawNodeCount := updateDetails.Parameters["node-count"]
-		nodeCount = int(rawNodeCount.(float64))
-	} else {
-		nodeCount = int(cluster.MetaData().TargetNodeCount)
-	}
-	if nodeCount < 1 {
-		return false, fmt.Errorf("node-count parameter must be number greater than 0; preferrable 2 or more")
-	}
-	cluster.SetTargetNodeCount(nodeCount)
-	clusterRequest := bkr.scheduler.NewRequest(cluster)
-	bkr.scheduler.Execute(clusterRequest)
-	return false, nil
+	go func() {
+		features := bkr.clusterFeatures(details)
+		schedulerCluster, err := bkr.scheduler.RunCluster(clusterState, features)
+		if err != nil {
+			logger.Error("run-cluster", err)
+		}
+
+		err = bkr.state.SaveCluster(schedulerCluster)
+		if err != nil {
+			logger.Error("assign-port", err)
+		}
+	}()
+	return true, err
 }
 
 func (bkr *Broker) assertUpdatePrecondition(instanceID string) error {
