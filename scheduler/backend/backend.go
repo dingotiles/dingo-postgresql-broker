@@ -64,7 +64,7 @@ func (b Backends) Get(backendID string) *Backend {
 }
 
 func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Logger) (node structs.Node, err error) {
-	node = structs.Node{ID: uuid.New(), BackendID: b.ID}
+	node = structs.Node{ID: uuid.New(), BackendID: b.ID, PlanID: clusterData.PlanID, ServiceID: clusterData.ServiceID}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterData.OrganizationGUID,
 		PlanID:           clusterData.PlanID,
