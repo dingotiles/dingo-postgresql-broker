@@ -31,7 +31,7 @@ func (step AddNode) Perform() (err error) {
 	logger := step.logger
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.MetaData().InstanceID})
 
-	nodes := step.cluster.Nodes()
+	nodes := step.cluster.AllNodes()
 	sortedBackends := prioritizeBackends(nodes, step.backends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
 		"sortedBackends": sortedBackends,

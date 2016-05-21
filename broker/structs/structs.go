@@ -23,11 +23,11 @@ type ClusterState struct {
 	SpaceGUID        string           `json:"space_guid"`
 	AdminCredentials AdminCredentials `json:"admin_credentials"`
 	AllocatedPort    int              `json:"allocated_port"`
-	nodes            []*Node          `json:"nodes"`
+	Nodes            []*Node          `json:"nodes"`
 }
 
 func (c *ClusterState) NodeCount() int {
-	return len(c.nodes)
+	return len(c.Nodes)
 }
 
 func (c *ClusterState) RecreationData() *ClusterRecreationData {
@@ -43,25 +43,25 @@ func (c *ClusterState) RecreationData() *ClusterRecreationData {
 }
 
 type Cluster interface {
-	Nodes() []*Node
+	AllNodes() []*Node
 	AddNode(Node) error
 	RemoveNode(*Node) error
 	MetaData() ClusterData
 }
 
-func (c *ClusterState) Nodes() []*Node {
-	return c.nodes
+func (c *ClusterState) AllNodes() []*Node {
+	return c.Nodes
 }
 
 func (c *ClusterState) AddNode(node Node) error {
-	c.nodes = append(c.nodes, &node)
+	c.Nodes = append(c.Nodes, &node)
 	return nil
 }
 
 func (c *ClusterState) RemoveNode(node *Node) error {
-	for i, n := range c.nodes {
+	for i, n := range c.Nodes {
 		if n.ID == node.ID {
-			c.nodes = append(c.nodes[:i], c.nodes[i+1:]...)
+			c.Nodes = append(c.Nodes[:i], c.Nodes[i+1:]...)
 			break
 		}
 	}

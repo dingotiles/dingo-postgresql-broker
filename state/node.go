@@ -23,7 +23,7 @@ func (cluster *Cluster) RemoveNode(node *structs.Node) error {
 }
 
 // if any errors, assume that cluster has no running nodes yet
-func (cluster *Cluster) Nodes() (nodes []*structs.Node) {
+func (cluster *Cluster) AllNodes() (nodes []*structs.Node) {
 	resp, err := cluster.etcdClient.Get(fmt.Sprintf("/serviceinstances/%s/nodes", cluster.MetaData().InstanceID), false, false)
 	if err != nil {
 		return

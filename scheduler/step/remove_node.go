@@ -31,7 +31,7 @@ func (step RemoveNode) Perform() (err error) {
 	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master
-	nodes := step.cluster.Nodes()
+	nodes := step.cluster.AllNodes()
 	nodeToRemove := randomReplicaNode(nodes)
 
 	backend := step.backends.Get(nodeToRemove.BackendID)

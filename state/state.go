@@ -100,7 +100,7 @@ func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
 		s.logger.Error("save-cluster.write-state", err)
 		return err
 	}
-	for _, n := range clusterState.Nodes() {
+	for _, n := range clusterState.Nodes {
 		cluster.AddNode(*n)
 	}
 

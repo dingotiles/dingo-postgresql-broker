@@ -23,7 +23,7 @@ type Request struct {
 // NewRequest creates a Request to change a service instance
 func (s *Scheduler) NewRequest(cluster *state.Cluster) Request {
 	return Request{
-		currentNodeCount: len(cluster.Nodes()),
+		currentNodeCount: len(cluster.AllNodes()),
 		targetNodeCount:  cluster.MetaData().TargetNodeCount,
 		cluster:          cluster,
 		backends:         s.backends,
