@@ -27,6 +27,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 	port, err := bkr.router.AllocatePort()
 	clusterState := bkr.initClusterState(instanceID, port, details)
+
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
 		data, err := bkr.callbacks.RestoreRecreationData(clusterState.InstanceID)
