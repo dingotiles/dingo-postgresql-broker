@@ -4,66 +4,64 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
 // Provision a new service instance
-func (bkr *Broker) Recreate(instanceID string, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
+func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	logger := bkr.newLoggingSession("recreate", lager.Data{})
 	defer logger.Info("stop")
 
-	var clusterdata *structs.ClusterData
-	err, clusterdata = state.RestoreClusterDataBackup(instanceID, bkr.config.Callbacks, bkr.logger)
+	if err = bkr.assertRecreatePrecondition(instanceID); err != nil {
+		logger.Error("preconditions.error", err)
+		return resp, false, err
+	}
+
+	recreationData, err := bkr.callbacks.RestoreRecreationData(instanceID)
 	if err != nil {
 		err = fmt.Errorf("Cannot recreate service from backup; unable to restore original service instance data: %s", err)
 		return
 	}
 
-	logger = bkr.logger
+	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
+	go func() {
+		features := bkr.clusterFeaturesFromProvisionDetails(details)
+		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
+		if err != nil {
+			logger.Error("run-cluster", err)
+		}
 
+		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, scheduledCluster.AllocatedPort)
+		if err != nil {
+			logger.Error("assign-port", err)
+		}
+
+		err = bkr.state.SaveCluster(scheduledCluster)
+		if err != nil {
+			logger.Error("assign-port", err)
+		}
+	}()
+
+	return resp, true, err
+}
+
+func (bkr *Broker) initClusterStateFromRecreationData(recreationData *structs.ClusterRecreationData) structs.ClusterState {
+	return structs.ClusterState{
+		InstanceID:       recreationData.InstanceID,
+		ServiceID:        recreationData.ServiceID,
+		PlanID:           recreationData.PlanID,
+		OrganizationGUID: recreationData.OrganizationGUID,
+		SpaceGUID:        recreationData.SpaceGUID,
+		AdminCredentials: recreationData.AdminCredentials,
+		AllocatedPort:    recreationData.AllocatedPort,
+	}
+}
+
+func (bkr *Broker) assertRecreatePrecondition(instanceID string) error {
 	if bkr.state.ClusterExists(instanceID) {
-		logger.Info("exists")
-		err = fmt.Errorf("Service instance %s still exists in etcd, please clean it out before recreating cluster", instanceID)
-		return
-	} else {
-		logger.Info("not-exists")
+		return fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	err = bkr.router.AssignPortToCluster(instanceID, clusterdata.AllocatedPort)
-	if err != nil {
-		logger.Error("assign-port", err)
-		return
-	}
-
-	logger.Info("routing-allocation.restored", lager.Data{"allocated-port": clusterdata.AllocatedPort})
-
-	if clusterdata.TargetNodeCount < 1 {
-		clusterdata.TargetNodeCount = 2
-	}
-
-	cluster, err := bkr.state.InitializeCluster(clusterdata)
-	if err != nil {
-		logger.Error("recreate.initialize.error", err)
-		return resp, false, err
-	}
-
-	clusterRequest := bkr.scheduler.NewRequest(cluster)
-	err = bkr.scheduler.Execute(clusterRequest)
-	if err != nil {
-		logger.Error("recreate.execute.error", err)
-		return resp, false, err
-	}
-
-	// if port is allocated, then wait to confirm containers are running
-	err = cluster.WaitForAllRunning()
-
-	if err != nil {
-		logger.Error("provision.running.error", err)
-		return
-	}
-	logger.Info("provision.running.success", lager.Data{"cluster": cluster.MetaData()})
-	state.TriggerClusterDataBackup(cluster.MetaData(), bkr.config.Callbacks, logger)
-	return
+	return nil
 }
