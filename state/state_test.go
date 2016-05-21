@@ -83,6 +83,41 @@ func TestState_SaveCluster(t *testing.T) {
 	}
 }
 
+func TestState_ClusterExists(t *testing.T) {
+	t.Parallel()
+
+	testPrefix := "TestState_ClusterExists"
+	resetEtcd(t, testPrefix)
+	logger := testutil.NewTestLogger(testPrefix, t)
+
+	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	if err != nil {
+		t.Fatalf("Could not create state", err)
+	}
+
+	clusterID := uuid.New()
+	planID := uuid.New()
+	clusterState := structs.ClusterState{
+		InstanceID:       clusterID,
+		OrganizationGUID: "OrganizationGUID",
+		PlanID:           planID,
+		ServiceID:        "ServiceID",
+		SpaceGUID:        "SpaceGUID",
+	}
+	err = state.SaveCluster(clusterState)
+	if err != nil {
+		t.Fatalf("SaveCluster failed %s", err)
+	}
+
+	if !state.ClusterExists(clusterID) {
+		t.Fatalf("Cluster %s should exist", clusterID)
+	}
+
+	if state.ClusterExists("fakeID") {
+		t.Fatalf("Cluster %s should not exist", "fakeID")
+	}
+}
+
 func TestState_LoadClusterState(t *testing.T) {
 	t.Parallel()
 

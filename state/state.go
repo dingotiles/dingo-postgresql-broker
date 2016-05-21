@@ -101,8 +101,10 @@ func (s *etcdState) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	return api, nil
 }
 func (s *etcdState) ClusterExists(instanceID string) bool {
-	key := fmt.Sprintf("/serviceinstances/%s/nodes", instanceID)
-	_, err := s.etcd.Get(key, false, true)
+	ctx := context.TODO()
+	s.logger.Info("state.cluster-exists")
+	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
+	_, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
 	return err == nil
 }
 func (s *etcdState) LoadClusterState(instanceID string) (structs.ClusterState, error) {
