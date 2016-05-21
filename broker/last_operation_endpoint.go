@@ -1,8 +1,7 @@
 package broker
 
 import (
-	"fmt"
-
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -14,14 +13,7 @@ func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperatio
 	logger := bkr.newLoggingSession("last-opration", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	cluster, err := bkr.state.LoadCluster(instanceID)
-	if err != nil {
-		return brokerapi.LastOperationResponse{
-			State:       brokerapi.LastOperationFailed,
-			Description: fmt.Sprintf("Cannot find service instance %s", instanceID),
-		}, err
-	}
-	clusterStatus, allRunning, err := cluster.MemberStatus()
+	clusterStatus, allRunning, err := patroni.MemberStatus(instanceID, bkr.etcdClient, logger)
 
 	state := brokerapi.LastOperationInProgress
 	if allRunning {

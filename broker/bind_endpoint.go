@@ -10,7 +10,7 @@ import (
 // CredentialsHash represents the set of binding credentials returned
 type CredentialsHash struct {
 	Host              string `json:"host,omitempty"`
-	Port              int64  `json:"port,omitempty"`
+	Port              int    `json:"port,omitempty"`
 	Name              string `json:"name,omitempty"`
 	Username          string `json:"username,omitempty"`
 	Password          string `json:"password,omitempty"`
@@ -32,17 +32,13 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 		return brokerapi.BindingResponse{}, err
 	}
 
-	cluster, err := bkr.state.LoadCluster(instanceID)
+	cluster, err := bkr.state.LoadClusterState(instanceID)
 	if err != nil {
 		bkr.logger.Error("load-cluster.error", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Cloud not load cluster %s", instanceID)
 	}
 
-	publicPort, err := cluster.PortAllocation()
-	if err != nil {
-		bkr.logger.Error("get-port.error", err)
-		return brokerapi.BindingResponse{}, fmt.Errorf("Could not determin the public port")
-	}
+	publicPort := cluster.AllocatedPort
 
 	routerHost := bkr.config.Broker.BindHost
 	appUsername := "dvw7DJgqzFBJC8"
