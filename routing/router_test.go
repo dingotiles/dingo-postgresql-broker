@@ -134,7 +134,7 @@ func TestRouter_AssignPortToCluster(t *testing.T) {
 		t.Fatalf("Assigning port failed")
 	}
 
-	key := fmt.Sprintf("%s/service/%s/port", testPrefix, clusterID)
+	key := fmt.Sprintf("%s/routing/allocation/%s", testPrefix, clusterID)
 	resp, err := etcdApi.Get(context.Background(), key, &etcd.GetOptions{})
 	if err != nil {
 		t.Fatalf("Could not read port from etcd")
@@ -156,7 +156,7 @@ func TestRouter_RemoveClusterAssignement(t *testing.T) {
 	clusterID := "clusterID"
 	port := 30000
 
-	key := fmt.Sprintf("%s/service/%s/port", testPrefix, clusterID)
+	key := fmt.Sprintf("%s/routing/allocation/%s", testPrefix, clusterID)
 	_, err := etcdApi.Set(context.Background(), key, fmt.Sprintf("%d", port), &etcd.SetOptions{})
 
 	router, err := NewRouterWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
@@ -169,7 +169,7 @@ func TestRouter_RemoveClusterAssignement(t *testing.T) {
 		t.Fatalf("Could not remove the assignment %s", err)
 	}
 
-	_, err = etcdApi.Get(context.Background(), fmt.Sprintf("%s/service/%s/port", testPrefix, clusterID), &etcd.GetOptions{})
+	_, err = etcdApi.Get(context.Background(), fmt.Sprintf("%s/routing/allocation/%s", testPrefix, clusterID), &etcd.GetOptions{})
 	if err == nil {
 		t.Fatalf("port wasn't deleted %s", err)
 	}
