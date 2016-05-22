@@ -3,12 +3,13 @@ package licensecheck
 import (
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
 
 // LicenseCheck allows testing of current usage of service broker against CF
 type LicenseCheck struct {
-	catalog        config.Catalog
+	catalog        brokerapi.Catalog
 	licenseDetails *config.LicenseDetails
 	etcd           etcd.KeysAPI
 	logger         lager.Logger
