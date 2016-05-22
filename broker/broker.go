@@ -37,13 +37,13 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	var err error
 	bkr.state, err = state.NewState(config.Etcd, bkr.logger)
 	if err != nil {
-		bkr.logger.Error("new-broker.new-state", err)
+		bkr.logger.Error("new-broker.new-state.error", err)
 		return nil, err
 	}
 
 	bkr.router, err = routing.NewRouter(config.Etcd, bkr.logger)
 	if err != nil {
-		bkr.logger.Error("new-broker.new-router", err)
+		bkr.logger.Error("new-broker.new-router.error", err)
 		return nil, err
 	}
 
