@@ -5,18 +5,17 @@ import (
 	"io/ioutil"
 	"regexp"
 
-	"github.com/frodenas/brokerapi"
 	"gopkg.in/yaml.v1"
 )
 
 // Config is the brokers configuration
 type Config struct {
-	Broker         Broker                    `yaml:"broker"`
-	Scheduler      Scheduler                 `yaml:"scheduler"`
-	Etcd           Etcd                      `yaml:"etcd"`
-	Callbacks      Callbacks                 `yaml:"callbacks"`
-	Catalog        brokerapi.CatalogResponse `yaml:"catalog"`
-	LicenseText    string                    `yaml:"license_text"`
+	Broker         Broker    `yaml:"broker"`
+	Scheduler      Scheduler `yaml:"scheduler"`
+	Etcd           Etcd      `yaml:"etcd"`
+	Callbacks      Callbacks `yaml:"callbacks"`
+	Catalog        Catalog   `yaml:"catalog"`
+	LicenseText    string    `yaml:"license_text"`
 	LicenseDetails *LicenseDetails
 }
 

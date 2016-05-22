@@ -11,7 +11,7 @@ import (
 )
 
 func (lc *LicenseCheck) ServicePlanUsage(planID string) (count int, err error) {
-	lc.Logger.Info("service-plan-usage", lager.Data{"planID": planID})
+	lc.logger.Info("service-plan-usage", lager.Data{"planID": planID})
 
 	ctx := context.Background()
 	resp, err := lc.etcd.Get(ctx, "service", &etcd.GetOptions{

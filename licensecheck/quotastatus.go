@@ -25,7 +25,7 @@ type PlanQuotaStatus struct {
 
 func (lc *LicenseCheck) FetchQuotaStatus() (quotaStatus *QuotaStatus) {
 	quotaStatus = &QuotaStatus{}
-	for _, service := range lc.Config.Catalog.Services {
+	for _, service := range lc.catalog.Services {
 		serviceStatus := &ServiceQuotaStatus{
 			ServiceID:     service.ID,
 			LicenseStatus: "trial",
@@ -36,8 +36,8 @@ func (lc *LicenseCheck) FetchQuotaStatus() (quotaStatus *QuotaStatus) {
 				LicenseStatus: "trial",
 				Quota:         lc.TrialQuota(service.ID, plan.ID),
 			}
-			if lc.Config.LicenseDetails != nil {
-				for _, licensePlan := range lc.Config.LicenseDetails.Plans {
+			if lc.licenseDetails != nil {
+				for _, licensePlan := range lc.licenseDetails.Plans {
 					if licensePlan.UUID == plan.ID {
 						planStatus.LicenseStatus = "licensed"
 						planStatus.Quota = licensePlan.Quota
@@ -47,7 +47,7 @@ func (lc *LicenseCheck) FetchQuotaStatus() (quotaStatus *QuotaStatus) {
 			var err error
 			planStatus.Usage, err = lc.ServicePlanUsage(plan.ID)
 			if err != nil {
-				lc.Logger.Error("quota-status.error", err)
+				lc.logger.Error("quota-status.error", err)
 				planStatus.LicenseStatus = "unknown"
 			}
 			serviceStatus.Usage = serviceStatus.Usage + planStatus.Usage
