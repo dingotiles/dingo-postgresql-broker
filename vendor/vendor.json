@@ -27,12 +27,6 @@
 			"revisionTime": "2016-05-18T22:52:21Z"
 		},
 		{
-			"checksumSHA1": "BJXHEdzHxRPmVnt6GFaPpwgns2c=",
-			"comment": "v2.0.0-38-g003851b",
-			"path": "github.com/coreos/go-etcd/etcd",
-			"revision": "003851be7bb0694fe3cc457a49529a19388ee7cf"
-		},
-		{
 			"checksumSHA1": "KcWn8tpMrYMswaDX4vFSSJcK418=",
 			"path": "github.com/frodenas/brokerapi",
 			"revision": "ac1ed76a08954bbd7b40a8794738539404a84313"
