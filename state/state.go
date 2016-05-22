@@ -17,8 +17,8 @@ type State interface {
 	// ClusterExists returns true if cluster already exists
 	ClusterExists(instanceID string) bool
 	SaveCluster(cluster structs.ClusterState) error
-	LoadClusterState(instanceID string) (structs.ClusterState, error)
-	DeleteClusterState(instanceID string) error
+	LoadCluster(instanceID string) (structs.ClusterState, error)
+	DeleteCluster(instanceID string) error
 }
 
 type etcdState struct {
@@ -62,7 +62,7 @@ func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
 		"cluster": clusterState,
 	})
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, clusterState.InstanceID)
 
 	data, err := json.Marshal(clusterState)
@@ -97,15 +97,15 @@ func (s *etcdState) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	return api, nil
 }
 func (s *etcdState) ClusterExists(instanceID string) bool {
-	ctx := context.TODO()
+	ctx := context.Background()
 	s.logger.Info("state.cluster-exists")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 	_, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
 	return err == nil
 }
-func (s *etcdState) LoadClusterState(instanceID string) (structs.ClusterState, error) {
+func (s *etcdState) LoadCluster(instanceID string) (structs.ClusterState, error) {
 	var cluster structs.ClusterState
-	ctx := context.TODO()
+	ctx := context.Background()
 	s.logger.Info("state.load-cluster-state")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 
@@ -118,8 +118,8 @@ func (s *etcdState) LoadClusterState(instanceID string) (structs.ClusterState, e
 	return cluster, nil
 }
 
-func (s *etcdState) DeleteClusterState(instanceID string) error {
-	ctx := context.TODO()
+func (s *etcdState) DeleteCluster(instanceID string) error {
+	ctx := context.Background()
 	s.logger.Info("state.delete-cluster-state")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 	planKey := fmt.Sprintf("%s/service/%s/plan_id", s.prefix, instanceID)

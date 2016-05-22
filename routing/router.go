@@ -50,7 +50,7 @@ func NewRouterWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Log
 func (r *Router) AllocatePort() (int, error) {
 	r.logger.Info("allocate-port")
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	key := fmt.Sprintf("%s/%s", r.prefix, nextPortKey)
 
 	var err error
@@ -79,7 +79,7 @@ func (r *Router) AssignPortToCluster(clusterID string, port int) error {
 		"port":      port,
 	})
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	key := fmt.Sprintf("%s/routing/allocation/%s", r.prefix, clusterID)
 	_, err := r.etcd.Set(ctx, key, fmt.Sprintf("%d", port), &etcd.SetOptions{})
 	if err != nil {
@@ -95,7 +95,7 @@ func (r *Router) RemoveClusterAssignment(clusterID string) error {
 		"clusterID": clusterID,
 	})
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	key := fmt.Sprintf("%s/routing/allocation/%s", r.prefix, clusterID)
 
 	_, err := r.etcd.Delete(ctx, key, &etcd.DeleteOptions{})
@@ -119,7 +119,7 @@ func (r *Router) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 }
 
 func (r *Router) initializePort() error {
-	ctx := context.TODO()
+	ctx := context.Background()
 	key := fmt.Sprintf("%s/%s", r.prefix, nextPortKey)
 
 	r.logger.Info("initialize-port", lager.Data{"key": nextPortKey})

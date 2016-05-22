@@ -17,14 +17,14 @@ func (bkr *Broker) Deprovision(instanceID string, details brokerapi.DeprovisionD
 		return false, err
 	}
 
-	cluster, err := bkr.state.LoadClusterState(instanceID)
+	cluster, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
 		logger.Error("load-cluster.error", err)
 		return false, err
 	}
 
 	bkr.scheduler.StopCluster(cluster)
-	bkr.state.DeleteClusterState(instanceID)
+	bkr.state.DeleteCluster(instanceID)
 	bkr.router.RemoveClusterAssignment(instanceID)
 
 	return false, nil

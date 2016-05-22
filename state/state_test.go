@@ -118,7 +118,7 @@ func TestState_ClusterExists(t *testing.T) {
 	}
 }
 
-func TestState_LoadClusterState(t *testing.T) {
+func TestState_LoadCluster(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_LoadClusterState"
@@ -144,13 +144,13 @@ func TestState_LoadClusterState(t *testing.T) {
 		t.Fatalf("SaveCluster failed %s", err)
 	}
 
-	loadedState, err := state.LoadClusterState(instanceID)
+	loadedState, err := state.LoadCluster(instanceID)
 	if !reflect.DeepEqual(clusterState, loadedState) {
 		t.Fatalf("Failed to load ClusterState")
 	}
 }
 
-func TestState_DeleteClusterState(t *testing.T) {
+func TestState_DeleteCluster(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_DeleteClusterState"
@@ -176,7 +176,7 @@ func TestState_DeleteClusterState(t *testing.T) {
 		t.Fatalf("SaveCluster failed %s", err)
 	}
 
-	err = state.DeleteClusterState(instanceID)
+	err = state.DeleteCluster(instanceID)
 	if err != nil {
 		t.Fatalf("DeleteClusterState failed %s", err)
 	}

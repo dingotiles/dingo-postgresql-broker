@@ -32,7 +32,7 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 		return brokerapi.BindingResponse{}, err
 	}
 
-	cluster, err := bkr.state.LoadClusterState(instanceID)
+	cluster, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
 		bkr.logger.Error("load-cluster.error", err)
 		return brokerapi.BindingResponse{}, fmt.Errorf("Cloud not load cluster %s", instanceID)
