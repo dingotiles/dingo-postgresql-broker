@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/dingotiles/dingo-postgresql-broker/clicmd"
 	"github.com/codegangsta/cli"
+	"github.com/dingotiles/dingo-postgresql-broker/clicmd"
 )
 
 func main() {
@@ -27,30 +27,6 @@ func main() {
 				},
 			},
 			Action: clicmd.RunBroker,
-		},
-		{
-			Name:  "service-status",
-			Usage: "status of all service clusters",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "config, c",
-					Value: "config.yml",
-					Usage: "path to YAML config file",
-				},
-			},
-			Action: clicmd.ServiceStatus,
-		},
-		{
-			Name:  "show-cells",
-			Usage: "show status of each backend cell",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "config, c",
-					Value: "config.yml",
-					Usage: "path to YAML config file",
-				},
-			},
-			Action: clicmd.ShowCells,
 		},
 	}
 	app.Run(os.Args)
