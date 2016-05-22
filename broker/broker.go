@@ -47,7 +47,11 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		return nil, err
 	}
 
-	bkr.licenseCheck = licensecheck.NewLicenseCheck(bkr.config, bkr.logger)
+	bkr.licenseCheck, err = licensecheck.NewLicenseCheck(bkr.config, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-license-check.error", err)
+		return nil, err
+	}
 	bkr.licenseCheck.DisplayQuotaStatus()
 
 	return bkr, nil

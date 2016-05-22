@@ -4,13 +4,20 @@ import (
 	"fmt"
 	"regexp"
 
+	"golang.org/x/net/context"
+
+	etcd "github.com/coreos/etcd/client"
 	"github.com/pivotal-golang/lager"
 )
 
 func (lc *LicenseCheck) ServicePlanUsage(planID string) (count int, err error) {
 	lc.Logger.Info("service-plan-usage", lager.Data{"planID": planID})
 
-	resp, err := lc.etcd.Get("/serviceinstances", false, true)
+	ctx := context.Background()
+	resp, err := lc.etcd.Get(ctx, "service", &etcd.GetOptions{
+		Recursive: true,
+		Quorum:    true,
+	})
 
 	if err != nil {
 		// if the key wasn't found etcd is available but no clusters exist (yet)
