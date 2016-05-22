@@ -16,7 +16,9 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
-	config       *config.Config
+	config       config.Broker
+	catalog      brokerapi.Catalog
+	etcdConfig   config.Etcd
 	router       *routing.Router
 	licenseCheck *licensecheck.LicenseCheck
 	logger       lager.Logger
@@ -28,12 +30,14 @@ type Broker struct {
 // NewBroker is a constructor for a Broker webapp struct
 func NewBroker(config *config.Config) (*Broker, error) {
 	bkr := &Broker{
-		config: config,
+		config:     config.Broker,
+		catalog:    config.Catalog,
+		etcdConfig: config.Etcd,
 	}
 
 	bkr.logger = bkr.setupLogger()
 	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
-	bkr.scheduler = scheduler.NewScheduler(bkr.config.Scheduler, bkr.logger)
+	bkr.scheduler = scheduler.NewScheduler(config.Scheduler, bkr.logger)
 	var err error
 	bkr.state, err = state.NewState(config.Etcd, bkr.logger)
 	if err != nil {
@@ -47,7 +51,7 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		return nil, err
 	}
 
-	bkr.licenseCheck, err = licensecheck.NewLicenseCheck(bkr.config, bkr.logger)
+	bkr.licenseCheck, err = licensecheck.NewLicenseCheck(config, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-license-check.error", err)
 		return nil, err
@@ -60,10 +64,10 @@ func NewBroker(config *config.Config) (*Broker, error) {
 // Run starts the Martini webapp handler
 func (bkr *Broker) Run() {
 	credentials := brokerapi.BrokerCredentials{
-		Username: bkr.config.Broker.Username,
-		Password: bkr.config.Broker.Password,
+		Username: bkr.config.Username,
+		Password: bkr.config.Password,
 	}
-	port := bkr.config.Broker.Port
+	port := bkr.config.Port
 
 	brokerAPI := brokerapi.New(bkr, bkr.logger, credentials)
 	http.Handle("/", brokerAPI)
