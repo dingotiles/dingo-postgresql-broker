@@ -70,7 +70,7 @@ func (bkr *Broker) initCluster(instanceID string, port int, details brokerapi.Pr
 			Password: NewPassword(16),
 		},
 		SuperuserCredentials: structs.PostgresCredentials{
-			Username: "superuser",
+			Username: "postgres",
 			Password: NewPassword(16),
 		},
 		AppCredentials: structs.PostgresCredentials{
