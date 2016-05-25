@@ -11,7 +11,7 @@ func TestClusterData_Equals(t *testing.T) {
 		PlanID:           "PlanID",
 		ServiceID:        "ServiceID",
 		SpaceGUID:        "SpaceGUID",
-		AdminCredentials: AdminCredentials{
+		AdminCredentials: PostgresCredentials{
 			Username: "pgadmin",
 			Password: "pw",
 		},
@@ -22,7 +22,7 @@ func TestClusterData_Equals(t *testing.T) {
 		PlanID:           "PlanID",
 		ServiceID:        "ServiceID",
 		SpaceGUID:        "SpaceGUID",
-		AdminCredentials: AdminCredentials{
+		AdminCredentials: PostgresCredentials{
 			Username: "pgadmin",
 			Password: "pw",
 		},

@@ -52,7 +52,7 @@ func TestCallbacks_WriteRecreationData(t *testing.T) {
 		PlanID:           "PlanID",
 		ServiceID:        "ServiceID",
 		SpaceGUID:        "SpaceGUID",
-		AdminCredentials: structs.AdminCredentials{
+		AdminCredentials: structs.PostgresCredentials{
 			Username: "pgadmin",
 			Password: "pw",
 		},
@@ -95,7 +95,7 @@ func TestCallbacks_RestoreRecreationData(t *testing.T) {
 		PlanID:           "PlanID",
 		ServiceID:        "ServiceID",
 		SpaceGUID:        "SpaceGUID",
-		AdminCredentials: structs.AdminCredentials{
+		AdminCredentials: structs.PostgresCredentials{
 			Username: "pgadmin",
 			Password: "pw",
 		},
