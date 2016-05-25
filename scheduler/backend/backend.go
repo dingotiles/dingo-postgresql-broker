@@ -71,10 +71,10 @@ func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Lo
 		ServiceID:        clusterData.ServiceID,
 		SpaceGUID:        clusterData.SpaceGUID,
 		Parameters: map[string]interface{}{
-			"PATRONI_SCOPE":     clusterData.InstanceID,
-			"NODE_NAME":         node.ID,
-			"POSTGRES_USERNAME": clusterData.AdminCredentials.Username,
-			"POSTGRES_PASSWORD": clusterData.AdminCredentials.Password,
+			"PATRONI_SCOPE":  clusterData.InstanceID,
+			"NODE_NAME":      node.ID,
+			"ADMIN_USERNAME": clusterData.AdminCredentials.Username,
+			"ADMIN_PASSWORD": clusterData.AdminCredentials.Password,
 		},
 	}
 
