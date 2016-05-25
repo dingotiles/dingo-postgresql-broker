@@ -65,7 +65,7 @@ func (bkr *Broker) initCluster(instanceID string, port int, details brokerapi.Pr
 		ServiceID:        details.ServiceID,
 		SpaceGUID:        details.SpaceGUID,
 		AllocatedPort:    port,
-		AdminCredentials: structs.AdminCredentials{
+		AdminCredentials: structs.PostgresCredentials{
 			Username: "pgadmin",
 			Password: NewPassword(16),
 		},

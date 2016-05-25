@@ -6,24 +6,24 @@ import (
 )
 
 type ClusterRecreationData struct {
-	InstanceID       string           `json:"instance_id"`
-	ServiceID        string           `json:"service_id"`
-	PlanID           string           `json:"plan_id"`
-	OrganizationGUID string           `json:"organization_guid"`
-	SpaceGUID        string           `json:"space_guid"`
-	AdminCredentials AdminCredentials `json:"admin_credentials"`
-	AllocatedPort    int              `json:"allocated_port"`
+	InstanceID       string              `json:"instance_id"`
+	ServiceID        string              `json:"service_id"`
+	PlanID           string              `json:"plan_id"`
+	OrganizationGUID string              `json:"organization_guid"`
+	SpaceGUID        string              `json:"space_guid"`
+	AdminCredentials PostgresCredentials `json:"admin_credentials"`
+	AllocatedPort    int                 `json:"allocated_port"`
 }
 
 type ClusterState struct {
-	InstanceID       string           `json:"instance_id"`
-	ServiceID        string           `json:"service_id"`
-	PlanID           string           `json:"plan_id"`
-	OrganizationGUID string           `json:"organization_guid"`
-	SpaceGUID        string           `json:"space_guid"`
-	AdminCredentials AdminCredentials `json:"admin_credentials"`
-	AllocatedPort    int              `json:"allocated_port"`
-	Nodes            []*Node          `json:"nodes"`
+	InstanceID       string              `json:"instance_id"`
+	ServiceID        string              `json:"service_id"`
+	PlanID           string              `json:"plan_id"`
+	OrganizationGUID string              `json:"organization_guid"`
+	SpaceGUID        string              `json:"space_guid"`
+	AdminCredentials PostgresCredentials `json:"admin_credentials"`
+	AllocatedPort    int                 `json:"allocated_port"`
+	Nodes            []*Node             `json:"nodes"`
 }
 
 func (c *ClusterState) NodeCount() int {
@@ -84,21 +84,21 @@ type ClusterFeatures struct {
 	NodeCount int `json:"node_count"`
 }
 
-type AdminCredentials struct {
+type PostgresCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 // ClusterData describes the current request for the state of the cluster
 type ClusterData struct {
-	InstanceID       string           `json:"instance_id"`
-	ServiceID        string           `json:"service_id"`
-	PlanID           string           `json:"plan_id"`
-	OrganizationGUID string           `json:"organization_guid"`
-	SpaceGUID        string           `json:"space_guid"`
-	AdminCredentials AdminCredentials `json:"admin_credentials"`
-	TargetNodeCount  int              `json:"node_count"`
-	AllocatedPort    int              `json:"allocated_port"`
+	InstanceID       string              `json:"instance_id"`
+	ServiceID        string              `json:"service_id"`
+	PlanID           string              `json:"plan_id"`
+	OrganizationGUID string              `json:"organization_guid"`
+	SpaceGUID        string              `json:"space_guid"`
+	AdminCredentials PostgresCredentials `json:"admin_credentials"`
+	TargetNodeCount  int                 `json:"node_count"`
+	AllocatedPort    int                 `json:"allocated_port"`
 }
 
 type Node struct {
