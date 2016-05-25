@@ -48,13 +48,15 @@ func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetail
 
 func (bkr *Broker) initClusterStateFromRecreationData(recreationData *structs.ClusterRecreationData) structs.ClusterState {
 	return structs.ClusterState{
-		InstanceID:       recreationData.InstanceID,
-		ServiceID:        recreationData.ServiceID,
-		PlanID:           recreationData.PlanID,
-		OrganizationGUID: recreationData.OrganizationGUID,
-		SpaceGUID:        recreationData.SpaceGUID,
-		AdminCredentials: recreationData.AdminCredentials,
-		AllocatedPort:    recreationData.AllocatedPort,
+		InstanceID:           recreationData.InstanceID,
+		ServiceID:            recreationData.ServiceID,
+		PlanID:               recreationData.PlanID,
+		OrganizationGUID:     recreationData.OrganizationGUID,
+		SpaceGUID:            recreationData.SpaceGUID,
+		AdminCredentials:     recreationData.AdminCredentials,
+		AppCredentials:       recreationData.AppCredentials,
+		SuperuserCredentials: recreationData.SuperuserCredentials,
+		AllocatedPort:        recreationData.AllocatedPort,
 	}
 }
 
