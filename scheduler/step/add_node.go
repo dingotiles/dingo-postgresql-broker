@@ -1,8 +1,6 @@
 package step
 
 import (
-	"fmt"
-
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
@@ -112,9 +110,7 @@ func sortBackendAZsByUnusedness(usedBackendIDs []string, backends backend.Backen
 		}
 	}
 	vs = utils.NewValSorter(azUsageData)
-	fmt.Printf("usage %#v\n", azUsageData)
 	vs.Sort()
-	fmt.Printf("sorted %#v\n", vs)
 	return
 }
 
