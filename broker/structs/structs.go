@@ -43,17 +43,6 @@ func (c *ClusterState) RecreationData() *ClusterRecreationData {
 	}
 }
 
-type Cluster interface {
-	AllNodes() []*Node
-	AddNode(Node) error
-	RemoveNode(*Node) error
-	MetaData() ClusterData
-}
-
-func (c *ClusterState) AllNodes() []*Node {
-	return c.Nodes
-}
-
 func (c *ClusterState) AddNode(node Node) error {
 	c.Nodes = append(c.Nodes, &node)
 	return nil
@@ -69,20 +58,6 @@ func (c *ClusterState) RemoveNode(node *Node) error {
 	return nil
 }
 
-func (c *ClusterState) MetaData() ClusterData {
-	return ClusterData{
-		InstanceID:           c.InstanceID,
-		ServiceID:            c.ServiceID,
-		PlanID:               c.PlanID,
-		OrganizationGUID:     c.OrganizationGUID,
-		SpaceGUID:            c.SpaceGUID,
-		AdminCredentials:     c.AdminCredentials,
-		SuperuserCredentials: c.SuperuserCredentials,
-		AppCredentials:       c.AppCredentials,
-		AllocatedPort:        c.AllocatedPort,
-	}
-}
-
 type ClusterFeatures struct {
 	NodeCount int `json:"node_count"`
 }
@@ -90,20 +65,6 @@ type ClusterFeatures struct {
 type PostgresCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-// ClusterData describes the current request for the state of the cluster
-type ClusterData struct {
-	InstanceID           string              `json:"instance_id"`
-	ServiceID            string              `json:"service_id"`
-	PlanID               string              `json:"plan_id"`
-	OrganizationGUID     string              `json:"organization_guid"`
-	SpaceGUID            string              `json:"space_guid"`
-	AdminCredentials     PostgresCredentials `json:"admin_credentials"`
-	SuperuserCredentials PostgresCredentials `json:"superuser_credentials"`
-	AppCredentials       PostgresCredentials `json:"app_credentials"`
-	TargetNodeCount      int                 `json:"node_count"`
-	AllocatedPort        int                 `json:"allocated_port"`
 }
 
 type Node struct {

@@ -11,13 +11,13 @@ import (
 
 // RemoveNode instructs cluster to delete a node, starting with replicas
 type RemoveNode struct {
-	cluster  structs.Cluster
+	cluster  *structs.ClusterState
 	backends backend.Backends
 	logger   lager.Logger
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(cluster structs.Cluster, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveNode(cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
 	return RemoveNode{cluster: cluster, backends: backends, logger: logger}
 }
 
@@ -31,7 +31,7 @@ func (step RemoveNode) Perform() (err error) {
 	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master
-	nodes := step.cluster.AllNodes()
+	nodes := step.cluster.Nodes
 	nodeToRemove := randomReplicaNode(nodes)
 
 	backend := step.backends.Get(nodeToRemove.BackendID)
@@ -42,7 +42,7 @@ func (step RemoveNode) Perform() (err error) {
 	}
 
 	logger.Info("remove-node.perform", lager.Data{
-		"instance-id": step.cluster.MetaData().InstanceID,
+		"instance-id": step.cluster.InstanceID,
 		"node-uuid":   nodeToRemove.ID,
 		"backend":     backend.ID,
 	})

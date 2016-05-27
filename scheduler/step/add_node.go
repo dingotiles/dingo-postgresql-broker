@@ -9,13 +9,13 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	cluster  structs.Cluster
+	cluster  *structs.ClusterState
 	backends backend.Backends
 	logger   lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster structs.Cluster, backends backend.Backends, logger lager.Logger) Step {
+func NewStepAddNode(cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
 	return AddNode{cluster: cluster, backends: backends, logger: logger}
 }
 
@@ -27,9 +27,9 @@ func (step AddNode) StepType() string {
 // Perform runs the Step action to modify the Cluster
 func (step AddNode) Perform() (err error) {
 	logger := step.logger
-	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.MetaData().InstanceID})
+	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.InstanceID})
 
-	nodes := step.cluster.AllNodes()
+	nodes := step.cluster.Nodes
 	sortedBackends := prioritizeBackends(nodes, step.backends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
 		"sortedBackends": sortedBackends,
@@ -38,7 +38,7 @@ func (step AddNode) Perform() (err error) {
 	// 4. Send requests to sortedBackends until one says OK; else fail
 	var provisionedNode structs.Node
 	for _, backend := range sortedBackends {
-		provisionedNode, err = backend.ProvisionNode(step.cluster.MetaData(), step.logger)
+		provisionedNode, err = backend.ProvisionNode(step.cluster, step.logger)
 		// nodeID, err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
 			"uri":  backend.URI,

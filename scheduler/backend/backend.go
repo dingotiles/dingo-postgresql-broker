@@ -63,22 +63,22 @@ func (b Backends) Get(backendID string) *Backend {
 	return nil
 }
 
-func (b *Backend) ProvisionNode(clusterData structs.ClusterData, logger lager.Logger) (node structs.Node, err error) {
-	node = structs.Node{ID: uuid.New(), BackendID: b.ID, PlanID: clusterData.PlanID, ServiceID: clusterData.ServiceID}
+func (b *Backend) ProvisionNode(clusterState *structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
+	node = structs.Node{ID: uuid.New(), BackendID: b.ID, PlanID: clusterState.PlanID, ServiceID: clusterState.ServiceID}
 	provisionDetails := brokerapi.ProvisionDetails{
-		OrganizationGUID: clusterData.OrganizationGUID,
-		PlanID:           clusterData.PlanID,
-		ServiceID:        clusterData.ServiceID,
-		SpaceGUID:        clusterData.SpaceGUID,
+		OrganizationGUID: clusterState.OrganizationGUID,
+		PlanID:           clusterState.PlanID,
+		ServiceID:        clusterState.ServiceID,
+		SpaceGUID:        clusterState.SpaceGUID,
 		Parameters: map[string]interface{}{
-			"PATRONI_SCOPE":      clusterData.InstanceID,
+			"PATRONI_SCOPE":      clusterState.InstanceID,
 			"NODE_NAME":          node.ID,
-			"ADMIN_USERNAME":     clusterData.AdminCredentials.Username,
-			"ADMIN_PASSWORD":     clusterData.AdminCredentials.Password,
-			"SUPERUSER_USERNAME": clusterData.SuperuserCredentials.Username,
-			"SUPERUSER_PASSWORD": clusterData.SuperuserCredentials.Password,
-			"APPUSER_USERNAME":   clusterData.AppCredentials.Username,
-			"APPUSER_PASSWORD":   clusterData.AppCredentials.Password,
+			"ADMIN_USERNAME":     clusterState.AdminCredentials.Username,
+			"ADMIN_PASSWORD":     clusterState.AdminCredentials.Password,
+			"SUPERUSER_USERNAME": clusterState.SuperuserCredentials.Username,
+			"SUPERUSER_PASSWORD": clusterState.SuperuserCredentials.Password,
+			"APPUSER_USERNAME":   clusterState.AppCredentials.Username,
+			"APPUSER_PASSWORD":   clusterState.AppCredentials.Password,
 		},
 	}
 
