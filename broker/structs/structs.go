@@ -1,10 +1,5 @@
 package structs
 
-import (
-	"encoding/json"
-	"reflect"
-)
-
 type ClusterRecreationData struct {
 	InstanceID           string              `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
@@ -116,19 +111,4 @@ type Node struct {
 	BackendID string `json:"backend_id"`
 	PlanID    string `json:"plan_id"`
 	ServiceID string `json:"service_id"`
-}
-
-func (data *ClusterData) Equals(other *ClusterData) bool {
-	return reflect.DeepEqual(*data, *other)
-}
-
-func (c *ClusterData) Json() string {
-	data, _ := json.Marshal(c)
-	return (string(data))
-}
-
-func ClusterDataFromJson(jsonString string) *ClusterData {
-	data := ClusterData{}
-	json.Unmarshal([]byte(jsonString), &data)
-	return &data
 }
