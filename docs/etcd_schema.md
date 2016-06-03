@@ -16,7 +16,6 @@ The schema of etcd - as modified and used by the various components, including t
 curl -s ${ETCD_CLUSTER}/v2/keys/ | jq -r ".node.nodes[].key"
 /service
 /postgresql-brokerpatroni
-/serviceinstances
 /routing
 ```
 
@@ -39,7 +38,7 @@ id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members | jq -r ".node.nodes[
 Each of these keys are created by one patroni process running inside a container.
 
 ```
-id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9dc6-b183cbce2238 | jq -r .node.value | jq .
+id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9dc6-b183cbce2238 | jq '.node.value | fromjson'
 {
   "role": "master",
   "state": "running",
@@ -50,6 +49,45 @@ id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9d
 ```
 
 Note that the `jq -r .node.value` is passed again into `jq .`. This is because patroni stores its information as a JSON object.
+
+`/service/$id/state` is where the broker keeps track of the current state of the cluster in regards to node placement and meta data.
+id=f1; curl -s ${ETCD_CLUSTER}/v2/keys/service/$id/members/f16bc34d-c3de-4843-9dc6-b183cbce2238 | jq '.node.value | fromjson'
+{
+  "instance_id": "c45ecc24-aa5d-49cd-9b36-2027e60b7d8a",
+  "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+  "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+  "organization_guid": "06986bcb-aac7-4cbc-900c-4591f9a6ea11",
+  "space_guid": "370de1f6-4c58-4bc4-9e5f-4ac452f5180e",
+  "admin_credentials": {
+    "username": "pgadmin",
+    "password": "kXxZntDJT4vzSJDY"
+  },
+  "superuser_credentials": {
+    "username": "postgres",
+    "password": "P7oAD684nL3uD4Q2"
+  },
+  "app_credentials": {
+    "username": "appuser",
+    "password": "rug4iXK4J0ecwsnD"
+  },
+  "allocated_port": 30006,
+  "nodes": [
+    {
+      "node_id": "7398f0c6-a2ec-497b-9b60-f75e4e55d7e0",
+      "backend_id": "10.244.21.7",
+      "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+      "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d"
+    },
+    {
+      "node_id": "3ea85fea-fdac-495a-a739-ba719e33354d",
+      "backend_id": "10.244.22.2",
+      "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+      "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d"
+    }
+  ]
+}
+```
+
 
 ### `/postgresql-brokerpatroni`
 
@@ -105,26 +143,3 @@ The value of `/routing/nextport` is the next available public port to be assigne
 NOTE: the `/routing` section of data is the only "permanent" data in the KV store. The allocation of a public port to each service instance represents the "contract" made with the end user. We cannot change the public port; but we can change where each service instance node/container is run etc.
 
 ### `/serviceinstance`
-
-This `dingo-postgresql-broker` documents the assignment of each container/node in a cluster to a backend broker/cell.
-
-```
-curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/ | jq -r ".node.nodes[].key"
-f1
-```
-
-```
-curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/f1/nodes/ | jq -r ".node.nodes[].key"
-/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc6-b183cbce2238
-/serviceinstances/f1/nodes/c65d2e1a-eb6b-401e-ac9b-195f8f942d26
-```
-
-```
-curl -s ${ETCD_CLUSTER}/v2/keys/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc6-b183cbce2238 | jq -r ".node.nodes[]"
-{
-  "key": "/serviceinstances/f1/nodes/f16bc34d-c3de-4843-9dc6-b183cbce2238/backend",
-  "value": "10.244.21.8",
-  "modifiedIndex": 39064,
-  "createdIndex": 39064
-}
-```
