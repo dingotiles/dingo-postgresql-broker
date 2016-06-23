@@ -121,43 +121,12 @@ func (s *etcdState) LoadCluster(instanceID string) (structs.ClusterState, error)
 func (s *etcdState) DeleteCluster(instanceID string) error {
 	ctx := context.Background()
 	s.logger.Info("state.delete-cluster-state")
-	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
-	planKey := fmt.Sprintf("%s/service/%s/plan_id", s.prefix, instanceID)
+	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)
 
-	var lastError error
-	_, err := s.etcdApi.Delete(ctx, key, &etcd.DeleteOptions{})
+	_, err := s.etcdApi.Delete(ctx, key, &etcd.DeleteOptions{Recursive: true})
 	if err != nil {
 		s.logger.Error("state.delete-cluster-state", err)
-		lastError = err
-	}
-	_, err = s.etcdApi.Delete(ctx, planKey, &etcd.DeleteOptions{})
-	if err != nil {
-		s.logger.Error("state.delete-cluster-state", err)
-		lastError = err
 	}
 
-	err = s.deletePatroniState(ctx, instanceID)
-	if err != nil {
-		s.logger.Error("cluster.delete-patroni-state", err)
-	}
-
-	return lastError
-}
-
-func (s *etcdState) deletePatroniState(ctx context.Context, instanceID string) error {
-	var lastError, err error
-	// clear out etcd data that would eventually timeout; to allow immediate recreation if required by user
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/members", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
-	if err != nil {
-		lastError = err
-	}
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/optime", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
-	if err != nil {
-		lastError = err
-	}
-	_, err = s.etcdApi.Delete(ctx, fmt.Sprintf("%s/service/%s/leader", s.prefix, instanceID), &etcd.DeleteOptions{Recursive: true})
-	if err != nil {
-		lastError = err
-	}
-	return lastError
+	return err
 }
