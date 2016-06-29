@@ -85,10 +85,5 @@ func (bkr *Broker) assertProvisionPrecondition(instanceID string, details broker
 		return fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	canProvision := bkr.licenseCheck.CanProvision(details.ServiceID, details.PlanID)
-	if !canProvision {
-		return fmt.Errorf("Quota for new service instances has been reached. Please contact Dingo Tiles to increase quota.")
-	}
-
 	return nil
 }

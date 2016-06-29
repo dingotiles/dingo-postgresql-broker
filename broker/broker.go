@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/licensecheck"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -16,15 +15,14 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
-	config       config.Broker
-	catalog      brokerapi.Catalog
-	etcdConfig   config.Etcd
-	router       *routing.Router
-	licenseCheck *licensecheck.LicenseCheck
-	logger       lager.Logger
-	scheduler    *scheduler.Scheduler
-	state        state.State
-	callbacks    *Callbacks
+	config     config.Broker
+	catalog    brokerapi.Catalog
+	etcdConfig config.Etcd
+	router     *routing.Router
+	logger     lager.Logger
+	scheduler  *scheduler.Scheduler
+	state      state.State
+	callbacks  *Callbacks
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -50,13 +48,6 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		bkr.logger.Error("new-broker.new-router.error", err)
 		return nil, err
 	}
-
-	bkr.licenseCheck, err = licensecheck.NewLicenseCheck(config, bkr.logger)
-	if err != nil {
-		bkr.logger.Error("new-broker.new-license-check.error", err)
-		return nil, err
-	}
-	bkr.licenseCheck.DisplayQuotaStatus()
 
 	return bkr, nil
 }

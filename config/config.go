@@ -12,13 +12,11 @@ import (
 
 // Config is the brokers configuration
 type Config struct {
-	Broker         Broker            `yaml:"broker"`
-	Scheduler      Scheduler         `yaml:"scheduler"`
-	Etcd           Etcd              `yaml:"etcd"`
-	Callbacks      Callbacks         `yaml:"callbacks"`
-	Catalog        brokerapi.Catalog `yaml:"catalog"`
-	LicenseText    string            `yaml:"license_text"`
-	LicenseDetails *LicenseDetails
+	Broker    Broker            `yaml:"broker"`
+	Scheduler Scheduler         `yaml:"scheduler"`
+	Etcd      Etcd              `yaml:"etcd"`
+	Callbacks Callbacks         `yaml:"callbacks"`
+	Catalog   brokerapi.Catalog `yaml:"catalog"`
 }
 
 func (cfg *Config) SupportsClusterDataBackup() bool {
@@ -92,14 +90,6 @@ func LoadConfig(path string) (cfg *Config, err error) {
 		if !match || err != nil {
 			backend.URI = fmt.Sprintf("http://%s", backend.URI)
 		}
-	}
-
-	cfg.LicenseDetails, err = NewLicenseDetailsFromLicenseText(cfg.LicenseText)
-	if err != nil {
-		fmt.Println(err)
-		err = nil // its not that bad of an error at this stage
-	} else {
-		fmt.Printf("License decoded for %s, plans %#v\n", cfg.LicenseDetails.CompanyName, cfg.LicenseDetails.Plans)
 	}
 
 	return
