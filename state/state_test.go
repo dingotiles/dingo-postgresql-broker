@@ -72,15 +72,6 @@ func TestState_SaveCluster(t *testing.T) {
 	if !reflect.DeepEqual(clusterState, retrievedState) {
 		t.Fatalf("Retrieved State does not match. Want %v, Got %v", clusterState, retrievedState)
 	}
-
-	resp, err = etcdApi.Get(context.Background(), fmt.Sprintf("%s/service/%s/plan_id", testPrefix, clusterID), &etcd.GetOptions{})
-	if err != nil {
-		t.Fatalf("Could note get plan_id from etcd%s", err)
-	}
-
-	if want, got := planID, resp.Node.Value; want != got {
-		t.Fatalf("PlanID did not match. Want %s, got %s", want, got)
-	}
 }
 
 func TestState_ClusterExists(t *testing.T) {

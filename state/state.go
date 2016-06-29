@@ -76,13 +76,6 @@ func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
 		return err
 	}
 
-	planKey := fmt.Sprintf("%s/service/%s/plan_id", s.prefix, clusterState.InstanceID)
-	_, err = s.etcdApi.Set(ctx, planKey, clusterState.PlanID, &etcd.SetOptions{})
-	if err != nil {
-		s.logger.Error("save-cluster.set-plan-id.error", err)
-		return err
-	}
-
 	return nil
 }
 
