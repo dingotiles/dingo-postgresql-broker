@@ -11,6 +11,13 @@ go run main.go service-status
 go run main.go show-cells
 ```
 
+Run Tests
+--------
+
+```
+make test
+```
+
 Playing
 -------
 
