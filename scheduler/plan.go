@@ -21,14 +21,18 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(cluster *structs.ClusterState, features structs.ClusterFeatures) plan {
+func (s *Scheduler) newPlan(cluster *structs.ClusterState, features structs.ClusterFeatures) (plan, error) {
+	backends, err := s.filterBackendsByCellGUIDs(features.CellGUIDsForNewNodes)
+	if err != nil {
+		return plan{}, err
+	}
 	return plan{
 		clusterState: cluster,
 		newFeatures:  features,
-		backends:     s.backends,
+		backends:     backends,
 		logger:       s.logger,
 		newNodeSize:  defaultNodeSize,
-	}
+	}, nil
 }
 
 // stepTypes is the ordered sequence of workflow step types to orchestrate a service instance change

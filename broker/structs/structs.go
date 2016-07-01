@@ -59,7 +59,8 @@ func (c *ClusterState) RemoveNode(node *Node) error {
 }
 
 type ClusterFeatures struct {
-	NodeCount int `json:"node_count"`
+	NodeCount            int      `json:"node_count"`
+	CellGUIDsForNewNodes []string `json:"cell_guids"`
 }
 
 type PostgresCredentials struct {

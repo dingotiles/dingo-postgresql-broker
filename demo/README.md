@@ -26,7 +26,6 @@ The incoming STDIN JSON looks like:
     "passed-in": "by-user",
   },
   "node_count": 1,
-  "node_size": 20,
   "allocated_port": "33004"
 }
 ```
