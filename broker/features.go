@@ -5,6 +5,8 @@ import (
 	"github.com/frodenas/brokerapi"
 )
 
+const defaultNodeCount = 2
+
 func (bkr *Broker) clusterFeaturesFromProvisionDetails(details brokerapi.ProvisionDetails) structs.ClusterFeatures {
 	targetNodeCount := defaultNodeCount
 	if rawNodeCount := details.Parameters["node-count"]; rawNodeCount != nil {

@@ -9,8 +9,6 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-const defaultNodeCount = 2
-
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	if details.ServiceID == "" && details.PlanID == "" {
