@@ -39,7 +39,6 @@ func (step AddNode) Perform() (err error) {
 	var provisionedNode structs.Node
 	for _, backend := range sortedBackends {
 		provisionedNode, err = backend.ProvisionNode(step.cluster, step.logger)
-		// nodeID, err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
 			"uri":  backend.URI,
 			"guid": backend.ID,
