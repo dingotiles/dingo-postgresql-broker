@@ -37,7 +37,7 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 func TestScheduler_allBackends(t *testing.T) {
 	t.Parallel()
 
-	testPrefix := "TestScheduler_filterBackendsByCellGUIDs"
+	testPrefix := "TestScheduler_allBackends"
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	config := config.Scheduler{
