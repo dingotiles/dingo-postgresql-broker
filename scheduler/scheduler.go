@@ -90,7 +90,7 @@ func (s *Scheduler) filterBackendsByCellGUIDs(cellGUIDs []string) (backend.Backe
 			}
 		}
 		if len(filteredBackends) == 0 {
-			return filteredBackends, fmt.Errorf("Cell GUIDs do not match available cells")
+			return filteredBackends, fmt.Errorf("Scheduler: Cell GUIDs do not match available cells")
 		}
 		return filteredBackends, nil
 	} else {
