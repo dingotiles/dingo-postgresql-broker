@@ -84,5 +84,5 @@ func (bkr *Broker) newLoggingSession(action string, data lager.Data) lager.Logge
 }
 
 func (bkr *Broker) Cells() backend.Backends {
-	return bkr.Cells()
+	return bkr.scheduler.Backends
 }
