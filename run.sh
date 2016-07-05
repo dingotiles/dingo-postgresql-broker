@@ -1,5 +1,5 @@
 #!/bin/bash
 
-export PATRONI_BROKER_CONFIG=demo/bosh-lite.yml
+export PATRONI_BROKER_CONFIG=demo/bosh-lite.example.yml
 
 go run main.go broker
