@@ -73,7 +73,8 @@ func (s *Scheduler) initBackends(config []*config.Backend) backend.Backends {
 	return backends
 }
 
-func (s *Scheduler) filterBackendsByCellGUIDs(cellGUIDs []string) (backend.Backends, error) {
+// FilterCellsByGUIDs returns all backend cells; or the subset filtered by cellGUIDS; or an error
+func (s *Scheduler) FilterCellsByGUIDs(cellGUIDs []string) (backend.Backends, error) {
 	if len(cellGUIDs) > 0 {
 		var filteredBackends []*backend.Backend
 		for _, cellGUID := range cellGUIDs {
