@@ -1,4 +1,4 @@
-package adminapi
+package broker
 
 import (
 	"encoding/json"
@@ -10,9 +10,10 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-func New(serviceBroker brokerapi.ServiceBroker, logger lager.Logger, brokerCredentials brokerapi.BrokerCredentials) http.Handler {
+func NewAdminAPI(serviceBroker *Broker, logger lager.Logger, brokerCredentials brokerapi.BrokerCredentials) http.Handler {
 	router := newHTTPRouter()
 
+	router.Get("/admin/cells", cells(serviceBroker, router, logger))
 	router.Get("/admin/hello/{person}", hello(serviceBroker, router, logger))
 	return wrapAuth(router, brokerCredentials)
 }
@@ -29,7 +30,13 @@ func respond(w http.ResponseWriter, status int, response interface{}) {
 	encoder.Encode(response)
 }
 
-func hello(serviceBroker brokerapi.ServiceBroker, router httpRouter, logger lager.Logger) http.HandlerFunc {
+func cells(serviceBroker *Broker, router httpRouter, logger lager.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		respond(w, http.StatusOK, serviceBroker.Cells())
+	}
+}
+
+func hello(serviceBroker *Broker, router httpRouter, logger lager.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := router.Vars(req)
 		person := vars["person"]

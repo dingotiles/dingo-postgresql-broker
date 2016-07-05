@@ -15,10 +15,10 @@ import (
 )
 
 type Backend struct {
-	ID               string
-	URI              string
-	Config           *config.Backend
-	AvailabilityZone string
+	ID               string          `json:"guid"`
+	URI              string          `json:"uri"`
+	Config           *config.Backend `json:"config"`
+	AvailabilityZone string          `json:"az"`
 }
 
 type Backends []*Backend

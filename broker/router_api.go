@@ -1,4 +1,4 @@
-package adminapi
+package broker
 
 import (
 	"net/http"
