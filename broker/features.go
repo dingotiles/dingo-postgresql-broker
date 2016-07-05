@@ -8,6 +8,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+const (
+	defaultNodeCount = 2
+)
+
 func (bkr *Broker) clusterFeaturesFromProvisionDetails(details brokerapi.ProvisionDetails) (features structs.ClusterFeatures, err error) {
 	return bkr.clusterFeaturesFromParameters(details.Parameters)
 }
@@ -21,8 +25,12 @@ func (bkr *Broker) clusterFeaturesFromParameters(params map[string]interface{}) 
 	if err != nil {
 		return
 	}
-	if features.NodeCount < 2 {
-		features.NodeCount = 2
+	if features.NodeCount == 0 {
+		features.NodeCount = defaultNodeCount
+	}
+	if features.NodeCount < 0 {
+		err = fmt.Errorf("Broker: node-count (%d) must be a positive number", features.NodeCount)
+		return
 	}
 
 	err = bkr.verifyClusterFeatures(features)
