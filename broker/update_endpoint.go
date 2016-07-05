@@ -23,23 +23,21 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		return false, err
 	}
 
-	go func() {
-		features, err := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
-		if err != nil {
-			logger.Error("cluster-features", err)
-			return
-		}
+	features, err := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
+	if err != nil {
+		logger.Error("cluster-features", err)
+		return false, err
+	}
 
+	go func() {
 		schedulerCluster, err := bkr.scheduler.RunCluster(cluster, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
-			return
 		}
 
 		err = bkr.state.SaveCluster(schedulerCluster)
 		if err != nil {
 			logger.Error("assign-port", err)
-			return
 		}
 	}()
 	return true, err

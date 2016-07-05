@@ -35,29 +35,27 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		}
 	}
 
-	go func() {
-		features, err := bkr.clusterFeaturesFromProvisionDetails(details)
-		if err != nil {
-			logger.Error("cluster-features", err)
-			return
-		}
+	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
+	if err != nil {
+		logger.Error("cluster-features", err)
+		return resp, false, err
+	}
 
+	// Continue processing in background
+	go func() {
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
-			return
 		}
 
 		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, port)
 		if err != nil {
 			logger.Error("assign-port", err)
-			return
 		}
 
 		err = bkr.state.SaveCluster(scheduledCluster)
 		if err != nil {
 			logger.Error("assign-port", err)
-			return
 		}
 	}()
 	return resp, true, err
