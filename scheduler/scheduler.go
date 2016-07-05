@@ -32,8 +32,8 @@ func (s *Scheduler) RunCluster(cluster structs.ClusterState, features structs.Cl
 	}
 
 	s.logger.Info("scheduler.run-cluster", lager.Data{
-		"plan":        plan,
 		"steps-count": len(plan.steps()),
+		"features":    features,
 	})
 	for _, step := range plan.steps() {
 		err := step.Perform()

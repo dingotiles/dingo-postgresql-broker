@@ -24,7 +24,11 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	}
 
 	go func() {
-		features := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
+		features, err := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
+		if err != nil {
+			logger.Error("cluster-features", err)
+		}
+
 		schedulerCluster, err := bkr.scheduler.RunCluster(cluster, features)
 		if err != nil {
 			logger.Error("run-cluster", err)

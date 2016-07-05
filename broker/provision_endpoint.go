@@ -36,7 +36,11 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	}
 
 	go func() {
-		features := bkr.clusterFeaturesFromProvisionDetails(details)
+		features, err := bkr.clusterFeaturesFromProvisionDetails(details)
+		if err != nil {
+			logger.Error("cluster-features", err)
+		}
+
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
