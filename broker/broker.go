@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/adminapi"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
@@ -61,7 +62,11 @@ func (bkr *Broker) Run() {
 	port := bkr.config.Port
 
 	brokerAPI := brokerapi.New(bkr, bkr.logger, credentials)
-	http.Handle("/", brokerAPI)
+	http.Handle("/v2/", brokerAPI)
+
+	adminAPI := adminapi.New(bkr, bkr.logger, credentials)
+	http.Handle("/admin/", adminAPI)
+
 	bkr.logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
 }
 
