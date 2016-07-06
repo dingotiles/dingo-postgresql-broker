@@ -35,7 +35,7 @@ func (step AddNode) Perform() (err error) {
 
 	nodes := step.cluster.Nodes
 	sortedBackends := prioritizeBackends(nodes, step.availableBackends)
-	logger.Info("add-node.perform.sortedBackends", lager.Data{
+	logger.Info("add-node.perform.sorted-backends", lager.Data{
 		"sortedBackends": sortedBackends,
 	})
 
@@ -49,15 +49,15 @@ func (step AddNode) Perform() (err error) {
 			"az":   backend.AvailabilityZone,
 		}
 		if err == nil {
-			logger.Info("add-node.perform.sortedBackends.selected", logBackend)
+			logger.Info("add-node.perform.sorted-backends.selected", logBackend)
 			break
 		} else {
-			logger.Error("add-node.perform.sortedBackends.skipped", err, logBackend)
+			logger.Error("add-node.perform.sorted-backends.skipped", err, logBackend)
 		}
 	}
 	if err != nil {
 		// no sortedBackends available to run a cluster
-		logger.Info("add-node.perform.sortedBackends.unavailable", lager.Data{"summary": "no backends available to run a container"})
+		logger.Info("add-node.perform.sorted-backends.unavailable", lager.Data{"summary": "no backends available to run a container"})
 		return err
 	}
 	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid
