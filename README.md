@@ -32,7 +32,7 @@ export BROKER_URI=http://starkandwayne:starkandwayne@localhost:3000
 For a bosh-lite deployment of [dingo-postgresql-release](https://github.com/dingotiles/dingo-postgresql-release) it is:
 
 ```
-export BROKER_URI=http://starkandwayne:starkandwayne@10.244.21.4:8888
+export BROKER_URI=http://starkandwayne:starkandwayne@10.244.21.2:8889
 ```
 
 To create a service instance use `-XPUT` to hit the `broker.Provision` behavior:
