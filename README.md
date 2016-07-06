@@ -109,3 +109,27 @@ To recreate the `b1` cluster above:
 export id=b1
 curl -v -XPUT ${BROKER_URI}/v2/service_instances/$id -d "{}"
 ```
+
+### Discover available cells
+
+```
+curl ${BROKER_URI}/admin/cells"
+```
+
+This will return JSON that looks like:
+
+```
+[{"guid":"10.244.21.7","uri":"http://10.244.21.7","config":{"GUID":"10.244.21.7","AvailabilityZone":"z1","URI":"http://10.244.21.7","Username":"containers","Password":"containers"},"az":"z1"},{"guid":"10.244.22.2","uri":"http://10.244.22.2","config":{"GUID":"10.244.22.2","AvailabilityZone":"z2","URI":"http://10.244.22.2","Username":"containers","Password":"containers"},"az":"z2"}]
+```
+
+### Create cluster into specific cells
+
+By default, `cf create-service` will allocate containers/nodes of the cluster to cells/vms from its internal scheduling algorithm. If a new cluster needs to be created into specific cells/vms, then this is possible by passing parameters and using the `/admin/cells` information from above.
+
+If you want a two-node cluster to be created into cells with GUIDs "10.244.22.2" and "10.244.21.7", then provide `cell-guids` to the `create-service` command:
+
+```
+cf create-service dingo-postgresql cluster good-cells -c '{"cell-guids": ["10.244.22.2", "10.244.21.7"], "node-count": 2}'
+```
+
+The same parameters can be used if growing a cluster with `cf update-service`.
