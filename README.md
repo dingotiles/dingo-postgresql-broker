@@ -110,6 +110,53 @@ export id=b1
 curl -v -XPUT ${BROKER_URI}/v2/service_instances/$id -d "{}"
 ```
 
+### Lookup internal cluster state
+
+```
+curl ${BROKER_URI}/admin/service_instances/05b0d96f-4bd6-4fd1-946c-f6f2fa2a00e4
+```
+
+The output will look similar to:
+
+```
+{
+  "instance_id": "05b0d96f-4bd6-4fd1-946c-f6f2fa2a00e4",
+  "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+  "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+  "organization_guid": "de07f7f6-fc1e-45fa-b7be-58ee716d3b3d",
+  "space_guid": "33ff71ad-f6d5-4c3c-ac33-440dc6aa4c40",
+  "admin_credentials": {
+    "username": "pgadmin",
+    "password": "xAzGVeEjsNaVCY9r"
+  },
+  "superuser_credentials": {
+    "username": "postgres",
+    "password": "ayfUijPa1JtN3GIW"
+  },
+  "app_credentials": {
+    "username": "appuser",
+    "password": "spZrDBLBj18W5nS0"
+  },
+  "allocated_port": 30005,
+  "nodes": [
+    {
+      "node_id": "faed6a46-8f70-4ff9-aeba-a82a08c89574",
+      "backend_id": "10.244.21.8",
+      "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+      "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+      "role": "ReplicaRole"
+    },
+    {
+      "node_id": "5d584edd-e5d6-4578-87f5-49089f212b1b",
+      "backend_id": "10.244.22.3",
+      "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+      "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+      "role": "LeaderRole"
+    }
+  ]
+}
+```
+
 ### Discover available cells
 
 ```
