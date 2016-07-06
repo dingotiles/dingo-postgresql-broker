@@ -42,8 +42,12 @@ func (bkr *Broker) verifyClusterFeatures(features structs.ClusterFeatures) (err 
 	if err != nil {
 		return
 	}
-	if features.NodeCount < len(availableCells) {
-		err = fmt.Errorf("Broker: Not enough Cell GUIDs (%v) for cluster of %d nodes", availableCells, features.NodeCount)
+	if features.NodeCount > len(availableCells) {
+		availableCellGUIDs := make([]string, len(availableCells))
+		for i, cell := range availableCells {
+			availableCellGUIDs[i] = cell.ID
+		}
+		err = fmt.Errorf("Broker: Not enough Cell GUIDs (%v) for cluster of %d nodes", availableCellGUIDs, features.NodeCount)
 	}
 	return
 }

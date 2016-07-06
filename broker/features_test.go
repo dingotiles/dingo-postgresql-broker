@@ -13,10 +13,15 @@ import (
 func TestFeatures_FromProvisionDetails_Default(t *testing.T) {
 	t.Parallel()
 
-	testPrefix := "TestFeatures_FromProvisionDetails"
+	testPrefix := "TestFeatures_FromProvisionDetails_Default"
 	logger := testutil.NewTestLogger(testPrefix, t)
 	scheduler := scheduler.NewScheduler(config.Scheduler{
-		Backends: []*config.Backend{},
+		Backends: []*config.Backend{
+			&config.Backend{GUID: "a"},
+			&config.Backend{GUID: "b"},
+			&config.Backend{GUID: "c"},
+			&config.Backend{GUID: "d"},
+		},
 	}, logger)
 	bkr := &Broker{logger: logger, scheduler: scheduler}
 
