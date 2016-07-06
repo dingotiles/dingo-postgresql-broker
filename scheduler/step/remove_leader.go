@@ -37,12 +37,12 @@ func (step RemoveLeader) Perform() (err error) {
 
 	backend := step.backends.Get(step.nodeToRemove.BackendID)
 	if backend == nil {
-		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists")
-		logger.Error("remove-node.perform", err)
+		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", step.nodeToRemove.BackendID)
+		logger.Error("remove-leader.perform", err)
 		return
 	}
 
-	logger.Info("remove-node.perform", lager.Data{
+	logger.Info("remove-leader.perform", lager.Data{
 		"instance-id": step.cluster.InstanceID,
 		"node-uuid":   step.nodeToRemove.ID,
 		"backend":     backend.ID,
@@ -55,7 +55,7 @@ func (step RemoveLeader) Perform() (err error) {
 
 	err = step.cluster.RemoveNode(step.nodeToRemove)
 	if err != nil {
-		logger.Error("remove-node.nodes-delete", err)
+		logger.Error("remove-leader.nodes-delete", err)
 	}
 	return
 }

@@ -37,7 +37,7 @@ func (step RemoveNode) Perform() (err error) {
 
 	backend := step.backends.Get(step.nodeToRemove.BackendID)
 	if backend == nil {
-		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists")
+		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", step.nodeToRemove.BackendID)
 		logger.Error("remove-node.perform", err)
 		return
 	}

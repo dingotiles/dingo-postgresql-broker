@@ -29,8 +29,11 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
 
-	if len(plan.backends) != 1 {
+	if len(plan.availableBackends) != 1 {
 		t.Fatalf("Plan should only have one filtered backend")
+	}
+	if len(plan.allBackends) != 2 {
+		t.Fatalf("Plan should only have two backends")
 	}
 }
 
@@ -53,7 +56,10 @@ func TestScheduler_allBackends(t *testing.T) {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
 
-	if len(plan.backends) != 2 {
+	if len(plan.availableBackends) != 2 {
 		t.Fatalf("Plan should have both backend cells")
+	}
+	if len(plan.allBackends) != 2 {
+		t.Fatalf("Plan should only have two backends")
 	}
 }

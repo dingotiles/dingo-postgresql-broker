@@ -14,11 +14,12 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
-	clusterState *structs.ClusterState
-	newFeatures  structs.ClusterFeatures
-	backends     backend.Backends
-	newNodeSize  int
-	logger       lager.Logger
+	clusterState      *structs.ClusterState
+	newFeatures       structs.ClusterFeatures
+	availableBackends backend.Backends
+	allBackends       backend.Backends
+	newNodeSize       int
+	logger            lager.Logger
 }
 
 // Newp.est creates a p.est to change a service instance
@@ -28,11 +29,12 @@ func (s *Scheduler) newPlan(cluster *structs.ClusterState, features structs.Clus
 		return plan{}, err
 	}
 	return plan{
-		clusterState: cluster,
-		newFeatures:  features,
-		backends:     backends,
-		logger:       s.logger,
-		newNodeSize:  defaultNodeSize,
+		clusterState:      cluster,
+		newFeatures:       features,
+		availableBackends: backends,
+		allBackends:       s.Backends,
+		logger:            s.logger,
+		newNodeSize:       defaultNodeSize,
 	}, nil
 }
 
@@ -49,24 +51,24 @@ func (p plan) stepTypes() []string {
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (p plan) steps() (steps []step.Step) {
 	for i := 0; i < p.clusterGrowingBy(); i++ {
-		steps = append(steps, step.NewStepAddNode(p.clusterState, p.backends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterState, p.availableBackends, p.logger))
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
-		steps = append(steps, step.NewStepAddNode(p.clusterState, p.backends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterState, p.availableBackends, p.logger))
 	}
 
 	for _, replica := range p.replicas(nodesToBeReplaced) {
-		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterState, p.backends, p.logger))
+		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterState, p.allBackends, p.logger))
 	}
 
 	if leader := p.leader(nodesToBeReplaced); leader != nil {
-		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterState, p.backends, p.logger))
+		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterState, p.allBackends, p.logger))
 	}
 
 	for i := 0; i < p.clusterShrinkingBy(); i++ {
-		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterState, p.backends, p.logger))
+		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterState, p.allBackends, p.logger))
 	}
 
 	return
@@ -99,7 +101,7 @@ func (p plan) clusterShrinkingBy() int {
 func (p plan) nodesToBeReplaced() (nodes []*structs.Node) {
 	for _, node := range p.clusterState.Nodes {
 		validBackend := false
-		for _, backend := range p.backends {
+		for _, backend := range p.availableBackends {
 			if node.BackendID == backend.ID {
 				validBackend = true
 				break

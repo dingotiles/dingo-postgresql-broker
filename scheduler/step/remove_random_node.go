@@ -36,12 +36,12 @@ func (step RemoveRandomNode) Perform() (err error) {
 
 	backend := step.backends.Get(nodeToRemove.BackendID)
 	if backend == nil {
-		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists")
-		logger.Error("remove-node.perform", err)
+		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", nodeToRemove.BackendID)
+		logger.Error("remove-random-node.perform", err)
 		return
 	}
 
-	logger.Info("remove-node.perform", lager.Data{
+	logger.Info("remove-random-node.perform", lager.Data{
 		"instance-id": step.cluster.InstanceID,
 		"node-uuid":   nodeToRemove.ID,
 		"backend":     backend.ID,
@@ -54,7 +54,7 @@ func (step RemoveRandomNode) Perform() (err error) {
 
 	err = step.cluster.RemoveNode(nodeToRemove)
 	if err != nil {
-		logger.Error("remove-node.nodes-delete", err)
+		logger.Error("remove-random-node.nodes-delete", err)
 	}
 	return
 }

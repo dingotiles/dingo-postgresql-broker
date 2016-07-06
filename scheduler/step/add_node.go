@@ -9,14 +9,18 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	cluster  *structs.ClusterState
-	backends backend.Backends
-	logger   lager.Logger
+	cluster           *structs.ClusterState
+	availableBackends backend.Backends
+	logger            lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
-	return AddNode{cluster: cluster, backends: backends, logger: logger}
+func NewStepAddNode(cluster *structs.ClusterState, availableBackends backend.Backends, logger lager.Logger) Step {
+	return AddNode{
+		cluster:           cluster,
+		availableBackends: availableBackends,
+		logger:            logger,
+	}
 }
 
 // StepType prints the type of step
@@ -30,7 +34,7 @@ func (step AddNode) Perform() (err error) {
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.InstanceID})
 
 	nodes := step.cluster.Nodes
-	sortedBackends := prioritizeBackends(nodes, step.backends)
+	sortedBackends := prioritizeBackends(nodes, step.availableBackends)
 	logger.Info("add-node.perform.sortedBackends", lager.Data{
 		"sortedBackends": sortedBackends,
 	})
