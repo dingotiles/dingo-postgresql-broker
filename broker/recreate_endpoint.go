@@ -8,13 +8,19 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-// Provision a new service instance
+// Recreate service instance; invoked via Provision endpoint
 func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	logger := bkr.newLoggingSession("recreate", lager.Data{})
 	defer logger.Info("stop")
 
 	if err = bkr.assertRecreatePrecondition(instanceID); err != nil {
 		logger.Error("preconditions.error", err)
+		return resp, false, err
+	}
+
+	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
+	if err != nil {
+		logger.Error("cluster-features", err)
 		return resp, false, err
 	}
 
@@ -25,12 +31,8 @@ func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetail
 	}
 
 	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
-	go func() {
-		features, err := bkr.clusterFeaturesFromProvisionDetails(details)
-		if err != nil {
-			logger.Error("cluster-features", err)
-		}
 
+	go func() {
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
