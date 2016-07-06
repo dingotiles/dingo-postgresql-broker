@@ -23,6 +23,12 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 		return resp, false, err
 	}
 
+	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
+	if err != nil {
+		logger.Error("cluster-features", err)
+		return resp, false, err
+	}
+
 	port, err := bkr.router.AllocatePort()
 	clusterState := bkr.initCluster(instanceID, port, details)
 
@@ -33,12 +39,6 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 			logger.Error("recreation-data.failure", err)
 			return resp, false, err
 		}
-	}
-
-	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
-	if err != nil {
-		logger.Error("cluster-features", err)
-		return resp, false, err
 	}
 
 	// Continue processing in background

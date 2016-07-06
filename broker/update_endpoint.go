@@ -17,15 +17,15 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 		return false, err
 	}
 
-	cluster, err := bkr.state.LoadCluster(instanceID)
-	if err != nil {
-		logger.Error("load-cluster.error", err)
-		return false, err
-	}
-
 	features, err := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
 	if err != nil {
 		logger.Error("cluster-features", err)
+		return false, err
+	}
+
+	cluster, err := bkr.state.LoadCluster(instanceID)
+	if err != nil {
+		logger.Error("load-cluster.error", err)
 		return false, err
 	}
 
