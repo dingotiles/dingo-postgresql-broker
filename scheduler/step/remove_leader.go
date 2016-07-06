@@ -8,17 +8,17 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-// RemoveNode instructs cluster to delete a node, starting with replicas
-type RemoveNode struct {
+// RemoveLeader instructs cluster to delete a node, starting with replicas
+type RemoveLeader struct {
 	nodeToRemove *structs.Node
 	cluster      *structs.ClusterState
 	backends     backend.Backends
 	logger       lager.Logger
 }
 
-// NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(nodeToRemove *structs.Node, cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
-	return RemoveNode{
+// NewStepRemoveLeader creates a StepRemoveLeader command
+func NewStepRemoveLeader(nodeToRemove *structs.Node, cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
+	return RemoveLeader{
 		nodeToRemove: nodeToRemove,
 		cluster:      cluster,
 		backends:     backends,
@@ -27,12 +27,12 @@ func NewStepRemoveNode(nodeToRemove *structs.Node, cluster *structs.ClusterState
 }
 
 // StepType prints the type of step
-func (step RemoveNode) StepType() string {
-	return fmt.Sprintf("RemoveNode(%s)", step.nodeToRemove.ID)
+func (step RemoveLeader) StepType() string {
+	return fmt.Sprintf("RemoveLeader(%s)", step.nodeToRemove.ID)
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step RemoveNode) Perform() (err error) {
+func (step RemoveLeader) Perform() (err error) {
 	logger := step.logger
 
 	backend := step.backends.Get(step.nodeToRemove.BackendID)

@@ -28,8 +28,8 @@ func TestFeatures_FromProvisionDetails_Default(t *testing.T) {
 	if features.NodeCount != 2 {
 		t.Fatalf("features.NodeCount should be 2 by default")
 	}
-	if len(features.CellGUIDsForNewNodes) != 0 {
-		t.Fatalf("features.CellGUIDsForNewNodes should be empty by default")
+	if len(features.CellGUIDs) != 0 {
+		t.Fatalf("features.CellGUIDs should be empty by default")
 	}
 }
 
@@ -63,8 +63,8 @@ func TestFeatures_FromProvisionDetails_Overrides(t *testing.T) {
 	if features.NodeCount != 3 {
 		t.Fatalf("features.NodeCount should be 3")
 	}
-	if len(features.CellGUIDsForNewNodes) != 3 {
-		t.Fatalf("Should be 3 items in features.CellGUIDsForNewNodes")
+	if len(features.CellGUIDs) != 3 {
+		t.Fatalf("Should be 3 items in features.CellGUIDs")
 	}
 }
 

@@ -12,6 +12,11 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+const (
+	LeaderRole  = "LeaderRole"
+	ReplicaRole = "ReplicaRole"
+)
+
 type State interface {
 
 	// ClusterExists returns true if cluster already exists
@@ -89,6 +94,7 @@ func (s *etcdState) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 
 	return api, nil
 }
+
 func (s *etcdState) ClusterExists(instanceID string) bool {
 	ctx := context.Background()
 	s.logger.Info("state.cluster-exists")
@@ -96,6 +102,7 @@ func (s *etcdState) ClusterExists(instanceID string) bool {
 	_, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
 	return err == nil
 }
+
 func (s *etcdState) LoadCluster(instanceID string) (structs.ClusterState, error) {
 	var cluster structs.ClusterState
 	ctx := context.Background()
@@ -108,6 +115,21 @@ func (s *etcdState) LoadCluster(instanceID string) (structs.ClusterState, error)
 		return cluster, err
 	}
 	json.Unmarshal([]byte(resp.Node.Value), &cluster)
+
+	key = fmt.Sprintf("%s/service/%s/leader", s.prefix, instanceID)
+	resp, err = s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
+	if err != nil {
+		s.logger.Error("state.load-cluster-leader.error", err)
+		return cluster, err
+	}
+
+	for _, node := range cluster.Nodes {
+		if node.ID == resp.Node.Value {
+			node.Role = LeaderRole
+		} else {
+			node.Role = ReplicaRole
+		}
+	}
 	return cluster, nil
 }
 

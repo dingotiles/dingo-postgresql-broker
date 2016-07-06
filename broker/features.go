@@ -38,7 +38,7 @@ func (bkr *Broker) clusterFeaturesFromParameters(params map[string]interface{}) 
 }
 
 func (bkr *Broker) verifyClusterFeatures(features structs.ClusterFeatures) (err error) {
-	availableCells, err := bkr.scheduler.FilterCellsByGUIDs(features.CellGUIDsForNewNodes)
+	availableCells, err := bkr.scheduler.FilterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
 		return
 	}

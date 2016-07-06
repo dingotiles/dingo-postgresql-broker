@@ -22,7 +22,7 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 	}
 	scheduler := NewScheduler(config, logger)
 	features := structs.ClusterFeatures{
-		CellGUIDsForNewNodes: []string{"cell-guid1", "unknown-cell-guid"},
+		CellGUIDs: []string{"cell-guid1", "unknown-cell-guid"},
 	}
 	plan, err := scheduler.newPlan(nil, features)
 	if err != nil {
