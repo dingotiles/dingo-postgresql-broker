@@ -12,6 +12,23 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+type Patroni struct {
+	etcd   etcd.KeysAPI
+	logger lager.Logger
+}
+
+func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
+	etcd, err := setupEtcd(etcdConf)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Patroni{
+		etcd:   etcd,
+		logger: logger,
+	}, nil
+}
+
 // ServiceMemberData contains the data advertised by a patroni member
 type ServiceMemberData struct {
 	ConnURL  string `json:"conn_url"`
@@ -22,20 +39,15 @@ type ServiceMemberData struct {
 
 // MemberStatus aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
-func MemberStatus(instanceID string, etcdConf config.Etcd, logger lager.Logger) (statuses string, allRunning bool, err error) {
-	etcdClient, err := setupEtcd(etcdConf)
-	if err != nil {
-		return "", false, err
-	}
-
+func (p *Patroni) MemberStatus(instanceID string) (statuses string, allRunning bool, err error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("/service/%s/members", instanceID)
-	resp, err := etcdClient.Get(ctx, key, &etcd.GetOptions{
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
 		Quorum:    true,
 		Recursive: true,
 	})
 	if err != nil {
-		logger.Error("member-status.etcd-members", err)
+		p.logger.Error("member-status.etcd-members", err)
 		return fmt.Sprintf("patroni member status missing for service instance %s", instanceID), false, err
 	}
 
@@ -46,7 +58,7 @@ func MemberStatus(instanceID string, etcdConf config.Etcd, logger lager.Logger) 
 		memberData := ServiceMemberData{}
 		err := json.Unmarshal([]byte(member.Value), &memberData)
 		if err != nil {
-			logger.Error("member-status.etcd-member", err)
+			p.logger.Error("member-status.etcd-member", err)
 			return fmt.Sprintf("patroni member status corrupt for service instance %s", instanceID), false, err
 		}
 		if memberData.Role == "master" {
@@ -62,6 +74,17 @@ func MemberStatus(instanceID string, etcdConf config.Etcd, logger lager.Logger) 
 		return fmt.Sprintf("master %s; replicas %s", masterStatus, strings.Join(replicasStatus, ", ")), allRunning, nil
 	}
 	return fmt.Sprintf("members %s", strings.Join(replicasStatus, ", ")), allRunning, nil
+}
+
+func (p *Patroni) ClusterLeader(instanceID string) (string, error) {
+	ctx := context.Background()
+	key := fmt.Sprintf("service/%s/leader", instanceID)
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{})
+	if err != nil {
+		p.logger.Error("patroni.cluster-leader.error", err)
+		return "", err
+	}
+	return resp.Node.Value, nil
 }
 
 func setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
