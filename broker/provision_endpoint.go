@@ -18,7 +18,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
+	features, err := structs.ClusterFeaturesFromParameters(details.Parameters)
 	if err != nil {
 		logger.Error("cluster-features", err)
 		return resp, false, err

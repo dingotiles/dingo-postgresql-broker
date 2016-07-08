@@ -1,5 +1,15 @@
 package structs
 
+import (
+	"fmt"
+
+	"github.com/mitchellh/mapstructure"
+)
+
+const (
+	defaultNodeCount = 2
+)
+
 type ClusterRecreationData struct {
 	InstanceID           string              `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
@@ -74,4 +84,20 @@ type Node struct {
 	PlanID    string `json:"plan_id"`
 	ServiceID string `json:"service_id"`
 	Role      string `json:"role"`
+}
+
+func ClusterFeaturesFromParameters(params map[string]interface{}) (features ClusterFeatures, err error) {
+	err = mapstructure.Decode(params, &features)
+	if err != nil {
+		return
+	}
+	if features.NodeCount == 0 {
+		features.NodeCount = defaultNodeCount
+	}
+	if features.NodeCount < 0 {
+		err = fmt.Errorf("Broker: node-count (%d) must be a positive number", features.NodeCount)
+		return
+	}
+
+	return
 }

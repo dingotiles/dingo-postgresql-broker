@@ -13,7 +13,7 @@ func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetail
 	logger := bkr.newLoggingSession("recreate", lager.Data{})
 	defer logger.Info("stop")
 
-	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
+	features, err := structs.ClusterFeaturesFromParameters(details.Parameters)
 	if err != nil {
 		logger.Error("cluster-features", err)
 		return resp, false, err

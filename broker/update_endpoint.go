@@ -13,7 +13,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	features, err := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
+	features, err := structs.ClusterFeaturesFromParameters(updateDetails.Parameters)
 	if err != nil {
 		logger.Error("cluster-features", err)
 		return false, err
