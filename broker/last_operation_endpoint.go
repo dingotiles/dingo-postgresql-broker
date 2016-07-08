@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -14,7 +15,7 @@ func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperatio
 	defer logger.Info("done")
 
 	patroni, _ := patroni.NewPatroni(bkr.etcdConfig, logger)
-	clusterStatus, allRunning, err := patroni.MemberStatus(instanceID)
+	clusterStatus, allRunning, err := patroni.MemberStatus(structs.ClusterID(instanceID))
 
 	state := brokerapi.LastOperationInProgress
 	if allRunning {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/frodenas/brokerapi"
 	"github.com/frodenas/brokerapi/auth"
 	"github.com/pivotal-golang/lager"
@@ -41,7 +42,7 @@ func adminCells(bkr *Broker, router httpRouter, logger lager.Logger) http.Handle
 func adminServiceInstances(bkr *Broker, router httpRouter, logger lager.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := router.Vars(req)
-		instanceID := vars["instance_id"]
+		instanceID := structs.ClusterID(vars["instance_id"])
 
 		logger := bkr.newLoggingSession("admin.service-instances", lager.Data{"instance-id": instanceID})
 		defer logger.Info("done")

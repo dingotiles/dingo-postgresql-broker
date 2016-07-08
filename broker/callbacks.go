@@ -93,7 +93,7 @@ func (c *Callbacks) WriteRecreationData(clusterData *structs.ClusterRecreationDa
 	logger.Info("callbacks.write-data.done")
 }
 
-func (c *Callbacks) RestoreRecreationData(instanceID string) (*structs.ClusterRecreationData, error) {
+func (c *Callbacks) RestoreRecreationData(instanceID structs.ClusterID) (*structs.ClusterRecreationData, error) {
 	callback := c.restoreCallback
 	logger := c.logger
 
@@ -129,7 +129,7 @@ func (c *Callbacks) RestoreRecreationData(instanceID string) (*structs.ClusterRe
 	go func() {
 		defer wg.Done()
 		defer stdin.Close()
-		io.Copy(stdin, bytes.NewBufferString(instanceID))
+		io.Copy(stdin, bytes.NewBufferString(string(instanceID)))
 	}()
 	clusterData := &structs.ClusterRecreationData{}
 	go func() {

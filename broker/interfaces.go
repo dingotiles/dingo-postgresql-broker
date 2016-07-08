@@ -9,14 +9,14 @@ type Scheduler interface {
 }
 
 type State interface {
-	ClusterExists(instanceID string) bool
-	SaveCluster(cluster structs.ClusterState) error
-	LoadCluster(instanceID string) (structs.ClusterState, error)
-	DeleteCluster(instanceID string) error
+	ClusterExists(structs.ClusterID) bool
+	SaveCluster(structs.ClusterState) error
+	LoadCluster(structs.ClusterID) (structs.ClusterState, error)
+	DeleteCluster(structs.ClusterID) error
 }
 
 type Router interface {
 	AllocatePort() (int, error)
-	AssignPortToCluster(clusterID string, port int) error
-	RemoveClusterAssignment(clusterID string) error
+	AssignPortToCluster(structs.ClusterID, int) error
+	RemoveClusterAssignment(structs.ClusterID) error
 }

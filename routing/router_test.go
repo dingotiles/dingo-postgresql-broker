@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	etcd "github.com/coreos/etcd/client"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/testutil"
 )
 
@@ -127,7 +128,7 @@ func TestRouter_AssignPortToCluster(t *testing.T) {
 		t.Fatalf("Could not create a new router", err)
 	}
 
-	clusterID := "clusterID"
+	clusterID := structs.ClusterID("clusterID")
 	port := 30000
 	err = router.AssignPortToCluster(clusterID, port)
 	if err != nil {
@@ -153,7 +154,7 @@ func TestRouter_RemoveClusterAssignement(t *testing.T) {
 	etcdApi := resetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	clusterID := "clusterID"
+	clusterID := structs.ClusterID("clusterID")
 	port := 30000
 
 	key := fmt.Sprintf("%s/routing/allocation/%s", testPrefix, clusterID)

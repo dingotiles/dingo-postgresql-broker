@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 
 	etcd "github.com/coreos/etcd/client"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
 )
@@ -39,7 +40,7 @@ type ServiceMemberData struct {
 
 // MemberStatus aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
-func (p *Patroni) MemberStatus(instanceID string) (statuses string, allRunning bool, err error) {
+func (p *Patroni) MemberStatus(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("/service/%s/members", instanceID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
@@ -76,7 +77,7 @@ func (p *Patroni) MemberStatus(instanceID string) (statuses string, allRunning b
 	return fmt.Sprintf("members %s", strings.Join(replicasStatus, ", ")), allRunning, nil
 }
 
-func (p *Patroni) ClusterLeader(instanceID string) (string, error) {
+func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("service/%s/leader", instanceID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{})

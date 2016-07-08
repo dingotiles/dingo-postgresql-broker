@@ -10,8 +10,10 @@ const (
 	defaultNodeCount = 2
 )
 
+type ClusterID string
+
 type ClusterRecreationData struct {
-	InstanceID           string              `json:"instance_id"`
+	InstanceID           ClusterID           `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
 	PlanID               string              `json:"plan_id"`
 	OrganizationGUID     string              `json:"organization_guid"`
@@ -23,7 +25,7 @@ type ClusterRecreationData struct {
 }
 
 type ClusterState struct {
-	InstanceID           string              `json:"instance_id"`
+	InstanceID           ClusterID           `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
 	PlanID               string              `json:"plan_id"`
 	OrganizationGUID     string              `json:"organization_guid"`

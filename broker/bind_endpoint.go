@@ -3,6 +3,7 @@ package broker
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -24,6 +25,10 @@ type CredentialsHash struct {
 
 // Bind returns access credentials for a service instance
 func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
+	return bkr.bind(structs.ClusterID(instanceID), bindingID, details)
+}
+
+func (bkr *Broker) bind(instanceID structs.ClusterID, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
 	logger := bkr.newLoggingSession("bind", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
@@ -65,7 +70,7 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 	}, nil
 }
 
-func (bkr *Broker) assertBindPrecondition(instanceID string) error {
+func (bkr *Broker) assertBindPrecondition(instanceID structs.ClusterID) error {
 	if bkr.state.ClusterExists(instanceID) == false {
 		return fmt.Errorf("Service instance %s doesn't exist", instanceID)
 	}

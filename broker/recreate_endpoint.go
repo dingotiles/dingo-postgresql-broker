@@ -9,7 +9,7 @@ import (
 )
 
 // Recreate service instance; invoked via Provision endpoint
-func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
+func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	logger := bkr.newLoggingSession("recreate", lager.Data{})
 	defer logger.Info("stop")
 
@@ -66,7 +66,7 @@ func (bkr *Broker) initClusterStateFromRecreationData(recreationData *structs.Cl
 	}
 }
 
-func (bkr *Broker) assertRecreatePrecondition(instanceID string, features structs.ClusterFeatures) error {
+func (bkr *Broker) assertRecreatePrecondition(instanceID structs.ClusterID, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) {
 		return fmt.Errorf("service instance %s already exists", instanceID)
 	}

@@ -82,7 +82,7 @@ func (s *State) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	return api, nil
 }
 
-func (s *State) ClusterExists(instanceID string) bool {
+func (s *State) ClusterExists(instanceID structs.ClusterID) bool {
 	ctx := context.Background()
 	s.logger.Info("state.cluster-exists")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
@@ -90,7 +90,7 @@ func (s *State) ClusterExists(instanceID string) bool {
 	return err == nil
 }
 
-func (s *State) LoadCluster(instanceID string) (structs.ClusterState, error) {
+func (s *State) LoadCluster(instanceID structs.ClusterID) (structs.ClusterState, error) {
 	var cluster structs.ClusterState
 	ctx := context.Background()
 	s.logger.Info("state.load-cluster-state")
@@ -115,7 +115,7 @@ func (s *State) LoadCluster(instanceID string) (structs.ClusterState, error) {
 	return cluster, nil
 }
 
-func (s *State) DeleteCluster(instanceID string) error {
+func (s *State) DeleteCluster(instanceID structs.ClusterID) error {
 	ctx := context.Background()
 	s.logger.Info("state.delete-cluster-state")
 	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)

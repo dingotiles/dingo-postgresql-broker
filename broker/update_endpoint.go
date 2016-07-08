@@ -10,6 +10,9 @@ import (
 
 // Update service instance
 func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetails, acceptsIncomplete bool) (async bool, err error) {
+	return bkr.update(structs.ClusterID(instanceID), updateDetails, acceptsIncomplete)
+}
+func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.UpdateDetails, acceptsIncomplete bool) (async bool, err error) {
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
@@ -44,7 +47,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	return true, err
 }
 
-func (bkr *Broker) assertUpdatePrecondition(instanceID string, features structs.ClusterFeatures) error {
+func (bkr *Broker) assertUpdatePrecondition(instanceID structs.ClusterID, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) == false {
 		return fmt.Errorf("Service instance %s doesn't exist", instanceID)
 	}
