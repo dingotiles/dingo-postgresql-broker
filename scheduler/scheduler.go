@@ -26,6 +26,11 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 }
 
 func (s *Scheduler) RunCluster(cluster structs.ClusterState, features structs.ClusterFeatures) (structs.ClusterState, error) {
+	err := s.VerifyClusterFeatures(features)
+	if err != nil {
+		return cluster, err
+	}
+
 	plan, err := s.newPlan(&cluster, features)
 	if err != nil {
 		return cluster, err
