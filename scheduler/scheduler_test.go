@@ -63,3 +63,44 @@ func TestScheduler_allBackends(t *testing.T) {
 		t.Fatalf("Plan should only have two backends")
 	}
 }
+
+func TestScheduler_VerifyClusterFeatures(t *testing.T) {
+	t.Parallel()
+
+	testPrefix := "TestScheduler_VerifyClusterFeatures"
+	logger := testutil.NewTestLogger(testPrefix, t)
+	scheduler := NewScheduler(config.Scheduler{
+		Backends: []*config.Backend{
+			&config.Backend{GUID: "a"},
+			&config.Backend{GUID: "b"},
+			&config.Backend{GUID: "c"},
+			&config.Backend{GUID: "d"},
+		},
+	}, logger)
+	features := structs.ClusterFeatures{
+		NodeCount: 3,
+		CellGUIDs: []string{"a", "b", "c"},
+	}
+	err := scheduler.VerifyClusterFeatures(features)
+	if err != nil {
+		t.Fatalf("Cluster features %v should be valid", features)
+	}
+}
+
+func TestScheduler_VerifyClusterFeatures_UnknownCellGUIDs(t *testing.T) {
+	t.Parallel()
+
+	testPrefix := "TestScheduler_VerifyClusterFeatures"
+	logger := testutil.NewTestLogger(testPrefix, t)
+	scheduler := NewScheduler(config.Scheduler{
+		Backends: []*config.Backend{},
+	}, logger)
+	features := structs.ClusterFeatures{
+		NodeCount: 3,
+		CellGUIDs: []string{"a", "b", "c"},
+	}
+	err := scheduler.VerifyClusterFeatures(features)
+	if err == nil {
+		t.Fatalf("Expect 'Cell GUIDs do not match available cells' error")
+	}
+}

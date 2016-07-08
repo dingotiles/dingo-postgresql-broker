@@ -72,25 +72,3 @@ func TestFeatures_FromProvisionDetails_Overrides(t *testing.T) {
 		t.Fatalf("Should be 3 items in features.CellGUIDs")
 	}
 }
-
-func TestFeatures_FromProvisionDetails_Error_UnknownCellGUIDs(t *testing.T) {
-	t.Parallel()
-
-	testPrefix := "TestFeatures_FromProvisionDetails"
-	logger := testutil.NewTestLogger(testPrefix, t)
-	scheduler := scheduler.NewScheduler(config.Scheduler{
-		Backends: []*config.Backend{},
-	}, logger)
-	bkr := &Broker{logger: logger, scheduler: scheduler}
-
-	details := brokerapi.ProvisionDetails{
-		Parameters: map[string]interface{}{
-			"node-count": 3,
-			"cell-guids": []string{"a", "b", "c"},
-		},
-	}
-	_, err := bkr.clusterFeaturesFromProvisionDetails(details)
-	if err == nil {
-		t.Fatalf("Expect 'Cell GUIDs do not match available cells' error")
-	}
-}

@@ -24,7 +24,7 @@ type plan struct {
 
 // Newp.est creates a p.est to change a service instance
 func (s *Scheduler) newPlan(cluster *structs.ClusterState, features structs.ClusterFeatures) (plan, error) {
-	backends, err := s.FilterCellsByGUIDs(features.CellGUIDs)
+	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
 		return plan{}, err
 	}

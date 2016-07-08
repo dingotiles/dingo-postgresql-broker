@@ -77,8 +77,23 @@ func (s *Scheduler) initBackends(config []*config.Backend) backend.Backends {
 	return backends
 }
 
-// FilterCellsByGUIDs returns all backend cells; or the subset filtered by cellGUIDS; or an error
-func (s *Scheduler) FilterCellsByGUIDs(cellGUIDs []string) (backend.Backends, error) {
+func (s *Scheduler) VerifyClusterFeatures(features structs.ClusterFeatures) (err error) {
+	availableCells, err := s.filterCellsByGUIDs(features.CellGUIDs)
+	if err != nil {
+		return
+	}
+	if features.NodeCount > len(availableCells) {
+		availableCellGUIDs := make([]string, len(availableCells))
+		for i, cell := range availableCells {
+			availableCellGUIDs[i] = cell.ID
+		}
+		err = fmt.Errorf("Scheduler: Not enough Cell GUIDs (%v) for cluster of %d nodes", availableCellGUIDs, features.NodeCount)
+	}
+	return
+}
+
+// filterCellsByGUIDs returns all backend cells; or the subset filtered by cellGUIDS; or an error
+func (s *Scheduler) filterCellsByGUIDs(cellGUIDs []string) (backend.Backends, error) {
 	if len(cellGUIDs) > 0 {
 		var filteredBackends []*backend.Backend
 		for _, cellGUID := range cellGUIDs {

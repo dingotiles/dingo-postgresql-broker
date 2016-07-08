@@ -33,21 +33,6 @@ func (bkr *Broker) clusterFeaturesFromParameters(params map[string]interface{}) 
 		return
 	}
 
-	err = bkr.verifyClusterFeatures(features)
-	return
-}
-
-func (bkr *Broker) verifyClusterFeatures(features structs.ClusterFeatures) (err error) {
-	availableCells, err := bkr.scheduler.FilterCellsByGUIDs(features.CellGUIDs)
-	if err != nil {
-		return
-	}
-	if features.NodeCount > len(availableCells) {
-		availableCellGUIDs := make([]string, len(availableCells))
-		for i, cell := range availableCells {
-			availableCellGUIDs[i] = cell.ID
-		}
-		err = fmt.Errorf("Broker: Not enough Cell GUIDs (%v) for cluster of %d nodes", availableCellGUIDs, features.NodeCount)
-	}
+	err = bkr.scheduler.VerifyClusterFeatures(features)
 	return
 }
