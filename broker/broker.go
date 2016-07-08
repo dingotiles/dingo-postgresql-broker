@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
@@ -19,18 +18,14 @@ type Broker struct {
 	config     config.Broker
 	catalog    brokerapi.Catalog
 	etcdConfig config.Etcd
-	router     *routing.Router
 	logger     lager.Logger
-	scheduler  Scheduler
-	state      state.State
-	callbacks  *Callbacks
 	cells      []*config.Backend
-}
 
-type Scheduler interface {
-	RunCluster(structs.ClusterState, structs.ClusterFeatures) (structs.ClusterState, error)
-	StopCluster(structs.ClusterState) (structs.ClusterState, error)
-	VerifyClusterFeatures(structs.ClusterFeatures) error
+	callbacks *Callbacks
+
+	router    Router
+	scheduler Scheduler
+	state     State
 }
 
 // NewBroker is a constructor for a Broker webapp struct

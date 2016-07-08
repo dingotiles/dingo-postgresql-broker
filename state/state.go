@@ -18,28 +18,19 @@ const (
 	ReplicaRole = "ReplicaRole"
 )
 
-type State interface {
-
-	// ClusterExists returns true if cluster already exists
-	ClusterExists(instanceID string) bool
-	SaveCluster(cluster structs.ClusterState) error
-	LoadCluster(instanceID string) (structs.ClusterState, error)
-	DeleteCluster(instanceID string) error
-}
-
-type etcdState struct {
+type State struct {
 	etcdApi etcd.KeysAPI
 	prefix  string
 	logger  lager.Logger
 	patroni *patroni.Patroni
 }
 
-func NewState(etcdConfig config.Etcd, logger lager.Logger) (State, error) {
+func NewState(etcdConfig config.Etcd, logger lager.Logger) (*State, error) {
 	return NewStateWithPrefix(etcdConfig, "", logger)
 }
 
-func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (State, error) {
-	state := &etcdState{
+func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (*State, error) {
+	state := &State{
 		prefix: prefix,
 		logger: logger,
 	}
@@ -58,7 +49,7 @@ func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logg
 	return state, nil
 }
 
-func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
+func (s *State) SaveCluster(clusterState structs.ClusterState) error {
 	s.logger.Info("save-clusterState", lager.Data{
 		"cluster": clusterState,
 	})
@@ -80,7 +71,7 @@ func (s *etcdState) SaveCluster(clusterState structs.ClusterState) error {
 	return nil
 }
 
-func (s *etcdState) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
+func (s *State) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	client, err := etcd.New(etcd.Config{Endpoints: cfg.Machines})
 	if err != nil {
 		return nil, err
@@ -91,7 +82,7 @@ func (s *etcdState) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	return api, nil
 }
 
-func (s *etcdState) ClusterExists(instanceID string) bool {
+func (s *State) ClusterExists(instanceID string) bool {
 	ctx := context.Background()
 	s.logger.Info("state.cluster-exists")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
@@ -99,7 +90,7 @@ func (s *etcdState) ClusterExists(instanceID string) bool {
 	return err == nil
 }
 
-func (s *etcdState) LoadCluster(instanceID string) (structs.ClusterState, error) {
+func (s *State) LoadCluster(instanceID string) (structs.ClusterState, error) {
 	var cluster structs.ClusterState
 	ctx := context.Background()
 	s.logger.Info("state.load-cluster-state")
@@ -124,7 +115,7 @@ func (s *etcdState) LoadCluster(instanceID string) (structs.ClusterState, error)
 	return cluster, nil
 }
 
-func (s *etcdState) DeleteCluster(instanceID string) error {
+func (s *State) DeleteCluster(instanceID string) error {
 	ctx := context.Background()
 	s.logger.Info("state.delete-cluster-state")
 	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)
