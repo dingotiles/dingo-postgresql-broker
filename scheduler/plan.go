@@ -32,7 +32,7 @@ func (s *Scheduler) newPlan(cluster *structs.ClusterState, features structs.Clus
 		clusterState:      cluster,
 		newFeatures:       features,
 		availableBackends: backends,
-		allBackends:       s.Backends,
+		allBackends:       s.backends,
 		logger:            s.logger,
 		newNodeSize:       defaultNodeSize,
 	}, nil

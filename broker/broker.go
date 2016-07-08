@@ -8,7 +8,6 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
@@ -24,6 +23,7 @@ type Broker struct {
 	scheduler  *scheduler.Scheduler
 	state      state.State
 	callbacks  *Callbacks
+	cells      []*config.Backend
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -32,6 +32,7 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		config:     config.Broker,
 		catalog:    config.Catalog,
 		etcdConfig: config.Etcd,
+		cells:      config.Scheduler.Backends,
 	}
 
 	bkr.logger = bkr.setupLogger()
@@ -83,6 +84,6 @@ func (bkr *Broker) newLoggingSession(action string, data lager.Data) lager.Logge
 	return logger
 }
 
-func (bkr *Broker) Cells() backend.Backends {
-	return bkr.scheduler.Backends
+func (bkr *Broker) Cells() []*config.Backend {
+	return bkr.cells
 }

@@ -12,7 +12,7 @@ import (
 type Scheduler struct {
 	logger   lager.Logger
 	config   config.Scheduler
-	Backends backend.Backends
+	backends backend.Backends
 }
 
 func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
@@ -21,7 +21,7 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 		logger: logger,
 	}
 
-	s.Backends = s.initBackends(config.Backends)
+	s.backends = s.initBackends(config.Backends)
 	return s
 }
 
@@ -83,7 +83,7 @@ func (s *Scheduler) FilterCellsByGUIDs(cellGUIDs []string) (backend.Backends, er
 		var filteredBackends []*backend.Backend
 		for _, cellGUID := range cellGUIDs {
 			foundCellGUID := false
-			for _, backend := range s.Backends {
+			for _, backend := range s.backends {
 				if cellGUID == backend.ID {
 					filteredBackends = append(filteredBackends, backend)
 					foundCellGUID = true
@@ -99,6 +99,6 @@ func (s *Scheduler) FilterCellsByGUIDs(cellGUIDs []string) (backend.Backends, er
 		}
 		return filteredBackends, nil
 	} else {
-		return s.Backends, nil
+		return s.backends, nil
 	}
 }

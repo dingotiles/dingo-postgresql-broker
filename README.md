@@ -166,7 +166,7 @@ curl ${BROKER_URI}/admin/cells"
 This will return JSON that looks like:
 
 ```
-[{"guid":"10.244.21.7","uri":"http://10.244.21.7","config":{"GUID":"10.244.21.7","AvailabilityZone":"z1","URI":"http://10.244.21.7","Username":"containers","Password":"containers"},"az":"z1"},{"guid":"10.244.22.2","uri":"http://10.244.22.2","config":{"GUID":"10.244.22.2","AvailabilityZone":"z2","URI":"http://10.244.22.2","Username":"containers","Password":"containers"},"az":"z2"}]
+[{"guid":"10.244.21.7","uri":"http://10.244.21.7","az":"z1","username":"containers","password":"containers"},{"guid":"10.244.22.2","uri":"http://10.244.22.2","az":"z2","username":"containers","password":"containers"}]
 ```
 
 ### Create cluster into specific cells
