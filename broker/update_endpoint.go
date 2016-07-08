@@ -3,6 +3,7 @@ package broker
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -12,14 +13,14 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	if err := bkr.assertUpdatePrecondition(instanceID); err != nil {
-		logger.Error("preconditions.error", err)
-		return false, err
-	}
-
 	features, err := bkr.clusterFeaturesFromUpdateDetails(updateDetails)
 	if err != nil {
 		logger.Error("cluster-features", err)
+		return false, err
+	}
+
+	if err := bkr.assertUpdatePrecondition(instanceID, features); err != nil {
+		logger.Error("preconditions.error", err)
 		return false, err
 	}
 
@@ -43,9 +44,10 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	return true, err
 }
 
-func (bkr *Broker) assertUpdatePrecondition(instanceID string) error {
+func (bkr *Broker) assertUpdatePrecondition(instanceID string, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) == false {
 		return fmt.Errorf("Service instance %s doesn't exist", instanceID)
 	}
-	return nil
+
+	return bkr.scheduler.VerifyClusterFeatures(features)
 }

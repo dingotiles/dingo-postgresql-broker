@@ -13,14 +13,14 @@ func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetail
 	logger := bkr.newLoggingSession("recreate", lager.Data{})
 	defer logger.Info("stop")
 
-	if err = bkr.assertRecreatePrecondition(instanceID); err != nil {
-		logger.Error("preconditions.error", err)
-		return resp, false, err
-	}
-
 	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
 	if err != nil {
 		logger.Error("cluster-features", err)
+		return resp, false, err
+	}
+
+	if err = bkr.assertRecreatePrecondition(instanceID, features); err != nil {
+		logger.Error("preconditions.error", err)
 		return resp, false, err
 	}
 
@@ -66,10 +66,10 @@ func (bkr *Broker) initClusterStateFromRecreationData(recreationData *structs.Cl
 	}
 }
 
-func (bkr *Broker) assertRecreatePrecondition(instanceID string) error {
+func (bkr *Broker) assertRecreatePrecondition(instanceID string, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) {
 		return fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	return nil
+	return bkr.scheduler.VerifyClusterFeatures(features)
 }

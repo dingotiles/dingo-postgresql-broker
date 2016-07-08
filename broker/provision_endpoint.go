@@ -18,14 +18,14 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	if err = bkr.assertProvisionPrecondition(instanceID, details); err != nil {
-		logger.Error("preconditions.error", err)
-		return resp, false, err
-	}
-
 	features, err := bkr.clusterFeaturesFromProvisionDetails(details)
 	if err != nil {
 		logger.Error("cluster-features", err)
+		return resp, false, err
+	}
+
+	if err = bkr.assertProvisionPrecondition(instanceID, features); err != nil {
+		logger.Error("preconditions.error", err)
 		return resp, false, err
 	}
 
@@ -84,10 +84,10 @@ func (bkr *Broker) initCluster(instanceID string, port int, details brokerapi.Pr
 	}
 }
 
-func (bkr *Broker) assertProvisionPrecondition(instanceID string, details brokerapi.ProvisionDetails) error {
+func (bkr *Broker) assertProvisionPrecondition(instanceID string, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) {
 		return fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	return nil
+	return bkr.scheduler.VerifyClusterFeatures(features)
 }
