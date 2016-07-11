@@ -38,9 +38,9 @@ type ServiceMemberData struct {
 	State    string `json:"state"`
 }
 
-// MemberStatus aggregates the patroni states of each member in the cluster
+// ClusterMembersStatus aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
-func (p *Patroni) MemberStatus(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
+func (p *Patroni) ClusterMembersStatus(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("/service/%s/members", instanceID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
