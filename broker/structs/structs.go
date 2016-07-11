@@ -1,7 +1,19 @@
 package structs
 
+import (
+	"fmt"
+
+	"github.com/mitchellh/mapstructure"
+)
+
+const (
+	defaultNodeCount = 2
+)
+
+type ClusterID string
+
 type ClusterRecreationData struct {
-	InstanceID           string              `json:"instance_id"`
+	InstanceID           ClusterID           `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
 	PlanID               string              `json:"plan_id"`
 	OrganizationGUID     string              `json:"organization_guid"`
@@ -13,7 +25,7 @@ type ClusterRecreationData struct {
 }
 
 type ClusterState struct {
-	InstanceID           string              `json:"instance_id"`
+	InstanceID           ClusterID           `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
 	PlanID               string              `json:"plan_id"`
 	OrganizationGUID     string              `json:"organization_guid"`
@@ -59,7 +71,8 @@ func (c *ClusterState) RemoveNode(node *Node) error {
 }
 
 type ClusterFeatures struct {
-	NodeCount int `json:"node_count"`
+	NodeCount int      `mapstructure:"node-count"`
+	CellGUIDs []string `mapstructure:"cell-guids"`
 }
 
 type PostgresCredentials struct {
@@ -72,4 +85,21 @@ type Node struct {
 	BackendID string `json:"backend_id"`
 	PlanID    string `json:"plan_id"`
 	ServiceID string `json:"service_id"`
+	Role      string `json:"role"`
+}
+
+func ClusterFeaturesFromParameters(params map[string]interface{}) (features ClusterFeatures, err error) {
+	err = mapstructure.Decode(params, &features)
+	if err != nil {
+		return
+	}
+	if features.NodeCount == 0 {
+		features.NodeCount = defaultNodeCount
+	}
+	if features.NodeCount < 0 {
+		err = fmt.Errorf("Broker: node-count (%d) must be a positive number", features.NodeCount)
+		return
+	}
+
+	return
 }

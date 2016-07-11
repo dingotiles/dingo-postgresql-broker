@@ -15,10 +15,10 @@ import (
 )
 
 type Backend struct {
-	ID               string
-	URI              string
-	Config           *config.Backend
-	AvailabilityZone string
+	ID               string          `json:"guid"`
+	URI              string          `json:"uri"`
+	Config           *config.Backend `json:"config"`
+	AvailabilityZone string          `json:"az"`
 }
 
 type Backends []*Backend
@@ -51,7 +51,7 @@ func (b Backends) AvailabilityZone(backendID string) (string, error) {
 			return backend.AvailabilityZone, nil
 		}
 	}
-	return "", errors.New(fmt.Sprintf("No backend with ID %s found", backendID))
+	return "", errors.New(fmt.Sprintf("No backend with GUID %s found", backendID))
 }
 
 func (b Backends) Get(backendID string) *Backend {

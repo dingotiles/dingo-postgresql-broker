@@ -9,10 +9,11 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-const defaultNodeCount = 2
-
 // Provision a new service instance
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
+	return bkr.provision(structs.ClusterID(instanceID), details, acceptsIncomplete)
+}
+func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, details, acceptsIncomplete)
 	}
@@ -20,7 +21,13 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	if err = bkr.assertProvisionPrecondition(instanceID, details); err != nil {
+	features, err := structs.ClusterFeaturesFromParameters(details.Parameters)
+	if err != nil {
+		logger.Error("cluster-features", err)
+		return resp, false, err
+	}
+
+	if err = bkr.assertProvisionPrecondition(instanceID, features); err != nil {
 		logger.Error("preconditions.error", err)
 		return resp, false, err
 	}
@@ -30,15 +37,15 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
-		data, err := bkr.callbacks.RestoreRecreationData(clusterState.InstanceID)
+		data, err := bkr.callbacks.RestoreRecreationData(instanceID)
 		if !reflect.DeepEqual(clusterState.RecreationData(), data) {
 			logger.Error("recreation-data.failure", err)
 			return resp, false, err
 		}
 	}
 
+	// Continue processing in background
 	go func() {
-		features := bkr.clusterFeaturesFromProvisionDetails(details)
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
@@ -57,7 +64,7 @@ func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetai
 	return resp, true, err
 }
 
-func (bkr *Broker) initCluster(instanceID string, port int, details brokerapi.ProvisionDetails) structs.ClusterState {
+func (bkr *Broker) initCluster(instanceID structs.ClusterID, port int, details brokerapi.ProvisionDetails) structs.ClusterState {
 	return structs.ClusterState{
 		InstanceID:       instanceID,
 		OrganizationGUID: details.OrganizationGUID,
@@ -80,10 +87,10 @@ func (bkr *Broker) initCluster(instanceID string, port int, details brokerapi.Pr
 	}
 }
 
-func (bkr *Broker) assertProvisionPrecondition(instanceID string, details brokerapi.ProvisionDetails) error {
+func (bkr *Broker) assertProvisionPrecondition(instanceID structs.ClusterID, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) {
 		return fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	return nil
+	return bkr.scheduler.VerifyClusterFeatures(features)
 }

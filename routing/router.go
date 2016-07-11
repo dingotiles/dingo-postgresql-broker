@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	etcd "github.com/coreos/etcd/client"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/pivotal-golang/lager"
 	"golang.org/x/net/context"
@@ -73,7 +74,7 @@ func (r *Router) AllocatePort() (int, error) {
 	return 0, err
 }
 
-func (r *Router) AssignPortToCluster(clusterID string, port int) error {
+func (r *Router) AssignPortToCluster(clusterID structs.ClusterID, port int) error {
 	r.logger.Info("assign-port-to-cluster", lager.Data{
 		"clusterID": clusterID,
 		"port":      port,
@@ -90,7 +91,7 @@ func (r *Router) AssignPortToCluster(clusterID string, port int) error {
 	return nil
 }
 
-func (r *Router) RemoveClusterAssignment(clusterID string) error {
+func (r *Router) RemoveClusterAssignment(clusterID structs.ClusterID) error {
 	r.logger.Info("remove-cluster-assignment", lager.Data{
 		"clusterID": clusterID,
 	})

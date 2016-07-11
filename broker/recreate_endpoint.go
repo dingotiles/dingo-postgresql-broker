@@ -8,12 +8,18 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-// Provision a new service instance
-func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
+// Recreate service instance; invoked via Provision endpoint
+func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	logger := bkr.newLoggingSession("recreate", lager.Data{})
 	defer logger.Info("stop")
 
-	if err = bkr.assertRecreatePrecondition(instanceID); err != nil {
+	features, err := structs.ClusterFeaturesFromParameters(details.Parameters)
+	if err != nil {
+		logger.Error("cluster-features", err)
+		return resp, false, err
+	}
+
+	if err = bkr.assertRecreatePrecondition(instanceID, features); err != nil {
 		logger.Error("preconditions.error", err)
 		return resp, false, err
 	}
@@ -25,8 +31,8 @@ func (bkr *Broker) Recreate(instanceID string, details brokerapi.ProvisionDetail
 	}
 
 	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
+
 	go func() {
-		features := bkr.clusterFeaturesFromProvisionDetails(details)
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
@@ -60,10 +66,10 @@ func (bkr *Broker) initClusterStateFromRecreationData(recreationData *structs.Cl
 	}
 }
 
-func (bkr *Broker) assertRecreatePrecondition(instanceID string) error {
+func (bkr *Broker) assertRecreatePrecondition(instanceID structs.ClusterID, features structs.ClusterFeatures) error {
 	if bkr.state.ClusterExists(instanceID) {
 		return fmt.Errorf("service instance %s already exists", instanceID)
 	}
 
-	return nil
+	return bkr.scheduler.VerifyClusterFeatures(features)
 }

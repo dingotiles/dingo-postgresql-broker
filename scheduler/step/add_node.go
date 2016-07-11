@@ -9,14 +9,18 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	cluster  *structs.ClusterState
-	backends backend.Backends
-	logger   lager.Logger
+	cluster           *structs.ClusterState
+	availableBackends backend.Backends
+	logger            lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
-	return AddNode{cluster: cluster, backends: backends, logger: logger}
+func NewStepAddNode(cluster *structs.ClusterState, availableBackends backend.Backends, logger lager.Logger) Step {
+	return AddNode{
+		cluster:           cluster,
+		availableBackends: availableBackends,
+		logger:            logger,
+	}
 }
 
 // StepType prints the type of step
@@ -30,8 +34,8 @@ func (step AddNode) Perform() (err error) {
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.InstanceID})
 
 	nodes := step.cluster.Nodes
-	sortedBackends := prioritizeBackends(nodes, step.backends)
-	logger.Info("add-node.perform.sortedBackends", lager.Data{
+	sortedBackends := prioritizeBackends(nodes, step.availableBackends)
+	logger.Info("add-node.perform.sorted-backends", lager.Data{
 		"sortedBackends": sortedBackends,
 	})
 
@@ -39,22 +43,21 @@ func (step AddNode) Perform() (err error) {
 	var provisionedNode structs.Node
 	for _, backend := range sortedBackends {
 		provisionedNode, err = backend.ProvisionNode(step.cluster, step.logger)
-		// nodeID, err = step.requestNodeViaBackend(backend, provisionDetails)
 		logBackend := lager.Data{
 			"uri":  backend.URI,
 			"guid": backend.ID,
 			"az":   backend.AvailabilityZone,
 		}
 		if err == nil {
-			logger.Info("add-node.perform.sortedBackends.selected", logBackend)
+			logger.Info("add-node.perform.sorted-backends.selected", logBackend)
 			break
 		} else {
-			logger.Error("add-node.perform.sortedBackends.skipped", err, logBackend)
+			logger.Error("add-node.perform.sorted-backends.skipped", err, logBackend)
 		}
 	}
 	if err != nil {
 		// no sortedBackends available to run a cluster
-		logger.Info("add-node.perform.sortedBackends.unavailable", lager.Data{"summary": "no backends available to run a container"})
+		logger.Info("add-node.perform.sorted-backends.unavailable", lager.Data{"summary": "no backends available to run a container"})
 		return err
 	}
 	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid

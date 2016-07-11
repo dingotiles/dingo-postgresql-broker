@@ -88,7 +88,7 @@ func TestCallbacks_RestoreRecreationData(t *testing.T) {
 	defer os.Remove(testDir)
 	fileName := fmt.Sprintf("%s/%s", testDir, testPrefix)
 
-	instanceID := uuid.New()
+	instanceID := structs.ClusterID(uuid.New())
 	recreationData := &structs.ClusterRecreationData{
 		InstanceID:       instanceID,
 		OrganizationGUID: "OrganizationGUID",
@@ -141,7 +141,7 @@ func TestCallbacks_RestoreRecreationData(t *testing.T) {
 		t.Fatalf("Could not open file %s, Err: %s", fileName, err)
 	}
 
-	if string(fileContent) != instanceID {
+	if structs.ClusterID(fileContent) != instanceID {
 		t.Fatalf("InstanceID %s was not passed via stdin", instanceID)
 	}
 }

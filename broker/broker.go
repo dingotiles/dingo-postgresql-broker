@@ -18,11 +18,14 @@ type Broker struct {
 	config     config.Broker
 	catalog    brokerapi.Catalog
 	etcdConfig config.Etcd
-	router     *routing.Router
 	logger     lager.Logger
-	scheduler  *scheduler.Scheduler
-	state      state.State
-	callbacks  *Callbacks
+	cells      []*config.Backend
+
+	callbacks *Callbacks
+
+	router    Router
+	scheduler Scheduler
+	state     State
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -31,6 +34,7 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		config:     config.Broker,
 		catalog:    config.Catalog,
 		etcdConfig: config.Etcd,
+		cells:      config.Scheduler.Backends,
 	}
 
 	bkr.logger = bkr.setupLogger()
@@ -61,7 +65,11 @@ func (bkr *Broker) Run() {
 	port := bkr.config.Port
 
 	brokerAPI := brokerapi.New(bkr, bkr.logger, credentials)
-	http.Handle("/", brokerAPI)
+	http.Handle("/v2/", brokerAPI)
+
+	adminAPI := NewAdminAPI(bkr, bkr.logger, credentials)
+	http.Handle("/admin/", adminAPI)
+
 	bkr.logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
 }
 
@@ -76,4 +84,8 @@ func (bkr *Broker) newLoggingSession(action string, data lager.Data) lager.Logge
 	logger := bkr.logger.Session(action, data)
 	logger.Info("start")
 	return logger
+}
+
+func (bkr *Broker) Cells() []*config.Backend {
+	return bkr.cells
 }

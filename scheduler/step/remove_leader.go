@@ -8,17 +8,17 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-// RemoveNode instructs cluster to delete a node, starting with replicas
-type RemoveNode struct {
+// RemoveLeader instructs cluster to delete a node, starting with replicas
+type RemoveLeader struct {
 	nodeToRemove *structs.Node
 	cluster      *structs.ClusterState
 	backends     backend.Backends
 	logger       lager.Logger
 }
 
-// NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(nodeToRemove *structs.Node, cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
-	return RemoveNode{
+// NewStepRemoveLeader creates a StepRemoveLeader command
+func NewStepRemoveLeader(nodeToRemove *structs.Node, cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
+	return RemoveLeader{
 		nodeToRemove: nodeToRemove,
 		cluster:      cluster,
 		backends:     backends,
@@ -27,22 +27,22 @@ func NewStepRemoveNode(nodeToRemove *structs.Node, cluster *structs.ClusterState
 }
 
 // StepType prints the type of step
-func (step RemoveNode) StepType() string {
-	return fmt.Sprintf("RemoveNode(%s)", step.nodeToRemove.ID)
+func (step RemoveLeader) StepType() string {
+	return fmt.Sprintf("RemoveLeader(%s)", step.nodeToRemove.ID)
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step RemoveNode) Perform() (err error) {
+func (step RemoveLeader) Perform() (err error) {
 	logger := step.logger
 
 	backend := step.backends.Get(step.nodeToRemove.BackendID)
 	if backend == nil {
 		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", step.nodeToRemove.BackendID)
-		logger.Error("remove-node.perform", err)
+		logger.Error("remove-leader.perform", err)
 		return
 	}
 
-	logger.Info("remove-node.perform", lager.Data{
+	logger.Info("remove-leader.perform", lager.Data{
 		"instance-id": step.cluster.InstanceID,
 		"node-uuid":   step.nodeToRemove.ID,
 		"backend":     backend.ID,
@@ -55,7 +55,7 @@ func (step RemoveNode) Perform() (err error) {
 
 	err = step.cluster.RemoveNode(step.nodeToRemove)
 	if err != nil {
-		logger.Error("remove-node.nodes-delete", err)
+		logger.Error("remove-leader.nodes-delete", err)
 	}
 	return
 }

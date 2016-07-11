@@ -48,7 +48,7 @@ func TestState_SaveCluster(t *testing.T) {
 		t.Fatalf("Could not create state", err)
 	}
 
-	clusterID := uuid.New()
+	clusterID := structs.ClusterID(uuid.New())
 	planID := uuid.New()
 	clusterState := structs.ClusterState{
 		InstanceID:       clusterID,
@@ -86,7 +86,7 @@ func TestState_ClusterExists(t *testing.T) {
 		t.Fatalf("Could not create state", err)
 	}
 
-	clusterID := uuid.New()
+	clusterID := structs.ClusterID(uuid.New())
 	planID := uuid.New()
 	clusterState := structs.ClusterState{
 		InstanceID:       clusterID,
@@ -121,7 +121,7 @@ func TestState_LoadCluster(t *testing.T) {
 		t.Fatalf("Could not create state", err)
 	}
 
-	instanceID := uuid.New()
+	instanceID := structs.ClusterID(uuid.New())
 	planID := uuid.New()
 	clusterState := structs.ClusterState{
 		InstanceID:       instanceID,
@@ -153,7 +153,7 @@ func TestState_DeleteCluster(t *testing.T) {
 		t.Fatalf("Could not create state", err)
 	}
 
-	instanceID := uuid.New()
+	instanceID := structs.ClusterID(uuid.New())
 	planID := uuid.New()
 	clusterState := structs.ClusterState{
 		InstanceID:       instanceID,

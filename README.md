@@ -32,7 +32,7 @@ export BROKER_URI=http://starkandwayne:starkandwayne@localhost:3000
 For a bosh-lite deployment of [dingo-postgresql-release](https://github.com/dingotiles/dingo-postgresql-release) it is:
 
 ```
-export BROKER_URI=http://starkandwayne:starkandwayne@10.244.21.4:8888
+export BROKER_URI=http://starkandwayne:starkandwayne@10.244.21.2:8889
 ```
 
 To create a service instance use `-XPUT` to hit the `broker.Provision` behavior:
@@ -109,3 +109,74 @@ To recreate the `b1` cluster above:
 export id=b1
 curl -v -XPUT ${BROKER_URI}/v2/service_instances/$id -d "{}"
 ```
+
+### Lookup internal cluster state
+
+```
+curl ${BROKER_URI}/admin/service_instances/05b0d96f-4bd6-4fd1-946c-f6f2fa2a00e4
+```
+
+The output will look similar to:
+
+```
+{
+  "instance_id": "05b0d96f-4bd6-4fd1-946c-f6f2fa2a00e4",
+  "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+  "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+  "organization_guid": "de07f7f6-fc1e-45fa-b7be-58ee716d3b3d",
+  "space_guid": "33ff71ad-f6d5-4c3c-ac33-440dc6aa4c40",
+  "admin_credentials": {
+    "username": "pgadmin",
+    "password": "xAzGVeEjsNaVCY9r"
+  },
+  "superuser_credentials": {
+    "username": "postgres",
+    "password": "ayfUijPa1JtN3GIW"
+  },
+  "app_credentials": {
+    "username": "appuser",
+    "password": "spZrDBLBj18W5nS0"
+  },
+  "allocated_port": 30005,
+  "nodes": [
+    {
+      "node_id": "faed6a46-8f70-4ff9-aeba-a82a08c89574",
+      "backend_id": "10.244.21.8",
+      "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+      "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+      "role": "ReplicaRole"
+    },
+    {
+      "node_id": "5d584edd-e5d6-4578-87f5-49089f212b1b",
+      "backend_id": "10.244.22.3",
+      "plan_id": "1545e30e-6dc3-11e5-826a-6c4008a663f0",
+      "service_id": "beb5973c-e1b2-11e5-a736-c7c0b526363d",
+      "role": "LeaderRole"
+    }
+  ]
+}
+```
+
+### Discover available cells
+
+```
+curl ${BROKER_URI}/admin/cells"
+```
+
+This will return JSON that looks like:
+
+```
+[{"guid":"10.244.21.7","uri":"http://10.244.21.7","az":"z1","username":"containers","password":"containers"},{"guid":"10.244.22.2","uri":"http://10.244.22.2","az":"z2","username":"containers","password":"containers"}]
+```
+
+### Create cluster into specific cells
+
+By default, `cf create-service` will allocate containers/nodes of the cluster to cells/vms from its internal scheduling algorithm. If a new cluster needs to be created into specific cells/vms, then this is possible by passing parameters and using the `/admin/cells` information from above.
+
+If you want a two-node cluster to be created into cells with GUIDs "10.244.22.2" and "10.244.21.7", then provide `cell-guids` to the `create-service` command:
+
+```
+cf create-service dingo-postgresql cluster good-cells -c '{"cell-guids": ["10.244.22.2", "10.244.21.7"], "node-count": 2}'
+```
+
+The same parameters can be used if growing a cluster with `cf update-service`.
