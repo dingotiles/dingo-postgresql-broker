@@ -39,9 +39,7 @@ func (step AddNode) Perform() (err error) {
 
 	nodes := step.cluster.Nodes
 	sortedBackends := prioritizeBackends(nodes, step.availableBackends)
-	logger.Info("add-node.perform.sorted-backends", lager.Data{
-		"sortedBackends": sortedBackends,
-	})
+	logger.Info("add-node.perform.sorted-backends", lager.Data{"backends": sortedBackends})
 
 	// 4. Send requests to sortedBackends until one says OK; else fail
 	var provisionedNode structs.Node
@@ -72,6 +70,7 @@ func (step AddNode) Perform() (err error) {
 	}
 
 	// 6. Wait until node registers itself in data store
+	logger.Info("add-node.perform.wait-til-exists", lager.Data{"member": provisionedNode.ID})
 	err = step.clusterData.WaitTilMemberExists(provisionedNode.ID)
 	if err != nil {
 		logger.Error("add-node.perform.wait-til-exists.error", err, lager.Data{"member": provisionedNode.ID})
@@ -79,13 +78,15 @@ func (step AddNode) Perform() (err error) {
 	}
 
 	// 7. Block until node is state == running
+	logger.Info("add-node.perform.wait-til-running", lager.Data{"member": provisionedNode.ID})
 	err = step.clusterData.WaitTilMemberRunning(provisionedNode.ID)
 	if err != nil {
 		logger.Error("add-node.perform.wait-til-running.error", err, lager.Data{"member": provisionedNode.ID})
 		return err
 	}
 
-	return err
+	logger.Info("add-node.perform.success", lager.Data{"member": provisionedNode.ID})
+	return nil
 }
 
 func prioritizeBackends(existingNodes []*structs.Node, backends backend.Backends) backend.Backends {

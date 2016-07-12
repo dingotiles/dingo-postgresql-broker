@@ -36,12 +36,12 @@ func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (mem
 	key := fmt.Sprintf("/service/%s/members/%s", instanceID, memberID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
 	if err != nil {
-		p.logger.Error("cluster-data.etcd-member", err, lager.Data{"member": memberID})
+		p.logger.Error("cluster-data.member-data.etcd-get", err, lager.Data{"member": memberID})
 		return
 	}
 	memberData, err = datastructs.NewDataServiceMember(resp.Node.Value)
 	if err != nil {
-		p.logger.Error("cluster-data.data-service.decode", err, lager.Data{"member": memberID})
+		p.logger.Error("cluster-data.member-data.decode", err, lager.Data{"member": memberID})
 		return
 	}
 	return
