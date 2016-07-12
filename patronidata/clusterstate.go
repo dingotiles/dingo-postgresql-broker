@@ -46,7 +46,7 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 			memberData, err := cluster.patroni.MemberData(cluster.instanceID, memberID)
 			if err != nil {
 				notFoundRegExp, _ := regexp.Compile("Key not found")
-				if notFoundRegExp.FindString(err.Error()) != "Key not found" {
+				if !notFoundRegExp.MatchString(err.Error()) {
 					return err
 				}
 			}
