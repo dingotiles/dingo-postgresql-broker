@@ -37,12 +37,13 @@ func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.
 	clusterData := patronidata.NewClusterDataWrapper(bkr.patroni, instanceID)
 
 	go func() {
-		schedulerCluster, err := bkr.scheduler.RunCluster(cluster, clusterData, features)
+		scheduledCluster, err := bkr.scheduler.RunCluster(cluster, clusterData, features)
 		if err != nil {
+			scheduledCluster.ErrorMsg = err.Error()
 			logger.Error("run-cluster", err)
 		}
 
-		err = bkr.state.SaveCluster(schedulerCluster)
+		err = bkr.state.SaveCluster(scheduledCluster)
 		if err != nil {
 			logger.Error("assign-port", err)
 		}
