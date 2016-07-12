@@ -20,12 +20,18 @@ The incoming STDIN JSON looks like:
   "plan_id": "b96d0936-e423-11e5-accb-93d374e93368",
   "organization_guid": "some-org-guid",
   "space_guid": "some-space-guid",
-  "parameters": {
-    "NODE_NAME": "ca46bd10-40c4-43b0-9631-dd3d6fdc4df7",
-    "PATRONI_SCOPE": "5a223c52-efe1-11e5-849c-4bce32261e9b",
-    "passed-in": "by-user",
+  "admin_credentials": {
+    "username": "pgadmin"
+    "password": "pgadminpw"
   },
-  "node_count": 1,
+  "superuser_credentials": {
+    "username": "postgres"
+    "password": "postgrespw"
+  },
+  "app_credentials": {
+    "username": "appuser"
+    "password": "appuserpw"
+  },
   "allocated_port": "33004"
 }
 ```
