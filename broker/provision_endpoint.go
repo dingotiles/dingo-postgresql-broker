@@ -48,20 +48,23 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	clusterData := patronidata.NewClusterDataWrapper(bkr.patroni, instanceID)
 
 	// Continue processing in background
+	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, clusterData, features)
 		if err != nil {
+			scheduledCluster.ErrorMsg = err.Error()
 			logger.Error("run-cluster", err)
-		}
-
-		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, port)
-		if err != nil {
-			logger.Error("assign-port", err)
+		} else {
+			err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, port)
+			if err != nil {
+				scheduledCluster.ErrorMsg = err.Error()
+				logger.Error("assign-port", err)
+			}
 		}
 
 		err = bkr.state.SaveCluster(scheduledCluster)
 		if err != nil {
-			logger.Error("assign-port", err)
+			logger.Error("save-cluster", err)
 		}
 	}()
 	return resp, true, err

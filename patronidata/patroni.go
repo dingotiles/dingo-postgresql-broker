@@ -49,7 +49,7 @@ func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (mem
 
 // ClusterMembersRunningStates aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
-func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
+func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID, expectedNodeCount int) (statuses string, allRunning bool, err error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("service/%s/members", instanceID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
@@ -79,6 +79,17 @@ func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID) (sta
 			allRunning = false
 		}
 	}
+	missingNodes := expectedNodeCount - len(resp.Node.Nodes)
+	if missingNodes > 0 {
+		for i := 0; i < missingNodes; i++ {
+			replicasStatus = append(replicasStatus, "missing")
+		}
+	}
+	// if there are currently too many or too few nodes, then cluster cannot be "all running"
+	if missingNodes != 0 {
+		allRunning = false
+	}
+
 	if masterStatus != "" {
 		return fmt.Sprintf("master %s; replicas %s", masterStatus, strings.Join(replicasStatus, ", ")), allRunning, nil
 	}

@@ -35,6 +35,7 @@ type ClusterState struct {
 	AppCredentials       PostgresCredentials `json:"app_credentials"`
 	AllocatedPort        int                 `json:"allocated_port"`
 	Nodes                []*Node             `json:"nodes"`
+	ErrorMsg             string              `json:"error"`
 }
 
 func (c *ClusterState) NodeCount() int {
