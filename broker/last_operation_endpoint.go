@@ -8,10 +8,9 @@ import (
 )
 
 // LastOperation returns the status of the last operation on a service instance
-// TODO: currently assumes all nodes created; if only one at a time then "success" might be too early
-// Perhaps AddNode, AddNode, WaitForAllNodesRunning
-// Also, LastOperation may need more information about what its waiting for. What if [Add, Add, Remove, Remove]?
-// Use /state and /state/errored
+// TODO: Plan needs to progressively store the state/description/error message; then
+// LastOperation fetches it and returns it (rather than doing any calculations of its own)
+// TODO: AddNode, AddNode, WaitForAllMembersRunning
 func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperationResponse, err error) {
 	return bkr.lastOperation(structs.ClusterID(instanceID))
 }

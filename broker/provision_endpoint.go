@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -45,12 +44,10 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 		}
 	}
 
-	clusterData := patronidata.NewClusterDataWrapper(bkr.patroni, instanceID)
-
 	// Continue processing in background
 	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
-		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, clusterData, features)
+		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, bkr.etcdConfig, features)
 		if err != nil {
 			scheduledCluster.ErrorMsg = err.Error()
 			logger.Error("run-cluster", err)

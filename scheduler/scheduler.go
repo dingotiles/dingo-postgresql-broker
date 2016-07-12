@@ -5,7 +5,6 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/pivotal-golang/lager"
 )
@@ -26,13 +25,13 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 	return s
 }
 
-func (s *Scheduler) RunCluster(cluster structs.ClusterState, clusterData patronidata.ClusterDataWrapper, features structs.ClusterFeatures) (structs.ClusterState, error) {
+func (s *Scheduler) RunCluster(cluster structs.ClusterState, etcdConfig config.Etcd, features structs.ClusterFeatures) (structs.ClusterState, error) {
 	err := s.VerifyClusterFeatures(features)
 	if err != nil {
 		return cluster, err
 	}
 
-	plan, err := s.newPlan(&cluster, clusterData, features)
+	plan, err := s.newPlan(&cluster, etcdConfig, features)
 	if err != nil {
 		return cluster, err
 	}
@@ -52,8 +51,8 @@ func (s *Scheduler) RunCluster(cluster structs.ClusterState, clusterData patroni
 	return cluster, nil
 }
 
-func (s *Scheduler) StopCluster(cluster structs.ClusterState, clusterData patronidata.ClusterDataWrapper) (structs.ClusterState, error) {
-	plan, err := s.newPlan(&cluster, clusterData, structs.ClusterFeatures{NodeCount: 0})
+func (s *Scheduler) StopCluster(cluster structs.ClusterState, etcdConfig config.Etcd) (structs.ClusterState, error) {
+	plan, err := s.newPlan(&cluster, etcdConfig, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return cluster, err
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -33,10 +32,8 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 
 	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
 
-	clusterData := patronidata.NewClusterDataWrapper(bkr.patroni, instanceID)
-
 	go func() {
-		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, clusterData, features)
+		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, bkr.etcdConfig, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
 		}

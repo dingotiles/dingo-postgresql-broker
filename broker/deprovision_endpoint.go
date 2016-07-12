@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -29,8 +28,7 @@ func (bkr *Broker) deprovision(instanceID structs.ClusterID, details brokerapi.D
 		return false, err
 	}
 
-	clusterData := patronidata.NewClusterDataWrapper(bkr.patroni, instanceID)
-	bkr.scheduler.StopCluster(cluster, clusterData)
+	bkr.scheduler.StopCluster(cluster, bkr.etcdConfig)
 	bkr.state.DeleteCluster(cluster.InstanceID)
 	bkr.router.RemoveClusterAssignment(cluster.InstanceID)
 

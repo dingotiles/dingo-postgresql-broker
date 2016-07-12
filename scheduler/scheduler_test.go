@@ -14,17 +14,18 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 	testPrefix := "TestScheduler_filterBackendsByCellGUIDs"
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	config := config.Scheduler{
+	schedulerConfig := config.Scheduler{
 		Backends: []*config.Backend{
 			&config.Backend{GUID: "cell-guid1"},
 			&config.Backend{GUID: "cell-guid2"},
 		},
 	}
-	scheduler := NewScheduler(config, logger)
+	scheduler := NewScheduler(schedulerConfig, logger)
+	state := &structs.ClusterState{InstanceID: "test"}
 	features := structs.ClusterFeatures{
 		CellGUIDs: []string{"cell-guid1", "unknown-cell-guid"},
 	}
-	plan, err := scheduler.newPlan(nil, nil, features)
+	plan, err := scheduler.newPlan(state, testutil.LocalEtcdConfig, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -43,15 +44,16 @@ func TestScheduler_allBackends(t *testing.T) {
 	testPrefix := "TestScheduler_allBackends"
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	config := config.Scheduler{
+	schedulerConfig := config.Scheduler{
 		Backends: []*config.Backend{
 			&config.Backend{GUID: "cell-guid1"},
 			&config.Backend{GUID: "cell-guid2"},
 		},
 	}
-	scheduler := NewScheduler(config, logger)
+	scheduler := NewScheduler(schedulerConfig, logger)
+	state := &structs.ClusterState{InstanceID: "test"}
 	features := structs.ClusterFeatures{}
-	plan, err := scheduler.newPlan(nil, nil, features)
+	plan, err := scheduler.newPlan(state, testutil.LocalEtcdConfig, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
