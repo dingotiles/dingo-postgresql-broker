@@ -56,7 +56,9 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 				logger.Error("assign-port", err)
 			}
 		}
-		scheduledCluster.ErrorMsg = err.Error()
+		if err != nil {
+			scheduledCluster.ErrorMsg = err.Error()
+		}
 
 		err = bkr.state.SaveCluster(scheduledCluster)
 		if err != nil {
