@@ -17,6 +17,7 @@ const (
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
 	clusterState      *structs.ClusterState
+	patroni           *patronidata.Patroni
 	clusterData       patronidata.ClusterDataWrapper
 	newFeatures       structs.ClusterFeatures
 	availableBackends backend.Backends
@@ -40,6 +41,7 @@ func (s *Scheduler) newPlan(cluster *structs.ClusterState, etcdConfig config.Etc
 	}
 	return plan{
 		clusterState:      cluster,
+		patroni:           patroni,
 		clusterData:       clusterData,
 		newFeatures:       features,
 		availableBackends: backends,
@@ -68,6 +70,10 @@ func (p plan) steps() (steps []step.Step) {
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
 		steps = append(steps, step.NewStepAddNode(p.clusterState, p.clusterData, p.availableBackends, p.logger))
+	}
+
+	if len(steps) > 0 {
+		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterState, p.patroni, p.logger))
 	}
 
 	for _, replica := range p.replicas(nodesToBeReplaced) {

@@ -21,7 +21,6 @@ type ClusterDataWrapperReal struct {
 
 type ClusterDataWrapper interface {
 	WaitTilMemberExists(memberID string) error
-	WaitTilMemberRunning(memberID string) error
 }
 
 // NewClusterDataWrapper creates a ClusterDataWrapper
@@ -64,32 +63,6 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 					return nil
 				}
 			}
-		}
-	}
-	return nil
-}
-
-// WaitTilMemberRunning blocks until cluster member's state is "running"
-func (cluster ClusterDataWrapperReal) WaitTilMemberRunning(memberID string) error {
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(waitTilMemberRunningTimeout)
-		timeout <- true
-	}()
-
-	c := time.Tick(1 * time.Second)
-	for {
-		select {
-		case <-c:
-			memberData, err := cluster.patroni.MemberData(cluster.instanceID, memberID)
-			if err != nil {
-				return err
-			}
-			if memberData.State == "running" {
-				return nil
-			}
-		case <-timeout:
-			return fmt.Errorf("Timed out waiting for member %s to achieve state 'running'", memberID)
 		}
 	}
 	return nil
