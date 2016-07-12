@@ -9,7 +9,7 @@ import (
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
+	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -22,7 +22,7 @@ type State struct {
 	etcdApi etcd.KeysAPI
 	prefix  string
 	logger  lager.Logger
-	patroni *patroni.Patroni
+	patroni *patronidata.Patroni
 }
 
 func NewState(etcdConfig config.Etcd, logger lager.Logger) (*State, error) {
@@ -35,7 +35,7 @@ func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logg
 		logger: logger,
 	}
 
-	patroniClient, err := patroni.NewPatroni(etcdConfig, logger)
+	patroniClient, err := patronidata.NewPatroni(etcdConfig, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logg
 }
 
 func (s *State) SaveCluster(clusterState structs.ClusterState) error {
-	s.logger.Info("save-clusterState", lager.Data{
+	s.logger.Info("cluster-state.save", lager.Data{
 		"cluster": clusterState,
 	})
 
@@ -90,12 +90,13 @@ func (s *State) ClusterExists(instanceID structs.ClusterID) bool {
 	return err == nil
 }
 
+// LoadCluster fetches the latest data/state for specific cluster
 func (s *State) LoadCluster(instanceID structs.ClusterID) (structs.ClusterState, error) {
 	var cluster structs.ClusterState
 	ctx := context.Background()
 	s.logger.Info("state.load-cluster-state")
-	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 
+	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
 	if err != nil {
 		s.logger.Error("state.load-cluster-state.error", err)

@@ -24,7 +24,7 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 	features := structs.ClusterFeatures{
 		CellGUIDs: []string{"cell-guid1", "unknown-cell-guid"},
 	}
-	plan, err := scheduler.newPlan(nil, features)
+	plan, err := scheduler.newPlan(nil, nil, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestScheduler_allBackends(t *testing.T) {
 	}
 	scheduler := NewScheduler(config, logger)
 	features := structs.ClusterFeatures{}
-	plan, err := scheduler.newPlan(nil, features)
+	plan, err := scheduler.newPlan(nil, nil, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}

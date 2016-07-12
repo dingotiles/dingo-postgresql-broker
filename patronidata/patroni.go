@@ -1,4 +1,4 @@
-package patroni
+package patronidata
 
 import (
 	"encoding/json"
@@ -32,15 +32,17 @@ func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 
 // ServiceMemberData contains the data advertised by a patroni member
 type ServiceMemberData struct {
-	ConnURL  string `json:"conn_url"`
-	HostPort string `json:"conn_address"`
-	Role     string `json:"role"`
-	State    string `json:"state"`
+	ConnURL      string `json:"conn_url"`
+	APIURL       string `json:"api_url"`
+	HostPort     string `json:"conn_address"`
+	Role         string `json:"role"`
+	State        string `json:"state"`
+	XlogLocation int64  `json:"xlog_location"`
 }
 
-// ClusterMembersStatus aggregates the patroni states of each member in the cluster
+// ClusterMembersRunningStates aggregates the patroni states of each member in the cluster
 // allRunning is true if state of all members is "running"
-func (p *Patroni) ClusterMembersStatus(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
+func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("/service/%s/members", instanceID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{

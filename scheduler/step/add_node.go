@@ -2,6 +2,7 @@ package step
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
 	"github.com/pivotal-golang/lager"
@@ -10,14 +11,17 @@ import (
 // AddNode instructs a new cluster node be added
 type AddNode struct {
 	cluster           *structs.ClusterState
+	clusterData       patronidata.ClusterDataWrapper
 	availableBackends backend.Backends
 	logger            lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *structs.ClusterState, availableBackends backend.Backends, logger lager.Logger) Step {
+func NewStepAddNode(cluster *structs.ClusterState, clusterData patronidata.ClusterDataWrapper,
+	availableBackends backend.Backends, logger lager.Logger) Step {
 	return AddNode{
 		cluster:           cluster,
+		clusterData:       clusterData,
 		availableBackends: availableBackends,
 		logger:            logger,
 	}
@@ -57,19 +61,22 @@ func (step AddNode) Perform() (err error) {
 	}
 	if err != nil {
 		// no sortedBackends available to run a cluster
-		logger.Info("add-node.perform.sorted-backends.unavailable", lager.Data{"summary": "no backends available to run a container"})
+		logger.Error("add-node.perform.sorted-backends.unavailable", err, lager.Data{"summary": "no backends available to run a container"})
 		return err
 	}
 	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid
 	err = step.cluster.AddNode(provisionedNode)
 	if err != nil {
-		// no sortedBackends available to run a cluster
+		logger.Error("add-node.perform.add-node.error", err, lager.Data{"summary": "no sorted-backends available to run a cluster"})
 		return err
 	}
 
-	// TODO: ensure nodes are in same cluster; I think its currently based on instanceID; but perhaps should be a parameter
-
-	// 6. Return OK; timeout if routing mesh didn't do its job
+	// 6. Block until node is state == running
+	err = step.clusterData.WaitTilMemberRunning(provisionedNode.ID)
+	if err != nil {
+		logger.Error("add-node.perform.wait-til-running.error", err, lager.Data{"member": provisionedNode.ID})
+		return err
+	}
 
 	return err
 }

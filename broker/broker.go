@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -15,11 +16,14 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
-	config     config.Broker
-	catalog    brokerapi.Catalog
+	config  config.Broker
+	catalog brokerapi.Catalog
+
 	etcdConfig config.Etcd
-	logger     lager.Logger
-	cells      []*config.Backend
+	patroni    *patronidata.Patroni
+
+	logger lager.Logger
+	cells  []*config.Backend
 
 	callbacks *Callbacks
 
@@ -44,6 +48,12 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr.state, err = state.NewState(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-state.error", err)
+		return nil, err
+	}
+
+	bkr.patroni, err = patronidata.NewPatroni(config.Etcd, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-patronidata.error", err)
 		return nil, err
 	}
 

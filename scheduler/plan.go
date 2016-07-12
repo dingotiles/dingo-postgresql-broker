@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -15,6 +16,7 @@ const (
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
 	clusterState      *structs.ClusterState
+	clusterData       patronidata.ClusterDataWrapper
 	newFeatures       structs.ClusterFeatures
 	availableBackends backend.Backends
 	allBackends       backend.Backends
@@ -23,13 +25,14 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(cluster *structs.ClusterState, features structs.ClusterFeatures) (plan, error) {
+func (s *Scheduler) newPlan(cluster *structs.ClusterState, clusterData patronidata.ClusterDataWrapper, features structs.ClusterFeatures) (plan, error) {
 	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
 		return plan{}, err
 	}
 	return plan{
 		clusterState:      cluster,
+		clusterData:       clusterData,
 		newFeatures:       features,
 		availableBackends: backends,
 		allBackends:       s.backends,
@@ -51,12 +54,12 @@ func (p plan) stepTypes() []string {
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (p plan) steps() (steps []step.Step) {
 	for i := 0; i < p.clusterGrowingBy(); i++ {
-		steps = append(steps, step.NewStepAddNode(p.clusterState, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterState, p.clusterData, p.availableBackends, p.logger))
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
-		steps = append(steps, step.NewStepAddNode(p.clusterState, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterState, p.clusterData, p.availableBackends, p.logger))
 	}
 
 	for _, replica := range p.replicas(nodesToBeReplaced) {

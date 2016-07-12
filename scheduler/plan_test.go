@@ -6,6 +6,7 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/dingotiles/dingo-postgresql-broker/testutil"
 )
@@ -25,7 +26,8 @@ func TestPlan_Steps_NewCluster_Default(t *testing.T) {
 		},
 	}
 	scheduler := NewScheduler(config, logger)
-	plan, err := scheduler.newPlan(&structs.ClusterState{}, structs.ClusterFeatures{NodeCount: 2})
+	clusterData := patronidata.ClusterDataWrapperReal{}
+	plan, err := scheduler.newPlan(&structs.ClusterState{}, clusterData, structs.ClusterFeatures{NodeCount: 2})
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -57,7 +59,7 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 			&structs.Node{ID: "b", BackendID: "cell2", Role: state.ReplicaRole},
 		},
 	}
-	plan, err := scheduler.newPlan(clusterState, structs.ClusterFeatures{NodeCount: 3})
+	plan, err := scheduler.newPlan(clusterState, nil, structs.ClusterFeatures{NodeCount: 3})
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -90,7 +92,7 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 			&structs.Node{ID: "c", BackendID: "cell3", Role: state.ReplicaRole},
 		},
 	}
-	plan, err := scheduler.newPlan(clusterState, structs.ClusterFeatures{NodeCount: 2})
+	plan, err := scheduler.newPlan(clusterState, nil, structs.ClusterFeatures{NodeCount: 2})
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -124,7 +126,7 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 		NodeCount: 2,
 		CellGUIDs: []string{"cell1", "cell2"},
 	}
-	plan, err := scheduler.newPlan(clusterState, clusterFeatures)
+	plan, err := scheduler.newPlan(clusterState, nil, clusterFeatures)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -158,7 +160,7 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 		NodeCount: 2,
 		CellGUIDs: []string{"cell1", "cell2"},
 	}
-	plan, err := scheduler.newPlan(clusterState, clusterFeatures)
+	plan, err := scheduler.newPlan(clusterState, nil, clusterFeatures)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -192,7 +194,7 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 		NodeCount: 2,
 		CellGUIDs: []string{"cell1", "cell2"},
 	}
-	plan, err := scheduler.newPlan(clusterState, clusterFeatures)
+	plan, err := scheduler.newPlan(clusterState, nil, clusterFeatures)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
