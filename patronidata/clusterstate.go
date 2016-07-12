@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/pivotal-golang/lager"
 )
 
 const (
@@ -46,8 +47,17 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 		select {
 		case <-c:
 			memberData, err := cluster.patroni.MemberData(cluster.instanceID, memberID)
-			if err != nil && !notFoundRegExp.MatchString(err.Error()) {
-				return err
+			if err != nil {
+				cluster.patroni.logger.Error("cluster-data.member-data.get", err, lager.Data{
+					"instance-id":   cluster.instanceID,
+					"member":        memberID,
+					"err":           err.Error(),
+					"not-found-yet": notFoundRegExp.MatchString(err.Error()),
+				})
+
+				if !notFoundRegExp.MatchString(err.Error()) {
+					return err
+				}
 			}
 			if memberData.State == "running" {
 				return nil

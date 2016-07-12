@@ -33,10 +33,10 @@ func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 // LoadCluster fetches the latest data/state for specific cluster
 func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (memberData *datastructs.DataServiceMember, err error) {
 	ctx := context.Background()
-	key := fmt.Sprintf("/service/%s/members/%s", instanceID, memberID)
+	key := fmt.Sprintf("service/%s/members/%s", instanceID, memberID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
 	if err != nil {
-		p.logger.Error("cluster-data.member-data.etcd-get", err, lager.Data{"member": memberID})
+		p.logger.Error("cluster-data.member-data.etcd-get", err, lager.Data{"member": memberID, "key": key})
 		return
 	}
 	memberData, err = datastructs.NewDataServiceMember(resp.Node.Value)
@@ -51,7 +51,7 @@ func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (mem
 // allRunning is true if state of all members is "running"
 func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID) (statuses string, allRunning bool, err error) {
 	ctx := context.Background()
-	key := fmt.Sprintf("/service/%s/members", instanceID)
+	key := fmt.Sprintf("service/%s/members", instanceID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
 		Quorum:    true,
 		Recursive: true,
