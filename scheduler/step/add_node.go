@@ -71,7 +71,14 @@ func (step AddNode) Perform() (err error) {
 		return err
 	}
 
-	// 6. Block until node is state == running
+	// 6. Wait until node registers itself in data store
+	err = step.clusterData.WaitTilMemberExists(provisionedNode.ID)
+	if err != nil {
+		logger.Error("add-node.perform.wait-til-exists.error", err, lager.Data{"member": provisionedNode.ID})
+		return err
+	}
+
+	// 7. Block until node is state == running
 	err = step.clusterData.WaitTilMemberRunning(provisionedNode.ID)
 	if err != nil {
 		logger.Error("add-node.perform.wait-til-running.error", err, lager.Data{"member": provisionedNode.ID})
