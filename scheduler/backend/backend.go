@@ -72,7 +72,7 @@ func (b *Backend) ProvisionNode(clusterState *structs.ClusterState, logger lager
 		SpaceGUID:        clusterState.SpaceGUID,
 		Parameters: map[string]interface{}{
 			"PATRONI_SCOPE":      clusterState.InstanceID,
-			"NODE_NAME":          node.ID,
+			"NODE_ID":            node.ID,
 			"ADMIN_USERNAME":     clusterState.AdminCredentials.Username,
 			"ADMIN_PASSWORD":     clusterState.AdminCredentials.Password,
 			"SUPERUSER_USERNAME": clusterState.SuperuserCredentials.Username,
