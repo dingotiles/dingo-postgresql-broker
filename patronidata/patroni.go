@@ -1,7 +1,6 @@
 package patronidata
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/patroniclient/datastructs"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -30,14 +30,21 @@ func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 	}, nil
 }
 
-// ServiceMemberData contains the data advertised by a patroni member
-type ServiceMemberData struct {
-	ConnURL      string `json:"conn_url"`
-	APIURL       string `json:"api_url"`
-	HostPort     string `json:"conn_address"`
-	Role         string `json:"role"`
-	State        string `json:"state"`
-	XlogLocation int64  `json:"xlog_location"`
+// LoadCluster fetches the latest data/state for specific cluster
+func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (memberData *datastructs.DataServiceMember, err error) {
+	ctx := context.Background()
+	key := fmt.Sprintf("/service/%s/members/%s", instanceID, memberID)
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
+	if err != nil {
+		p.logger.Error("cluster-data.etcd-member", err, lager.Data{"member": memberID})
+		return
+	}
+	memberData, err = datastructs.NewDataServiceMember(resp.Node.Value)
+	if err != nil {
+		p.logger.Error("cluster-data.data-service.decode", err, lager.Data{"member": memberID})
+		return
+	}
+	return
 }
 
 // ClusterMembersRunningStates aggregates the patroni states of each member in the cluster
@@ -58,8 +65,7 @@ func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID) (sta
 	replicasStatus := []string{}
 	allRunning = true
 	for _, member := range resp.Node.Nodes {
-		memberData := ServiceMemberData{}
-		err := json.Unmarshal([]byte(member.Value), &memberData)
+		memberData, err := datastructs.NewDataServiceMember(member.Value)
 		if err != nil {
 			p.logger.Error("member-status.etcd-member", err)
 			return fmt.Sprintf("patroni member status corrupt for service instance %s", instanceID), false, err

@@ -1,0 +1,72 @@
+{
+	"ImportPath": "github.com/dingotiles/dingo-postgresql-broker",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-197-gcf1f63a",
+			"Rev": "cf1f63a7274872768d4037305d572b70b1199397"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/client",
+			"Comment": "v3.0.0-beta.0-626-g78d9ae1",
+			"Rev": "78d9ae1820f4e7c0a1f05add60e1b69ba2981b75"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/pkg/pathutil",
+			"Comment": "v3.0.0-beta.0-626-g78d9ae1",
+			"Rev": "78d9ae1820f4e7c0a1f05add60e1b69ba2981b75"
+		},
+		{
+			"ImportPath": "github.com/coreos/etcd/pkg/types",
+			"Comment": "v3.0.0-beta.0-626-g78d9ae1",
+			"Rev": "78d9ae1820f4e7c0a1f05add60e1b69ba2981b75"
+		},
+		{
+			"ImportPath": "github.com/dingotiles/patroniclient/datastructs",
+			"Rev": "fb4551241b6a20bd26a4e15b85838f4cfc68f0dc"
+		},
+		{
+			"ImportPath": "github.com/frodenas/brokerapi",
+			"Rev": "ac1ed76a08954bbd7b40a8794738539404a84313"
+		},
+		{
+			"ImportPath": "github.com/frodenas/brokerapi/auth",
+			"Rev": "ac1ed76a08954bbd7b40a8794738539404a84313"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "c9e326e2bdec29039a3761c07bece13133863e1e"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "d2dd0262208475919e1a362f675cfc0e7c10e905"
+		},
+		{
+			"ImportPath": "github.com/pborman/uuid",
+			"Comment": "v1.0-11-gc55201b",
+			"Rev": "c55201b036063326c5b1b89ccfe45a184973d073"
+		},
+		{
+			"ImportPath": "github.com/pivotal-golang/lager",
+			"Rev": "7639e31ce6622c55c15aa64144b85d5f4873d127"
+		},
+		{
+			"ImportPath": "github.com/ugorji/go/codec",
+			"Rev": "03b46f3d7a8e0457836a5ecd906b4961a5815a63"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "8e573f4005aa312856df2ea97c32b9beac70dd89"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+		}
+	]
+}
