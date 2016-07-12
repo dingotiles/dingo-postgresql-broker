@@ -39,16 +39,15 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 		timeout <- true
 	}()
 
+	notFoundRegExp, _ := regexp.Compile("Key not found")
+
 	c := time.Tick(1 * time.Second)
 	for {
 		select {
 		case <-c:
 			memberData, err := cluster.patroni.MemberData(cluster.instanceID, memberID)
-			if err != nil {
-				notFoundRegExp, _ := regexp.Compile("Key not found")
-				if !notFoundRegExp.MatchString(err.Error()) {
-					return err
-				}
+			if err != nil && !notFoundRegExp.MatchString(err.Error()) {
+				return err
 			}
 			if memberData.State == "running" {
 				return nil
