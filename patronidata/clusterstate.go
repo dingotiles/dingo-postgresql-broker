@@ -34,18 +34,15 @@ func NewClusterDataWrapper(patroni *Patroni, instanceID structs.ClusterID) Clust
 
 // WaitTilMemberExists blocks until cluster member exists in data store
 func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error {
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(waitTilMemberRunningTimeout)
-		timeout <- true
-	}()
-
 	notFoundRegExp, _ := regexp.Compile("Key not found")
 
-	c := time.Tick(1 * time.Second)
+	timeout := time.After(waitTilMemberRunningTimeout)
+	tick := time.Tick(1 * time.Second)
 	for {
 		select {
-		case <-c:
+		case <-timeout:
+			return fmt.Errorf("Timed out waiting for member %s appear in data store", memberID)
+		case <-tick:
 			memberData, err := cluster.patroni.MemberData(cluster.instanceID, memberID)
 			if err != nil {
 				cluster.patroni.logger.Error("cluster-data.member-data.get", err, lager.Data{
@@ -58,12 +55,15 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 				if !notFoundRegExp.MatchString(err.Error()) {
 					return err
 				}
+				cluster.patroni.logger.Info("cluster-data.member-data.waiting", lager.Data{
+					"instance-id": cluster.instanceID,
+					"member":      memberID,
+				})
+			} else {
+				if memberData.State == "running" {
+					return nil
+				}
 			}
-			if memberData.State == "running" {
-				return nil
-			}
-		case <-timeout:
-			return fmt.Errorf("Timed out waiting for member %s appear in data store", memberID)
 		}
 	}
 	return nil
