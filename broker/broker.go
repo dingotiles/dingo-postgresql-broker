@@ -29,7 +29,7 @@ type Broker struct {
 
 	router    Router
 	scheduler Scheduler
-	state     State
+	state     state.State
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -45,7 +45,7 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
 	bkr.scheduler = scheduler.NewScheduler(config.Scheduler, bkr.logger)
 	var err error
-	bkr.state, err = state.NewState(config.Etcd, bkr.logger)
+	bkr.state, err = state.NewStateEtcd(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-state.error", err)
 		return nil, err
