@@ -43,11 +43,15 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterStateModel, etcdConfig
 		"steps":       plan.stepTypes(),
 		"features":    features,
 	})
-	for _, step := range plan.steps() {
+	steps := plan.steps()
+	clusterModel.NewClusterPlan(len(steps))
+
+	for _, step := range steps {
 		err = step.Perform()
 		if err != nil {
 			return
 		}
+		clusterModel.PlanStepComplete()
 	}
 	return
 }

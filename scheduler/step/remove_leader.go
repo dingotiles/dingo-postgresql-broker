@@ -36,6 +36,8 @@ func (step RemoveLeader) StepType() string {
 func (step RemoveLeader) Perform() (err error) {
 	logger := step.logger
 
+	step.clusterModel.PlanStepStarted("Replacing/removing leader")
+
 	backend := step.backends.Get(step.nodeToRemove.BackendID)
 	if backend == nil {
 		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", step.nodeToRemove.BackendID)

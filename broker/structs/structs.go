@@ -35,7 +35,14 @@ type ClusterState struct {
 	AppCredentials       PostgresCredentials `json:"app_credentials"`
 	AllocatedPort        int                 `json:"allocated_port"`
 	Nodes                []*Node             `json:"nodes"`
+	Plan                 ClusterStatePlan    `json:"plan"`
 	ErrorMsg             string              `json:"error"`
+}
+
+type ClusterStatePlan struct {
+	Steps          int    `json:"steps"`
+	CompletedSteps int    `json:"completed_steps"`
+	Message        string `json:"message"`
 }
 
 func (c *ClusterState) NodeCount() int {

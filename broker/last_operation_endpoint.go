@@ -1,8 +1,10 @@
 package broker
 
 import (
+	"fmt"
+
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -19,22 +21,30 @@ func (bkr *Broker) lastOperation(instanceID structs.ClusterID) (resp brokerapi.L
 	logger := bkr.newLoggingSession("last-opration", lager.Data{"instanceID": instanceID})
 	defer logger.Info("done")
 
-	cluster, err := bkr.state.LoadCluster(instanceID)
+	clusterState, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
 		logger.Error("load-cluster.error", err)
 		return brokerapi.LastOperationResponse{State: brokerapi.LastOperationFailed, Description: err.Error()}, err
 	}
-	if cluster.ErrorMsg != "" {
-		return brokerapi.LastOperationResponse{State: brokerapi.LastOperationFailed, Description: cluster.ErrorMsg}, nil
+	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
+	planStatus := clusterModel.CurrentPlanStatus()
+	return bkr.lastOperationFromPlanStatus(planStatus)
+}
+
+func (bkr *Broker) lastOperationFromPlanStatus(planStatus *state.PlanStatus) (resp brokerapi.LastOperationResponse, err error) {
+	resp.Description = planStatus.Message
+
+	switch planStatus.Status {
+	case state.PlanStatusFailed:
+		resp.State = brokerapi.LastOperationFailed
+		err = fmt.Errorf(resp.Description)
+	case state.PlanStatusSuccess:
+		resp.State = brokerapi.LastOperationSucceeded
+	case state.PlanStatusInProgress:
+		resp.State = brokerapi.LastOperationInProgress
+	default:
+		resp.State = brokerapi.LastOperationInProgress
+		resp.Description = "Preparing..."
 	}
-
-	patroni, _ := patronidata.NewPatroni(bkr.etcdConfig, logger)
-	clusterStatus, allRunning, err := patroni.ClusterMembersRunningStates(structs.ClusterID(instanceID), cluster.NodeCount())
-
-	state := brokerapi.LastOperationInProgress
-	if allRunning {
-		state = brokerapi.LastOperationSucceeded
-	}
-
-	return brokerapi.LastOperationResponse{State: state, Description: clusterStatus}, err
+	return
 }
