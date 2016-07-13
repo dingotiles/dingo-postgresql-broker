@@ -41,15 +41,10 @@ func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.
 	}
 
 	go func() {
-		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, bkr.etcdConfig, features)
+		_, err := bkr.scheduler.RunCluster(clusterState, bkr.etcdConfig, features)
 		if err != nil {
-			scheduledCluster.ErrorMsg = err.Error()
+			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
-		}
-
-		err = bkr.state.SaveCluster(scheduledCluster)
-		if err != nil {
-			logger.Error("assign-port", err)
 		}
 	}()
 	return true, err

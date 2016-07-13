@@ -26,6 +26,13 @@ func (model *ClusterStateModel) ResetClusterPlan() error {
 	return model.Save()
 }
 
+// PlanError stores the failure message for a scheduled Plan
+// This will be shown to end users via /last_operation endpoint
+func (model *ClusterStateModel) PlanError(err error) error {
+	model.cluster.ErrorMsg = err.Error()
+	return model.Save()
+}
+
 func (model *ClusterStateModel) Cluster() *structs.ClusterState {
 	return &model.cluster
 }

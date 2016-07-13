@@ -42,16 +42,14 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 	go func() {
 		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, bkr.etcdConfig, features)
 		if err != nil {
+			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
-		}
-
-		err = bkr.state.SaveCluster(scheduledCluster)
-		if err != nil {
-			logger.Error("save-cluster", err)
+			return
 		}
 
 		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, scheduledCluster.AllocatedPort)
 		if err != nil {
+			clusterModel.PlanError(err)
 			logger.Error("assign-port", err)
 		}
 	}()
