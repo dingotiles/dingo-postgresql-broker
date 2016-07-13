@@ -42,5 +42,9 @@ func (step WaitForLeader) Perform() (err error) {
 		return err
 	}
 
+	// TODO: Annoyingly, just because patroni agent thinks it is the leader role, doesn't mean
+	// that the postgresql is ready yet as a read/write leader.
+	// Perhaps need to use PostgreSQL to poll/test writability? Some other method?
+
 	return nil
 }
