@@ -19,6 +19,14 @@ type Patroni struct {
 	logger lager.Logger
 }
 
+const (
+	LeaderRole  = "master"
+	MasterRole  = "master"
+	ReplicaRole = "replica"
+
+	RunningState = "running"
+)
+
 func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 	etcd, err := setupEtcd(etcdConf)
 	if err != nil {
@@ -48,7 +56,24 @@ func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (mem
 	return
 }
 
-// WaitTilMemberRunning blocks until every cluster member's state is "running"
+// WaitForLeader blocks until leader is elected and active
+func (p *Patroni) WaitForLeader(instanceID structs.ClusterID) error {
+	timeout := time.After(waitForLeaderTimeout)
+	c := time.Tick(1 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return fmt.Errorf("Timed out waiting for leader of %d", instanceID)
+		case <-c:
+			if p.checkLeader(instanceID) {
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+// WaitTilClusterMembersRunning waits until expected number of nodes are running (not too many, not too few, and all running)
 func (p *Patroni) WaitTilClusterMembersRunning(instanceID structs.ClusterID, expectedNodeCount int) error {
 	timeout := time.After(waitTilMemberRunningTimeout)
 	c := time.Tick(1 * time.Second)
@@ -65,6 +90,37 @@ func (p *Patroni) WaitTilClusterMembersRunning(instanceID structs.ClusterID, exp
 	return nil
 }
 
+// TODO: prove list of member IDs that cannot be member OR that can be member
+// This will ensure that success isn't for an ex-leader that hasn't died yet
+func (p *Patroni) checkLeader(instanceID structs.ClusterID) bool {
+	var err error
+
+	ctx := context.Background()
+	key := fmt.Sprintf("service/%s/leader", instanceID)
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
+		Quorum:    true,
+		Recursive: true,
+	})
+	if err != nil {
+		p.logger.Error("check-leader.etcd-leader.discover", err, lager.Data{"instance-id": instanceID})
+		return false
+	}
+
+	// Leader has been elected
+	leaderID := resp.Node.Value
+
+	// Check if leader member has finished become leader
+	leaderData, err := p.MemberData(instanceID, leaderID)
+	if err != nil {
+		p.logger.Error("check-leader.etcd-leader.fetch", err)
+		return false
+	}
+	p.logger.Info("check-leader.leader", lager.Data{"leader": leaderID, "data": leaderData})
+
+	return leaderData.State == RunningState && leaderData.Role == LeaderRole
+}
+
+// Checks that the expected number of nodes are running (not too many, not too few, and all running)
 func (p *Patroni) checkClusterMembersRunning(instanceID structs.ClusterID, expectedNodeCount int) bool {
 	var err error
 

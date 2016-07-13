@@ -30,7 +30,7 @@ func TestPlan_Steps_NewCluster_Default(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "AddNode", "WaitTilNodesRunning"}
+	expectedStepTypes := []string{"AddNode", "AddNode", "WaitTilNodesRunning", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -64,7 +64,7 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "WaitTilNodesRunning"}
+	expectedStepTypes := []string{"AddNode", "WaitTilNodesRunning", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -99,7 +99,7 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"RemoveRandomNode"}
+	expectedStepTypes := []string{"RemoveRandomNode", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -135,7 +135,7 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "WaitTilNodesRunning", "RemoveNode(b)"}
+	expectedStepTypes := []string{"AddNode", "WaitTilNodesRunning", "RemoveNode(b)", "WaitTilNodesRunning", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -171,7 +171,7 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "WaitTilNodesRunning", "RemoveLeader(a)"}
+	expectedStepTypes := []string{"AddNode", "WaitTilNodesRunning", "RemoveLeader(a)", "WaitTilNodesRunning", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -207,7 +207,7 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "AddNode", "WaitTilNodesRunning", "RemoveNode(b)", "RemoveLeader(a)"}
+	expectedStepTypes := []string{"AddNode", "AddNode", "WaitTilNodesRunning", "RemoveNode(b)", "RemoveLeader(a)", "WaitTilNodesRunning", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)

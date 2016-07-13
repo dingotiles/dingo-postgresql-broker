@@ -11,6 +11,7 @@ import (
 
 const (
 	waitTilMemberRunningTimeout = 300 * time.Second
+	waitForLeaderTimeout        = 300 * time.Second
 )
 
 // ClusterDataWrapper allows access to latest cluster information for a specific cluster

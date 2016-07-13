@@ -63,30 +63,42 @@ func (p plan) stepTypes() []string {
 
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (p plan) steps() (steps []step.Step) {
+	addedNodes := false
 	for i := 0; i < p.clusterGrowingBy(); i++ {
 		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.clusterData, p.availableBackends, p.logger))
+		addedNodes = true
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
 		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.clusterData, p.availableBackends, p.logger))
+		addedNodes = true
 	}
 
-	if len(steps) > 0 {
+	if addedNodes {
 		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterModel, p.patroni, p.logger))
 	}
 
+	removedNodes := false
 	for _, replica := range p.replicas(nodesToBeReplaced) {
 		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterModel, p.allBackends, p.logger))
+		removedNodes = true
 	}
 
 	if leader := p.leader(nodesToBeReplaced); leader != nil {
 		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterModel, p.allBackends, p.logger))
+		removedNodes = true
+	}
+
+	if removedNodes {
+		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterModel, p.patroni, p.logger))
 	}
 
 	for i := 0; i < p.clusterShrinkingBy(); i++ {
 		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, p.allBackends, p.logger))
 	}
+
+	steps = append(steps, step.NewWaitForLeader(p.clusterModel, p.patroni, p.logger))
 
 	return
 }

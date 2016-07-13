@@ -60,6 +60,7 @@ func (step RemoveLeader) Perform() (err error) {
 	if err != nil {
 		logger.Error("remove-leader.nodes-delete", err)
 	}
+
 	step.clusterModel.Save()
 	return
 }
