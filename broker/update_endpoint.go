@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -27,14 +28,20 @@ func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.
 		return false, err
 	}
 
-	cluster, err := bkr.state.LoadCluster(instanceID)
+	clusterState, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
 		logger.Error("load-cluster.error", err)
 		return false, err
 	}
+	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
+	err = clusterModel.ResetClusterPlan()
+	if err != nil {
+		logger.Error("reset-cluster-plan", err)
+		return false, err
+	}
 
 	go func() {
-		scheduledCluster, err := bkr.scheduler.RunCluster(cluster, bkr.etcdConfig, features)
+		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, bkr.etcdConfig, features)
 		if err != nil {
 			scheduledCluster.ErrorMsg = err.Error()
 			logger.Error("run-cluster", err)
