@@ -40,3 +40,23 @@ func (model *ClusterStateModel) Cluster() *structs.ClusterState {
 func (model *ClusterStateModel) InstanceID() structs.ClusterID {
 	return model.cluster.InstanceID
 }
+
+func (model *ClusterStateModel) AllocatedPort() int {
+	return model.cluster.AllocatedPort
+}
+
+func (model *ClusterStateModel) NodeCount() int {
+	return model.cluster.NodeCount()
+}
+
+func (model *ClusterStateModel) Nodes() []*structs.Node {
+	return model.cluster.Nodes
+}
+
+func (model *ClusterStateModel) AddNode(node structs.Node) error {
+	return model.cluster.AddNode(node)
+}
+
+func (model *ClusterStateModel) RemoveNode(node *structs.Node) error {
+	return model.cluster.RemoveNode(node)
+}

@@ -3,11 +3,12 @@ package broker
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 )
 
 type Scheduler interface {
-	RunCluster(structs.ClusterState, config.Etcd, structs.ClusterFeatures) (structs.ClusterState, error)
-	StopCluster(structs.ClusterState, config.Etcd) (structs.ClusterState, error)
+	RunCluster(*state.ClusterStateModel, config.Etcd, structs.ClusterFeatures) error
+	StopCluster(*state.ClusterStateModel, config.Etcd) error
 	VerifyClusterFeatures(structs.ClusterFeatures) error
 }
 

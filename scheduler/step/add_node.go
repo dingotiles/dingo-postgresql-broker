@@ -4,23 +4,24 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
 	"github.com/pivotal-golang/lager"
 )
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	cluster           *structs.ClusterState
+	clusterModel      *state.ClusterStateModel
 	clusterData       patronidata.ClusterDataWrapper
 	availableBackends backend.Backends
 	logger            lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(cluster *structs.ClusterState, clusterData patronidata.ClusterDataWrapper,
+func NewStepAddNode(clusterModel *state.ClusterStateModel, clusterData patronidata.ClusterDataWrapper,
 	availableBackends backend.Backends, logger lager.Logger) Step {
 	return AddNode{
-		cluster:           cluster,
+		clusterModel:      clusterModel,
 		clusterData:       clusterData,
 		availableBackends: availableBackends,
 		logger:            logger,
@@ -35,16 +36,18 @@ func (step AddNode) StepType() string {
 // Perform runs the Step action to modify the Cluster
 func (step AddNode) Perform() (err error) {
 	logger := step.logger
-	logger.Info("add-node.perform", lager.Data{"instance-id": step.cluster.InstanceID})
+	logger.Info("add-node.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
-	nodes := step.cluster.Nodes
+	nodes := step.clusterModel.Nodes()
+	clusterStateData := step.clusterModel.Cluster()
+
 	sortedBackends := prioritizeBackends(nodes, step.availableBackends)
 	logger.Info("add-node.perform.sorted-backends", lager.Data{"backends": sortedBackends})
 
 	// 4. Send requests to sortedBackends until one says OK; else fail
 	var provisionedNode structs.Node
 	for _, backend := range sortedBackends {
-		provisionedNode, err = backend.ProvisionNode(step.cluster, step.logger)
+		provisionedNode, err = backend.ProvisionNode(clusterStateData, step.logger)
 		logBackend := lager.Data{
 			"uri":  backend.URI,
 			"guid": backend.ID,
@@ -63,9 +66,9 @@ func (step AddNode) Perform() (err error) {
 		return err
 	}
 	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid
-	err = step.cluster.AddNode(provisionedNode)
+	err = step.clusterModel.AddNode(provisionedNode)
 	if err != nil {
-		logger.Error("add-node.perform.add-node.error", err, lager.Data{"summary": "no sorted-backends available to run a cluster"})
+		logger.Error("add-node.perform.add-node", err, lager.Data{"summary": "no sorted-backends available to run a cluster"})
 		return err
 	}
 

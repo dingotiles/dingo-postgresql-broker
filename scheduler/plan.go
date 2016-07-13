@@ -16,7 +16,7 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
-	clusterState      *structs.ClusterState
+	clusterModel      *state.ClusterStateModel
 	patroni           *patronidata.Patroni
 	clusterData       patronidata.ClusterDataWrapper
 	newFeatures       structs.ClusterFeatures
@@ -27,20 +27,20 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(cluster *structs.ClusterState, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
+func (s *Scheduler) newPlan(clusterModel *state.ClusterStateModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
 	patroni, err := patronidata.NewPatroni(etcdConfig, s.logger)
 	if err != nil {
 		s.logger.Error("new-plan.new-patronidata", err)
 		return plan{}, err
 	}
-	clusterData := patronidata.NewClusterDataWrapper(patroni, cluster.InstanceID)
+	clusterData := patronidata.NewClusterDataWrapper(patroni, clusterModel.InstanceID())
 
 	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
 		return plan{}, err
 	}
 	return plan{
-		clusterState:      cluster,
+		clusterModel:      clusterModel,
 		patroni:           patroni,
 		clusterData:       clusterData,
 		newFeatures:       features,
@@ -64,28 +64,28 @@ func (p plan) stepTypes() []string {
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (p plan) steps() (steps []step.Step) {
 	for i := 0; i < p.clusterGrowingBy(); i++ {
-		steps = append(steps, step.NewStepAddNode(p.clusterState, p.clusterData, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.clusterData, p.availableBackends, p.logger))
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
-		steps = append(steps, step.NewStepAddNode(p.clusterState, p.clusterData, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.clusterData, p.availableBackends, p.logger))
 	}
 
 	if len(steps) > 0 {
-		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterState, p.patroni, p.logger))
+		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterModel, p.patroni, p.logger))
 	}
 
 	for _, replica := range p.replicas(nodesToBeReplaced) {
-		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterState, p.allBackends, p.logger))
+		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterModel, p.allBackends, p.logger))
 	}
 
 	if leader := p.leader(nodesToBeReplaced); leader != nil {
-		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterState, p.allBackends, p.logger))
+		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterModel, p.allBackends, p.logger))
 	}
 
 	for i := 0; i < p.clusterShrinkingBy(); i++ {
-		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterState, p.allBackends, p.logger))
+		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, p.allBackends, p.logger))
 	}
 
 	return
@@ -95,7 +95,7 @@ func (p plan) steps() (steps []step.Step) {
 // else returns number of new nodes
 func (p plan) clusterGrowingBy() int {
 	targetNodeCount := p.newFeatures.NodeCount
-	currentNodeCount := p.clusterState.NodeCount()
+	currentNodeCount := p.clusterModel.NodeCount()
 
 	if targetNodeCount > currentNodeCount {
 		return targetNodeCount - currentNodeCount
@@ -107,7 +107,7 @@ func (p plan) clusterGrowingBy() int {
 // else returns number of nodes to be removed
 func (p plan) clusterShrinkingBy() int {
 	targetNodeCount := p.newFeatures.NodeCount
-	currentNodeCount := p.clusterState.NodeCount()
+	currentNodeCount := p.clusterModel.NodeCount()
 
 	if targetNodeCount < currentNodeCount {
 		return currentNodeCount - targetNodeCount
@@ -116,7 +116,7 @@ func (p plan) clusterShrinkingBy() int {
 }
 
 func (p plan) nodesToBeReplaced() (nodes []*structs.Node) {
-	for _, node := range p.clusterState.Nodes {
+	for _, node := range p.clusterModel.Nodes() {
 		validBackend := false
 		for _, backend := range p.availableBackends {
 			if node.BackendID == backend.ID {

@@ -6,19 +6,20 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 // RemoveRandomNode instructs cluster to delete a node, starting with replicas
 type RemoveRandomNode struct {
-	cluster  *structs.ClusterState
-	backends backend.Backends
-	logger   lager.Logger
+	clusterModel *state.ClusterStateModel
+	backends     backend.Backends
+	logger       lager.Logger
 }
 
 // NewStepRemoveRandomNode creates a StepRemoveRandomNode command
-func NewStepRemoveRandomNode(cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
-	return RemoveRandomNode{cluster: cluster, backends: backends, logger: logger}
+func NewStepRemoveRandomNode(clusterModel *state.ClusterStateModel, backends backend.Backends, logger lager.Logger) Step {
+	return RemoveRandomNode{clusterModel: clusterModel, backends: backends, logger: logger}
 }
 
 // StepType prints the type of step
@@ -31,7 +32,7 @@ func (step RemoveRandomNode) Perform() (err error) {
 	logger := step.logger
 
 	// 1. Get list of replicas and pick a random one; else pick a random master
-	nodes := step.cluster.Nodes
+	nodes := step.clusterModel.Nodes()
 	nodeToRemove := randomReplicaNode(nodes)
 
 	backend := step.backends.Get(nodeToRemove.BackendID)
@@ -42,7 +43,7 @@ func (step RemoveRandomNode) Perform() (err error) {
 	}
 
 	logger.Info("remove-random-node.perform", lager.Data{
-		"instance-id": step.cluster.InstanceID,
+		"instance-id": step.clusterModel.InstanceID(),
 		"node-uuid":   nodeToRemove.ID,
 		"backend":     backend.ID,
 	})
@@ -52,7 +53,7 @@ func (step RemoveRandomNode) Perform() (err error) {
 		return nil
 	}
 
-	err = step.cluster.RemoveNode(nodeToRemove)
+	err = step.clusterModel.RemoveNode(nodeToRemove)
 	if err != nil {
 		logger.Error("remove-random-node.nodes-delete", err)
 	}

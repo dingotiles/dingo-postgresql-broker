@@ -5,6 +5,7 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/dingotiles/dingo-postgresql-broker/testutil"
 )
 
@@ -21,11 +22,11 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 		},
 	}
 	scheduler := NewScheduler(schedulerConfig, logger)
-	state := &structs.ClusterState{InstanceID: "test"}
 	features := structs.ClusterFeatures{
 		CellGUIDs: []string{"cell-guid1", "unknown-cell-guid"},
 	}
-	plan, err := scheduler.newPlan(state, testutil.LocalEtcdConfig, features)
+	clusterModel := state.NewClusterStateModel(&state.StateEtcd{}, structs.ClusterState{InstanceID: "test"})
+	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -51,9 +52,9 @@ func TestScheduler_allBackends(t *testing.T) {
 		},
 	}
 	scheduler := NewScheduler(schedulerConfig, logger)
-	state := &structs.ClusterState{InstanceID: "test"}
+	clusterModel := state.NewClusterStateModel(&state.StateEtcd{}, structs.ClusterState{InstanceID: "test"})
 	features := structs.ClusterFeatures{}
-	plan, err := scheduler.newPlan(state, testutil.LocalEtcdConfig, features)
+	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
