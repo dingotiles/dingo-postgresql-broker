@@ -14,36 +14,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func resetEtcd(t *testing.T, prefix string) etcd.KeysAPI {
-	if !testutil.EtcdServerAvailable(t) {
-		t.SkipNow()
-	}
-
-	client, err := etcd.New(etcd.Config{Endpoints: testutil.LocalEtcdConfig.Machines})
-	if err != nil {
-		t.Fatalf("Failed to initialize etcd client %s", err)
-		return nil
-	}
-
-	etcdApi := etcd.NewKeysAPI(client)
-	_, err = etcdApi.Delete(context.Background(), prefix, &etcd.DeleteOptions{
-		Recursive: true,
-		Dir:       true,
-	})
-	if err != nil {
-		t.Logf("Could not delete etcd dir %s, Error: %s", prefix, err)
-	}
-	return etcdApi
-}
-
 func TestState_SaveCluster(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_SaveCluster"
-	etcdApi := resetEtcd(t, testPrefix)
+	etcdApi := testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	state, err := NewStateEtcdWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
 	if err != nil {
 		t.Fatalf("Could not create state", err)
 	}
@@ -78,10 +56,10 @@ func TestState_ClusterExists(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_ClusterExists"
-	resetEtcd(t, testPrefix)
+	testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	state, err := NewStateEtcdWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
 	if err != nil {
 		t.Fatalf("Could not create state", err)
 	}
@@ -113,10 +91,10 @@ func TestState_LoadCluster(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_LoadClusterState"
-	resetEtcd(t, testPrefix)
+	testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	state, err := NewStateEtcdWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
 	if err != nil {
 		t.Fatalf("Could not create state", err)
 	}
@@ -145,10 +123,10 @@ func TestState_DeleteCluster(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_DeleteClusterState"
-	etcdApi := resetEtcd(t, testPrefix)
+	etcdApi := testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	state, err := NewStateWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
+	state, err := NewStateEtcdWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
 	if err != nil {
 		t.Fatalf("Could not create state", err)
 	}
