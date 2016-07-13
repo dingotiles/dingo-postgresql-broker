@@ -69,7 +69,7 @@ func (model *ClusterStateModel) PlanStepStarted(msg string) error {
 }
 
 func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
-	msg := fmt.Sprintf("%s %d/%d", model.cluster.Plan.Message, model.cluster.Plan.Steps, model.cluster.Plan.Steps)
+	msg := fmt.Sprintf("%s %d/%d", model.cluster.Plan.Message, model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
 	status = &PlanStatus{
 		Status:  PlanStatusInProgress,
 		Message: msg,
@@ -84,7 +84,7 @@ func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
 		return
 	}
 	if model.cluster.Plan.CompletedSteps == model.cluster.Plan.Steps {
-		status.Message = fmt.Sprintf("Completed %d/%d", model.cluster.Plan.Steps, model.cluster.Plan.Steps)
+		status.Message = fmt.Sprintf("Completed %d/%d", model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
 		status.Status = PlanStatusSuccess
 		return
 	}
