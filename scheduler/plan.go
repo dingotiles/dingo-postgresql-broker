@@ -73,7 +73,7 @@ func (p plan) steps() (steps []step.Step) {
 	}
 
 	if addedNodes {
-		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterModel, p.patroni, p.logger))
+		steps = append(steps, step.NewWaitForAllMembers(p.clusterModel, p.patroni, p.logger))
 	}
 
 	removedNodes := false
@@ -88,7 +88,7 @@ func (p plan) steps() (steps []step.Step) {
 	}
 
 	if removedNodes {
-		steps = append(steps, step.NewWaitTilNodesRunning(p.clusterModel, p.patroni, p.logger))
+		steps = append(steps, step.NewWaitForAllMembers(p.clusterModel, p.patroni, p.logger))
 	}
 
 	for i := 0; i < p.clusterShrinkingBy(); i++ {

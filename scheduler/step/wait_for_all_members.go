@@ -6,16 +6,16 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-// WaitTilNodesRunning blocks until expected number of nodes are available and running
-type WaitTilNodesRunning struct {
+// WaitForAllMembers blocks until expected number of nodes are available and running
+type WaitForAllMembers struct {
 	clusterModel *state.ClusterModel
 	patroni      *patroni.Patroni
 	logger       lager.Logger
 }
 
-// NewWaitTilNodesRunning creates a WaitTilNodesRunning command
-func NewWaitTilNodesRunning(clusterModel *state.ClusterModel, patroni *patroni.Patroni, logger lager.Logger) Step {
-	return WaitTilNodesRunning{
+// NewWaitForAllMembers creates a WaitForAllMembers command
+func NewWaitForAllMembers(clusterModel *state.ClusterModel, patroni *patroni.Patroni, logger lager.Logger) Step {
+	return WaitForAllMembers{
 		clusterModel: clusterModel,
 		patroni:      patroni,
 		logger:       logger,
@@ -23,12 +23,12 @@ func NewWaitTilNodesRunning(clusterModel *state.ClusterModel, patroni *patroni.P
 }
 
 // StepType prints the type of step
-func (step WaitTilNodesRunning) StepType() string {
-	return "WaitTilNodesRunning"
+func (step WaitForAllMembers) StepType() string {
+	return "WaitForAllMembers"
 }
 
 // Perform runs the Step action upon the Cluster
-func (step WaitTilNodesRunning) Perform() (err error) {
+func (step WaitForAllMembers) Perform() (err error) {
 	logger := step.logger
 	logger.Info("wait-til-nodes-running.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
