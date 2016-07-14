@@ -37,14 +37,12 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 	go func() {
 		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
 			return
 		}
 
 		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), clusterModel.AllocatedPort())
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("assign-port", err)
 		}
 	}()

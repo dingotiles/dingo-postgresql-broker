@@ -38,7 +38,6 @@ func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.
 	go func() {
 		err = bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
 		}
 	}()

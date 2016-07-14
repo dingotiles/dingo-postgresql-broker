@@ -51,14 +51,12 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	go func() {
 		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
 			return
 		}
 
 		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("assign-port", err)
 		}
 	}()
