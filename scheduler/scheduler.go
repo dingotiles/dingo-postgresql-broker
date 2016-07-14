@@ -43,19 +43,8 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 		"steps":       plan.stepTypes(),
 		"features":    features,
 	})
-	steps := plan.steps()
-	clusterModel.NewClusterPlan(len(steps))
 
-	for _, step := range steps {
-		clusterModel.PlanStepStarted(step.StepType())
-		err = step.Perform()
-		if err != nil {
-			clusterModel.PlanError(err)
-			return
-		}
-		clusterModel.PlanStepComplete()
-	}
-	return
+	return s.executePlan(clusterModel, plan)
 }
 
 func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
@@ -71,6 +60,10 @@ func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
 		"steps":       plan.stepTypes(),
 	})
 
+	return s.executePlan(clusterModel, plan)
+}
+
+func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) error {
 	steps := plan.steps()
 	clusterModel.NewClusterPlan(len(steps))
 
