@@ -92,8 +92,8 @@ func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
 	return
 }
 
-func (model *ClusterStateModel) Cluster() *structs.ClusterState {
-	return &model.cluster
+func (model *ClusterStateModel) Cluster() structs.ClusterState {
+	return model.cluster
 }
 
 func (model *ClusterStateModel) InstanceID() structs.ClusterID {
