@@ -68,7 +68,7 @@ func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) err
 	clusterModel.NewClusterPlan(len(steps))
 
 	for _, step := range steps {
-		clusterModel.PlanStepStarted(step.StepType())
+		clusterModel.PlanStepStarted(fmt.Sprintf("Performing step: %s", step.StepType()))
 		err := step.Perform()
 		if err != nil {
 			clusterModel.PlanError(err)
