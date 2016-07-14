@@ -8,13 +8,13 @@ import (
 
 // WaitTilNodesRunning blocks until expected number of nodes are available and running
 type WaitTilNodesRunning struct {
-	clusterModel *state.ClusterStateModel
+	clusterModel *state.ClusterModel
 	patroni      *patronidata.Patroni
 	logger       lager.Logger
 }
 
 // NewWaitTilNodesRunning creates a WaitTilNodesRunning command
-func NewWaitTilNodesRunning(clusterModel *state.ClusterStateModel, patroni *patronidata.Patroni, logger lager.Logger) Step {
+func NewWaitTilNodesRunning(clusterModel *state.ClusterModel, patroni *patronidata.Patroni, logger lager.Logger) Step {
 	return WaitTilNodesRunning{
 		clusterModel: clusterModel,
 		patroni:      patroni,

@@ -8,13 +8,13 @@ import (
 
 // WaitForLeader blocks until leader elected and active
 type WaitForLeader struct {
-	clusterModel *state.ClusterStateModel
+	clusterModel *state.ClusterModel
 	patroni      *patronidata.Patroni
 	logger       lager.Logger
 }
 
 // NewWaitForLeader creates a WaitForLeader command
-func NewWaitForLeader(clusterModel *state.ClusterStateModel, patroni *patronidata.Patroni, logger lager.Logger) Step {
+func NewWaitForLeader(clusterModel *state.ClusterModel, patroni *patronidata.Patroni, logger lager.Logger) Step {
 	return WaitForLeader{
 		clusterModel: clusterModel,
 		patroni:      patroni,

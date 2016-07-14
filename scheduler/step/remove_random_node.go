@@ -12,13 +12,13 @@ import (
 
 // RemoveRandomNode instructs cluster to delete a node, starting with replicas
 type RemoveRandomNode struct {
-	clusterModel *state.ClusterStateModel
+	clusterModel *state.ClusterModel
 	backends     backend.Backends
 	logger       lager.Logger
 }
 
 // NewStepRemoveRandomNode creates a StepRemoveRandomNode command
-func NewStepRemoveRandomNode(clusterModel *state.ClusterStateModel, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveRandomNode(clusterModel *state.ClusterModel, backends backend.Backends, logger lager.Logger) Step {
 	return RemoveRandomNode{clusterModel: clusterModel, backends: backends, logger: logger}
 }
 

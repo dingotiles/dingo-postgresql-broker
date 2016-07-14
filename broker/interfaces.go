@@ -6,8 +6,8 @@ import (
 )
 
 type Scheduler interface {
-	RunCluster(*state.ClusterStateModel, structs.ClusterFeatures) error
-	StopCluster(*state.ClusterStateModel) error
+	RunCluster(*state.ClusterModel, structs.ClusterFeatures) error
+	StopCluster(*state.ClusterModel) error
 	VerifyClusterFeatures(structs.ClusterFeatures) error
 }
 

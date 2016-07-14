@@ -32,7 +32,7 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 	}
 
 	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
-	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
 	go func() {
 		err := bkr.scheduler.RunCluster(clusterModel, features)

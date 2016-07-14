@@ -6,8 +6,8 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 )
 
-// ClusterStateModel provides a clean .Save() wrapper around a ClusterState for a given State backend
-type ClusterStateModel struct {
+// ClusterModel provides a clean .Save() wrapper around a ClusterState for a given State backend
+type ClusterModel struct {
 	state   State
 	cluster structs.ClusterState
 }
@@ -24,42 +24,42 @@ const (
 	PlanStatusFailed     = "failed"
 )
 
-func NewClusterStateModel(state State, cluster structs.ClusterState) *ClusterStateModel {
-	return &ClusterStateModel{
+func NewClusterModel(state State, cluster structs.ClusterState) *ClusterModel {
+	return &ClusterModel{
 		state:   state,
 		cluster: cluster,
 	}
 }
 
-func (model *ClusterStateModel) save() error {
+func (model *ClusterModel) save() error {
 	return model.state.SaveCluster(model.cluster)
 }
 
 // PlanError stores the failure message for a scheduled Plan
 // This will be shown to end users via /last_operation endpoint
-func (model *ClusterStateModel) PlanError(err error) error {
+func (model *ClusterModel) PlanError(err error) error {
 	model.cluster.ErrorMsg = err.Error()
 	return model.save()
 }
 
-func (model *ClusterStateModel) NewClusterPlan(steps int) error {
+func (model *ClusterModel) NewClusterPlan(steps int) error {
 	model.cluster.Plan.Steps = steps
 	model.cluster.Plan.CompletedSteps = 0
 	model.cluster.Plan.Message = ""
 	return model.save()
 }
 
-func (model *ClusterStateModel) PlanStepComplete() error {
+func (model *ClusterModel) PlanStepComplete() error {
 	model.cluster.Plan.CompletedSteps += 1
 	return model.save()
 }
 
-func (model *ClusterStateModel) PlanStepStarted(msg string) error {
+func (model *ClusterModel) PlanStepStarted(msg string) error {
 	model.cluster.Plan.Message = msg
 	return model.save()
 }
 
-func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
+func (model *ClusterModel) CurrentPlanStatus() (status *PlanStatus) {
 	msg := fmt.Sprintf("%s %d/%d", model.cluster.Plan.Message, model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
 	status = &PlanStatus{
 		Status:  PlanStatusInProgress,
@@ -83,32 +83,32 @@ func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
 	return
 }
 
-func (model *ClusterStateModel) Cluster() structs.ClusterState {
+func (model *ClusterModel) Cluster() structs.ClusterState {
 	return model.cluster
 }
 
-func (model *ClusterStateModel) InstanceID() structs.ClusterID {
+func (model *ClusterModel) InstanceID() structs.ClusterID {
 	return model.cluster.InstanceID
 }
 
-func (model *ClusterStateModel) AllocatedPort() int {
+func (model *ClusterModel) AllocatedPort() int {
 	return model.cluster.AllocatedPort
 }
 
-func (model *ClusterStateModel) NodeCount() int {
+func (model *ClusterModel) NodeCount() int {
 	return model.cluster.NodeCount()
 }
 
-func (model *ClusterStateModel) Nodes() []*structs.Node {
+func (model *ClusterModel) Nodes() []*structs.Node {
 	return model.cluster.Nodes
 }
 
-func (model *ClusterStateModel) AddNode(node structs.Node) error {
+func (model *ClusterModel) AddNode(node structs.Node) error {
 	model.cluster.AddNode(node)
 	return model.save()
 }
 
-func (model *ClusterStateModel) RemoveNode(node *structs.Node) error {
+func (model *ClusterModel) RemoveNode(node *structs.Node) error {
 	model.cluster.RemoveNode(node)
 	return model.save()
 }

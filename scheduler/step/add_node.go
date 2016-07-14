@@ -11,14 +11,14 @@ import (
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	clusterModel      *state.ClusterStateModel
+	clusterModel      *state.ClusterModel
 	clusterData       patronidata.ClusterDataWrapper
 	availableBackends backend.Backends
 	logger            lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(clusterModel *state.ClusterStateModel, clusterData patronidata.ClusterDataWrapper,
+func NewStepAddNode(clusterModel *state.ClusterModel, clusterData patronidata.ClusterDataWrapper,
 	availableBackends backend.Backends, logger lager.Logger) Step {
 	return AddNode{
 		clusterModel:      clusterModel,

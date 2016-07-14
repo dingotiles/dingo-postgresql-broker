@@ -26,7 +26,7 @@ func (bkr *Broker) lastOperation(instanceID structs.ClusterID) (resp brokerapi.L
 		logger.Error("load-cluster.error", err)
 		return brokerapi.LastOperationResponse{State: brokerapi.LastOperationFailed, Description: err.Error()}, err
 	}
-	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 	planStatus := clusterModel.CurrentPlanStatus()
 	return bkr.lastOperationFromPlanStatus(planStatus)
 }

@@ -16,7 +16,7 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
-	clusterModel      *state.ClusterStateModel
+	clusterModel      *state.ClusterModel
 	patroni           *patronidata.Patroni
 	clusterData       patronidata.ClusterDataWrapper
 	newFeatures       structs.ClusterFeatures
@@ -27,7 +27,7 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(clusterModel *state.ClusterStateModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
+func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
 	patroni, err := patronidata.NewPatroni(etcdConfig, s.logger)
 	if err != nil {
 		s.logger.Error("new-plan.new-patronidata", err)
