@@ -1,7 +1,9 @@
 package patronidata
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -10,7 +12,6 @@ import (
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/patroniclient/datastructs"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -27,6 +28,15 @@ const (
 	RunningState = "running"
 )
 
+type ClusterMember struct {
+	Role         string `json:"role"`
+	State        string `json:"state"`
+	XlogLocation int64  `json:"xlog_location"`
+	ConnURL      string `json:"conn_url"`
+	APIURL       string `json:"api_url"`
+	RootAPIURL   string
+}
+
 func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 	etcd, err := setupEtcd(etcdConf)
 	if err != nil {
@@ -39,18 +49,17 @@ func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 	}, nil
 }
 
-// LoadCluster fetches the latest data/state for specific cluster
-func (p *Patroni) MemberData(instanceID structs.ClusterID, memberID string) (memberData *datastructs.DataServiceMember, err error) {
+func (p *Patroni) LoadMember(instanceID structs.ClusterID, memberID string) (member ClusterMember, err error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("service/%s/members/%s", instanceID, memberID)
 	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
 	if err != nil {
-		p.logger.Error("cluster-data.member-data.etcd-get", err, lager.Data{"member": memberID, "key": key})
+		p.logger.Error("load-member.etcd-get", err, lager.Data{"member": memberID, "key": key})
 		return
 	}
-	memberData, err = datastructs.NewDataServiceMember(resp.Node.Value)
+	member, err = p.deserializeMember(resp.Node.Value)
 	if err != nil {
-		p.logger.Error("cluster-data.member-data.decode", err, lager.Data{"member": memberID})
+		p.logger.Error("load-member.decode", err, lager.Data{"member": memberID})
 		return
 	}
 	return
@@ -110,7 +119,7 @@ func (p *Patroni) checkLeader(instanceID structs.ClusterID) bool {
 	leaderID := resp.Node.Value
 
 	// Check if leader member has finished become leader
-	leaderData, err := p.MemberData(instanceID, leaderID)
+	leaderData, err := p.LoadMember(instanceID, leaderID)
 	if err != nil {
 		p.logger.Error("check-leader.etcd-leader.fetch", err)
 		return false
@@ -141,65 +150,16 @@ func (p *Patroni) checkClusterMembersRunning(instanceID structs.ClusterID, expec
 	}
 
 	for _, member := range resp.Node.Nodes {
-		memberData, err := datastructs.NewDataServiceMember(member.Value)
+		member, err := p.deserializeMember(member.Value)
 		if err != nil {
 			p.logger.Error("members-data.etcd-members.decode", err)
 			return false
 		}
-		if memberData.State != "running" {
+		if member.State != "running" {
 			return false
 		}
 	}
 	return true
-}
-
-// ClusterMembersRunningStates aggregates the patroni states of each member in the cluster
-// allRunning is true if state of all members is "running"
-func (p *Patroni) ClusterMembersRunningStates(instanceID structs.ClusterID, expectedNodeCount int) (statuses string, allRunning bool, err error) {
-	ctx := context.Background()
-	key := fmt.Sprintf("service/%s/members", instanceID)
-	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
-		Quorum:    true,
-		Recursive: true,
-	})
-	if err != nil {
-		p.logger.Error("member-status.etcd-members", err)
-		return fmt.Sprintf("patroni member status missing for service instance %s", instanceID), false, err
-	}
-
-	masterStatus := ""
-	replicasStatus := []string{}
-	allRunning = true
-	for _, member := range resp.Node.Nodes {
-		memberData, err := datastructs.NewDataServiceMember(member.Value)
-		if err != nil {
-			p.logger.Error("member-status.etcd-member", err)
-			return fmt.Sprintf("patroni member status corrupt for service instance %s", instanceID), false, err
-		}
-		if memberData.Role == "master" {
-			masterStatus = memberData.State
-		} else {
-			replicasStatus = append(replicasStatus, memberData.State)
-		}
-		if memberData.State != "running" {
-			allRunning = false
-		}
-	}
-	missingNodes := expectedNodeCount - len(resp.Node.Nodes)
-	if missingNodes > 0 {
-		for i := 0; i < missingNodes; i++ {
-			replicasStatus = append(replicasStatus, "missing")
-		}
-	}
-	// if there are currently too many or too few nodes, then cluster cannot be "all running"
-	if missingNodes != 0 {
-		allRunning = false
-	}
-
-	if masterStatus != "" {
-		return fmt.Sprintf("master %s; replicas %s", masterStatus, strings.Join(replicasStatus, ", ")), allRunning, nil
-	}
-	return fmt.Sprintf("members %s", strings.Join(replicasStatus, ", ")), allRunning, nil
 }
 
 func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
@@ -222,4 +182,17 @@ func setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	api := etcd.NewKeysAPI(client)
 
 	return api, nil
+}
+
+func (p *Patroni) deserializeMember(jsonValue string) (member ClusterMember, err error) {
+	dec := json.NewDecoder(strings.NewReader(jsonValue))
+	if err = dec.Decode(&member); err == io.EOF {
+		return
+	} else if err != nil {
+		return
+	}
+
+	member.RootAPIURL = strings.Replace(member.APIURL, "/patroni", "/", 1)
+
+	return
 }

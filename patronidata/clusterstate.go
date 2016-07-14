@@ -43,7 +43,7 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 		case <-timeout:
 			return fmt.Errorf("Timed out waiting for member %s appear in data store", memberID)
 		case <-tick:
-			memberData, err := cluster.patroni.MemberData(cluster.instanceID, memberID)
+			member, err := cluster.patroni.LoadMember(cluster.instanceID, memberID)
 			if err != nil {
 				cluster.patroni.logger.Error("cluster-data.member-data.get", err, lager.Data{
 					"instance-id":   cluster.instanceID,
@@ -60,7 +60,7 @@ func (cluster ClusterDataWrapperReal) WaitTilMemberExists(memberID string) error
 					"member":      memberID,
 				})
 			} else {
-				if memberData.State == "running" {
+				if member.State == "running" {
 					return nil
 				}
 			}
