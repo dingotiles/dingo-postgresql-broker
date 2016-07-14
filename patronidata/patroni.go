@@ -165,7 +165,7 @@ func (p *Patroni) checkClusterMembersRunning(instanceID structs.ClusterID, expec
 func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("service/%s/leader", instanceID)
-	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{})
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
 	if err != nil {
 		p.logger.Error("patroni.cluster-leader.error", err)
 		return "", err
