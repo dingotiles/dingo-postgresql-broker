@@ -97,7 +97,7 @@ func (p *Patroni) WaitForLeader(instanceID structs.ClusterID) error {
 	return nil
 }
 
-// WaitTilClusterMembersRunning waits until expected number of nodes are running (not too many, not too few, and all running)
+// WaitForAllMembers waits until expected number of nodes are running (not too many, not too few, and all running)
 func (p *Patroni) WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error {
 	timeout := time.After(waitTilMemberRunningTimeout)
 	c := time.Tick(1 * time.Second)
