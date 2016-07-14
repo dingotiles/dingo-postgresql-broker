@@ -31,8 +31,6 @@ func (step RemoveRandomNode) StepType() string {
 func (step RemoveRandomNode) Perform() (err error) {
 	logger := step.logger
 
-	step.clusterModel.PlanStepStarted("Removing node")
-
 	// 1. Get list of replicas and pick a random one; else pick a random master
 	nodes := step.clusterModel.Nodes()
 	nodeToRemove := randomReplicaNode(nodes)

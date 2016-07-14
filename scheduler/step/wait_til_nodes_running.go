@@ -32,8 +32,6 @@ func (step WaitTilNodesRunning) Perform() (err error) {
 	logger := step.logger
 	logger.Info("wait-til-nodes-running.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
-	step.clusterModel.PlanStepStarted("Waiting for all nodes to be running")
-
 	instanceID := step.clusterModel.InstanceID()
 	nodesCount := step.clusterModel.NodeCount()
 

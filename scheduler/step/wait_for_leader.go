@@ -32,8 +32,6 @@ func (step WaitForLeader) Perform() (err error) {
 	logger := step.logger
 	logger.Info("wait-for-leader.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
-	step.clusterModel.PlanStepStarted("Waiting for leader")
-
 	instanceID := step.clusterModel.InstanceID()
 
 	err = step.patroni.WaitForLeader(instanceID)

@@ -38,8 +38,6 @@ func (step AddNode) Perform() (err error) {
 	logger := step.logger
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
-	step.clusterModel.PlanStepStarted("Adding nodes")
-
 	nodes := step.clusterModel.Nodes()
 	clusterStateData := step.clusterModel.Cluster()
 

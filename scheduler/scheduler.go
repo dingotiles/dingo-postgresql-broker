@@ -47,6 +47,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 	clusterModel.NewClusterPlan(len(steps))
 
 	for _, step := range steps {
+		clusterModel.PlanStepStarted(step.StepType())
 		err = step.Perform()
 		if err != nil {
 			clusterModel.PlanError(err)
