@@ -26,13 +26,13 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 	return s
 }
 
-func (s *Scheduler) RunCluster(clusterModel *state.ClusterStateModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (err error) {
+func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (err error) {
 	err = s.VerifyClusterFeatures(features)
 	if err != nil {
 		return
 	}
 
-	plan, err := s.newPlan(clusterModel, etcdConfig, features)
+	plan, err := s.newPlan(clusterModel, s.config.Etcd, features)
 	if err != nil {
 		return
 	}
@@ -43,21 +43,12 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterStateModel, etcdConfig
 		"steps":       plan.stepTypes(),
 		"features":    features,
 	})
-	steps := plan.steps()
-	clusterModel.NewClusterPlan(len(steps))
 
-	for _, step := range steps {
-		err = step.Perform()
-		if err != nil {
-			return
-		}
-		clusterModel.PlanStepComplete()
-	}
-	return
+	return s.executePlan(clusterModel, plan)
 }
 
-func (s *Scheduler) StopCluster(clusterModel *state.ClusterStateModel, etcdConfig config.Etcd) error {
-	plan, err := s.newPlan(clusterModel, etcdConfig, structs.ClusterFeatures{NodeCount: 0})
+func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
+	plan, err := s.newPlan(clusterModel, s.config.Etcd, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return err
 	}
@@ -68,11 +59,22 @@ func (s *Scheduler) StopCluster(clusterModel *state.ClusterStateModel, etcdConfi
 		"steps-count": len(plan.steps()),
 		"steps":       plan.stepTypes(),
 	})
-	for _, step := range plan.steps() {
+
+	return s.executePlan(clusterModel, plan)
+}
+
+func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) error {
+	steps := plan.steps()
+	clusterModel.BeginScheduling(len(steps))
+
+	for _, step := range steps {
+		clusterModel.SchedulingStepStarted(step.StepType())
 		err := step.Perform()
 		if err != nil {
+			clusterModel.SchedulingError(err)
 			return err
 		}
+		clusterModel.SchedulingStepCompleted()
 	}
 	return nil
 }

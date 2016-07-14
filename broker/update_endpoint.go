@@ -33,17 +33,11 @@ func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.
 		logger.Error("load-cluster.error", err)
 		return false, err
 	}
-	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
-	err = clusterModel.ResetClusterPlan()
-	if err != nil {
-		logger.Error("reset-cluster-plan", err)
-		return false, err
-	}
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
 	go func() {
-		err = bkr.scheduler.RunCluster(clusterModel, bkr.etcdConfig, features)
+		err = bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
 		}
 	}()

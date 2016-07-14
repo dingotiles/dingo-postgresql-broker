@@ -29,14 +29,8 @@ func (bkr *Broker) deprovision(instanceID structs.ClusterID, details brokerapi.D
 		return false, err
 	}
 
-	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
-	err = clusterModel.ResetClusterPlan()
-	if err != nil {
-		logger.Error("reset-cluster-plan", err)
-		return false, err
-	}
-
-	err = bkr.scheduler.StopCluster(clusterModel, bkr.etcdConfig)
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
+	err = bkr.scheduler.StopCluster(clusterModel)
 	if err != nil {
 		logger.Error("stop-cluster", err)
 		return false, err

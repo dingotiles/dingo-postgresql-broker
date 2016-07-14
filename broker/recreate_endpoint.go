@@ -32,24 +32,17 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 	}
 
 	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
-	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
-	err = clusterModel.ResetClusterPlan()
-	if err != nil {
-		logger.Error("reset-cluster-plan", err)
-		return
-	}
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
 	go func() {
-		err := bkr.scheduler.RunCluster(clusterModel, bkr.etcdConfig, features)
+		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
 			return
 		}
 
 		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), clusterModel.AllocatedPort())
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("assign-port", err)
 		}
 	}()

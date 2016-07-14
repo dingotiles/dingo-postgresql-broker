@@ -6,116 +6,86 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 )
 
-// ClusterStateModel provides a clean .Save() wrapper around a ClusterState for a given State backend
-type ClusterStateModel struct {
+// ClusterModel provides a clean .Save() wrapper around a ClusterState for a given State backend
+type ClusterModel struct {
 	state   State
 	cluster structs.ClusterState
 }
 
-type PlanStatus struct {
-	Status  string
-	Message string
-}
-
-const (
-	PlanStatusUnknown    = ""
-	PlanStatusSuccess    = "success"
-	PlanStatusInProgress = "in-progress"
-	PlanStatusFailed     = "failed"
-)
-
-func NewClusterStateModel(state State, cluster structs.ClusterState) *ClusterStateModel {
-	return &ClusterStateModel{
+func NewClusterModel(state State, cluster structs.ClusterState) *ClusterModel {
+	return &ClusterModel{
 		state:   state,
 		cluster: cluster,
 	}
 }
 
-func (model *ClusterStateModel) Save() error {
-	return model.state.SaveCluster(model.cluster)
-}
-
-// ResetClusterPlan refreshes previous Plan state/error messages
-// in preparation for commencing new Plan
-func (model *ClusterStateModel) ResetClusterPlan() error {
-	model.cluster.ErrorMsg = ""
-	model.cluster.Plan.Steps = 0
-	model.cluster.Plan.CompletedSteps = 0
-	return model.Save()
+func (m *ClusterModel) save() error {
+	return m.state.SaveCluster(m.cluster)
 }
 
 // PlanError stores the failure message for a scheduled Plan
 // This will be shown to end users via /last_operation endpoint
-func (model *ClusterStateModel) PlanError(err error) error {
-	model.cluster.ErrorMsg = err.Error()
-	return model.Save()
+func (m *ClusterModel) SchedulingError(err error) error {
+	m.cluster.SchedulingInfo.LastMessage = err.Error()
+	m.cluster.SchedulingInfo.Error = true
+	m.cluster.SchedulingInfo.Status = structs.SchedulingStatusFailed
+	return m.save()
 }
 
-func (model *ClusterStateModel) NewClusterPlan(steps int) error {
-	model.cluster.Plan.Steps = steps
-	model.cluster.Plan.CompletedSteps = 0
-	model.cluster.Plan.Message = ""
-	return model.Save()
+func (m *ClusterModel) BeginScheduling(steps int) error {
+	m.cluster.SchedulingInfo.Steps = steps
+	m.cluster.SchedulingInfo.CompletedSteps = 0
+	m.cluster.SchedulingInfo.LastMessage = "In Progress..."
+	m.cluster.SchedulingInfo.Error = false
+	m.cluster.SchedulingInfo.Status = structs.SchedulingStatusInProgress
+	return m.save()
 }
 
-func (model *ClusterStateModel) PlanStepComplete() error {
-	model.cluster.Plan.CompletedSteps += 1
-	return model.Save()
-}
-
-func (model *ClusterStateModel) PlanStepStarted(msg string) error {
-	model.cluster.Plan.Message = msg
-	return model.Save()
-}
-
-func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
-	msg := fmt.Sprintf("%s %d/%d", model.cluster.Plan.Message, model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
-	status = &PlanStatus{
-		Status:  PlanStatusInProgress,
-		Message: msg,
-	}
-	if model.cluster.ErrorMsg != "" {
-		status.Message = fmt.Sprintf("Error: %s %d/%d", model.cluster.ErrorMsg, model.cluster.Plan.Steps, model.cluster.Plan.Steps)
-		status.Status = PlanStatusFailed
-		return
-	}
-	if model.cluster.Plan.Steps == 0 {
-		status.Status = PlanStatusUnknown
-		return
-	}
-	if model.cluster.Plan.CompletedSteps == model.cluster.Plan.Steps {
-		status.Message = fmt.Sprintf("Completed %d/%d", model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
-		status.Status = PlanStatusSuccess
-		return
+func (m *ClusterModel) SchedulingStepCompleted() error {
+	m.cluster.SchedulingInfo.CompletedSteps += 1
+	if m.cluster.SchedulingInfo.CompletedSteps == m.cluster.SchedulingInfo.Steps {
+		m.cluster.SchedulingInfo.Status = structs.SchedulingStatusSuccess
+		m.cluster.SchedulingInfo.LastMessage = "Scheduling Completed"
 	}
 
-	return
+	return m.save()
 }
 
-func (model *ClusterStateModel) Cluster() *structs.ClusterState {
-	return &model.cluster
+func (m *ClusterModel) SchedulingStepStarted(stepType string) error {
+	m.cluster.SchedulingInfo.LastMessage = fmt.Sprintf("Perfoming Step: %s", stepType)
+	return m.save()
 }
 
-func (model *ClusterStateModel) InstanceID() structs.ClusterID {
-	return model.cluster.InstanceID
+func (m *ClusterModel) SchedulingInfo() structs.SchedulingInfo {
+	return m.cluster.SchedulingInfo
 }
 
-func (model *ClusterStateModel) AllocatedPort() int {
-	return model.cluster.AllocatedPort
+func (m *ClusterModel) Cluster() structs.ClusterState {
+	return m.cluster
 }
 
-func (model *ClusterStateModel) NodeCount() int {
-	return model.cluster.NodeCount()
+func (m *ClusterModel) InstanceID() structs.ClusterID {
+	return m.cluster.InstanceID
 }
 
-func (model *ClusterStateModel) Nodes() []*structs.Node {
-	return model.cluster.Nodes
+func (m *ClusterModel) AllocatedPort() int {
+	return m.cluster.AllocatedPort
 }
 
-func (model *ClusterStateModel) AddNode(node structs.Node) error {
-	return model.cluster.AddNode(node)
+func (m *ClusterModel) NodeCount() int {
+	return m.cluster.NodeCount()
 }
 
-func (model *ClusterStateModel) RemoveNode(node *structs.Node) error {
-	return model.cluster.RemoveNode(node)
+func (m *ClusterModel) Nodes() []*structs.Node {
+	return m.cluster.Nodes
+}
+
+func (m *ClusterModel) AddNode(node structs.Node) error {
+	m.cluster.AddNode(node)
+	return m.save()
+}
+
+func (m *ClusterModel) RemoveNode(node *structs.Node) error {
+	m.cluster.RemoveNode(node)
+	return m.save()
 }

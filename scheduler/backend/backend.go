@@ -63,7 +63,7 @@ func (b Backends) Get(backendID string) *Backend {
 	return nil
 }
 
-func (b *Backend) ProvisionNode(clusterState *structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
+func (b *Backend) ProvisionNode(clusterState structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
 	node = structs.Node{ID: uuid.New(), BackendID: b.ID, PlanID: clusterState.PlanID, ServiceID: clusterState.ServiceID}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterState.OrganizationGUID,
@@ -72,7 +72,7 @@ func (b *Backend) ProvisionNode(clusterState *structs.ClusterState, logger lager
 		SpaceGUID:        clusterState.SpaceGUID,
 		Parameters: map[string]interface{}{
 			"PATRONI_SCOPE":      clusterState.InstanceID,
-			"NODE_NAME":          node.ID,
+			"NODE_ID":            node.ID,
 			"ADMIN_USERNAME":     clusterState.AdminCredentials.Username,
 			"ADMIN_PASSWORD":     clusterState.AdminCredentials.Password,
 			"SUPERUSER_USERNAME": clusterState.SuperuserCredentials.Username,

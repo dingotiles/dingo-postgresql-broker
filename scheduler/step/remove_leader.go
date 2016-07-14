@@ -12,13 +12,13 @@ import (
 // RemoveLeader instructs cluster to delete a node, starting with replicas
 type RemoveLeader struct {
 	nodeToRemove *structs.Node
-	clusterModel *state.ClusterStateModel
+	clusterModel *state.ClusterModel
 	backends     backend.Backends
 	logger       lager.Logger
 }
 
 // NewStepRemoveLeader creates a StepRemoveLeader command
-func NewStepRemoveLeader(nodeToRemove *structs.Node, clusterModel *state.ClusterStateModel, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveLeader(nodeToRemove *structs.Node, clusterModel *state.ClusterModel, backends backend.Backends, logger lager.Logger) Step {
 	return RemoveLeader{
 		nodeToRemove: nodeToRemove,
 		clusterModel: clusterModel,
@@ -35,8 +35,6 @@ func (step RemoveLeader) StepType() string {
 // Perform runs the Step action to modify the Cluster
 func (step RemoveLeader) Perform() (err error) {
 	logger := step.logger
-
-	step.clusterModel.PlanStepStarted("Replacing/removing leader")
 
 	backend := step.backends.Get(step.nodeToRemove.BackendID)
 	if backend == nil {
@@ -61,6 +59,5 @@ func (step RemoveLeader) Perform() (err error) {
 		logger.Error("remove-leader.nodes-delete", err)
 	}
 
-	step.clusterModel.Save()
 	return
 }

@@ -8,8 +8,14 @@ import (
 
 const (
 	defaultNodeCount = 2
+
+	SchedulingStatusUnknown    = SchedulingStatus("")
+	SchedulingStatusSuccess    = SchedulingStatus("success")
+	SchedulingStatusInProgress = SchedulingStatus("in-progress")
+	SchedulingStatusFailed     = SchedulingStatus("failed")
 )
 
+type SchedulingStatus string
 type ClusterID string
 
 type ClusterRecreationData struct {
@@ -35,14 +41,15 @@ type ClusterState struct {
 	AppCredentials       PostgresCredentials `json:"app_credentials"`
 	AllocatedPort        int                 `json:"allocated_port"`
 	Nodes                []*Node             `json:"nodes"`
-	Plan                 ClusterStatePlan    `json:"plan"`
-	ErrorMsg             string              `json:"error"`
+	SchedulingInfo       SchedulingInfo      `json:"info"`
 }
 
-type ClusterStatePlan struct {
-	Steps          int    `json:"steps"`
-	CompletedSteps int    `json:"completed_steps"`
-	Message        string `json:"message"`
+type SchedulingInfo struct {
+	Status         SchedulingStatus `json:"status"`
+	Steps          int              `json:"steps"`
+	CompletedSteps int              `json:"completed_steps"`
+	LastMessage    string           `json:"last_message"`
+	Error          bool             `json:"error"`
 }
 
 func (c *ClusterState) NodeCount() int {
@@ -63,19 +70,17 @@ func (c *ClusterState) RecreationData() *ClusterRecreationData {
 	}
 }
 
-func (c *ClusterState) AddNode(node Node) error {
+func (c *ClusterState) AddNode(node Node) {
 	c.Nodes = append(c.Nodes, &node)
-	return nil
 }
 
-func (c *ClusterState) RemoveNode(node *Node) error {
+func (c *ClusterState) RemoveNode(node *Node) {
 	for i, n := range c.Nodes {
 		if n.ID == node.ID {
 			c.Nodes = append(c.Nodes[:i], c.Nodes[i+1:]...)
 			break
 		}
 	}
-	return nil
 }
 
 type ClusterFeatures struct {

@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -20,7 +20,7 @@ type Broker struct {
 	catalog brokerapi.Catalog
 
 	etcdConfig config.Etcd
-	patroni    *patronidata.Patroni
+	patroni    *patroni.Patroni
 
 	logger lager.Logger
 	cells  []*config.Backend
@@ -51,9 +51,9 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		return nil, err
 	}
 
-	bkr.patroni, err = patronidata.NewPatroni(config.Etcd, bkr.logger)
+	bkr.patroni, err = patroni.NewPatroni(config.Etcd, bkr.logger)
 	if err != nil {
-		bkr.logger.Error("new-broker.new-patronidata.error", err)
+		bkr.logger.Error("new-broker.new-patroni.error", err)
 		return nil, err
 	}
 

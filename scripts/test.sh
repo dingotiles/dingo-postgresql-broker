@@ -7,11 +7,9 @@ fi
 
 # Create a temp dir and clean it up on exit
 TEMPDIR=`mktemp -d -t broker-test.XXX`
-trap "rm -rf $TEMPDIR" EXIT HUP INT QUIT TERM
-
 etcd --data-dir ${TEMPDIR} > /dev/null 2>&1 &
 etcd_pid=$!
-trap "kill ${etcd_pid}" EXIT HUP INT QUIT TERM
+trap "rm -rf $TEMPDIR && kill ${etcd_pid}" EXIT HUP INT QUIT TERM
 
 # Run the tests
 echo "--> Running tests"

@@ -35,12 +35,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 
 	port, err := bkr.router.AllocatePort()
 	clusterState := bkr.initCluster(instanceID, port, details)
-	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
-	err = clusterModel.ResetClusterPlan()
-	if err != nil {
-		logger.Error("reset-cluster-plan", err)
-		return resp, false, err
-	}
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
@@ -54,16 +49,14 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	// Continue processing in background
 	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
-		err := bkr.scheduler.RunCluster(clusterModel, bkr.etcdConfig, features)
+		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)
 			return
 		}
 
 		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port)
 		if err != nil {
-			clusterModel.PlanError(err)
 			logger.Error("assign-port", err)
 		}
 	}()
