@@ -95,7 +95,9 @@ func (p plan) steps() (steps []step.Step) {
 		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, p.allBackends, p.logger))
 	}
 
-	steps = append(steps, step.NewWaitForLeader(p.clusterModel, p.patroni, p.logger))
+	if p.newFeatures.NodeCount > 0 {
+		steps = append(steps, step.NewWaitForLeader(p.clusterModel, p.patroni, p.logger))
+	}
 
 	return
 }
