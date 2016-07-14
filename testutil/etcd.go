@@ -32,3 +32,25 @@ func EtcdServerAvailable(t *testing.T) bool {
 
 	return true
 }
+
+func ResetEtcd(t *testing.T, prefix string) etcd.KeysAPI {
+	if !EtcdServerAvailable(t) {
+		t.SkipNow()
+	}
+
+	client, err := etcd.New(etcd.Config{Endpoints: LocalEtcdConfig.Machines})
+	if err != nil {
+		t.Fatalf("Failed to initialize etcd client %s", err)
+		return nil
+	}
+
+	etcdApi := etcd.NewKeysAPI(client)
+	_, err = etcdApi.Delete(context.Background(), prefix, &etcd.DeleteOptions{
+		Recursive: true,
+		Dir:       true,
+	})
+	if err != nil {
+		t.Logf("Could not delete etcd dir %s, Error: %s", prefix, err)
+	}
+	return etcdApi
+}

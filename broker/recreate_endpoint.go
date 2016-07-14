@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -31,19 +32,16 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 	}
 
 	clusterState := bkr.initClusterStateFromRecreationData(recreationData)
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
 	go func() {
-		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
+		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
+			return
 		}
 
-		err = bkr.state.SaveCluster(scheduledCluster)
-		if err != nil {
-			logger.Error("save-cluster", err)
-		}
-
-		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, scheduledCluster.AllocatedPort)
+		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), clusterModel.AllocatedPort())
 		if err != nil {
 			logger.Error("assign-port", err)
 		}

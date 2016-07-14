@@ -1,18 +1,14 @@
 package broker
 
-import "github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
+)
 
 type Scheduler interface {
-	RunCluster(structs.ClusterState, structs.ClusterFeatures) (structs.ClusterState, error)
-	StopCluster(structs.ClusterState) (structs.ClusterState, error)
+	RunCluster(*state.ClusterModel, structs.ClusterFeatures) error
+	StopCluster(*state.ClusterModel) error
 	VerifyClusterFeatures(structs.ClusterFeatures) error
-}
-
-type State interface {
-	ClusterExists(structs.ClusterID) bool
-	SaveCluster(structs.ClusterState) error
-	LoadCluster(structs.ClusterID) (structs.ClusterState, error)
-	DeleteCluster(structs.ClusterID) error
 }
 
 type Router interface {

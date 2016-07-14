@@ -2,8 +2,8 @@
 broker:
   username: starkandwayne
   password: starkandwayne
-  port: 3000
-  bind_host: 54.82.6.219
+  port: 8889
+  bind_host: 10.58.111.48
 
 scheduler:
     backends:
@@ -19,7 +19,7 @@ scheduler:
       password: "containers"
 
 etcd:
-  machines: ["http://10.58.111.45:14001"]
+  machines: ["http://10.58.111.48:4001"]
 
 callbacks:
   clusterdata_backup: {cmd: jq, args: ["-r", "."]}

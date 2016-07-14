@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -22,15 +23,21 @@ func (bkr *Broker) deprovision(instanceID structs.ClusterID, details brokerapi.D
 		return false, err
 	}
 
-	cluster, err := bkr.state.LoadCluster(instanceID)
+	clusterState, err := bkr.state.LoadCluster(instanceID)
 	if err != nil {
 		logger.Error("load-cluster.error", err)
 		return false, err
 	}
 
-	bkr.scheduler.StopCluster(cluster)
-	bkr.state.DeleteCluster(cluster.InstanceID)
-	bkr.router.RemoveClusterAssignment(cluster.InstanceID)
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
+	err = bkr.scheduler.StopCluster(clusterModel)
+	if err != nil {
+		logger.Error("stop-cluster", err)
+		return false, err
+	}
+
+	bkr.state.DeleteCluster(clusterModel.InstanceID())
+	bkr.router.RemoveClusterAssignment(clusterModel.InstanceID())
 
 	return false, nil
 }

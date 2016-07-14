@@ -5,22 +5,23 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 // RemoveLeader instructs cluster to delete a node, starting with replicas
 type RemoveLeader struct {
 	nodeToRemove *structs.Node
-	cluster      *structs.ClusterState
+	clusterModel *state.ClusterModel
 	backends     backend.Backends
 	logger       lager.Logger
 }
 
 // NewStepRemoveLeader creates a StepRemoveLeader command
-func NewStepRemoveLeader(nodeToRemove *structs.Node, cluster *structs.ClusterState, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveLeader(nodeToRemove *structs.Node, clusterModel *state.ClusterModel, backends backend.Backends, logger lager.Logger) Step {
 	return RemoveLeader{
 		nodeToRemove: nodeToRemove,
-		cluster:      cluster,
+		clusterModel: clusterModel,
 		backends:     backends,
 		logger:       logger,
 	}
@@ -43,7 +44,7 @@ func (step RemoveLeader) Perform() (err error) {
 	}
 
 	logger.Info("remove-leader.perform", lager.Data{
-		"instance-id": step.cluster.InstanceID,
+		"instance-id": step.clusterModel.InstanceID(),
 		"node-uuid":   step.nodeToRemove.ID,
 		"backend":     backend.ID,
 	})
@@ -53,9 +54,10 @@ func (step RemoveLeader) Perform() (err error) {
 		return nil
 	}
 
-	err = step.cluster.RemoveNode(step.nodeToRemove)
+	err = step.clusterModel.RemoveNode(step.nodeToRemove)
 	if err != nil {
 		logger.Error("remove-leader.nodes-delete", err)
 	}
+
 	return
 }

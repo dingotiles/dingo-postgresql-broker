@@ -18,19 +18,26 @@ const (
 	ReplicaRole = "ReplicaRole"
 )
 
-type State struct {
+type StateEtcd struct {
 	etcdApi etcd.KeysAPI
 	prefix  string
 	logger  lager.Logger
 	patroni *patroni.Patroni
 }
 
-func NewState(etcdConfig config.Etcd, logger lager.Logger) (*State, error) {
-	return NewStateWithPrefix(etcdConfig, "", logger)
+type State interface {
+	ClusterExists(structs.ClusterID) bool
+	SaveCluster(structs.ClusterState) error
+	LoadCluster(structs.ClusterID) (structs.ClusterState, error)
+	DeleteCluster(structs.ClusterID) error
 }
 
-func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (*State, error) {
-	state := &State{
+func NewStateEtcd(etcdConfig config.Etcd, logger lager.Logger) (*StateEtcd, error) {
+	return NewStateEtcdWithPrefix(etcdConfig, "", logger)
+}
+
+func NewStateEtcdWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logger) (*StateEtcd, error) {
+	state := &StateEtcd{
 		prefix: prefix,
 		logger: logger,
 	}
@@ -49,8 +56,8 @@ func NewStateWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.Logg
 	return state, nil
 }
 
-func (s *State) SaveCluster(clusterState structs.ClusterState) error {
-	s.logger.Info("save-clusterState", lager.Data{
+func (s *StateEtcd) SaveCluster(clusterState structs.ClusterState) error {
+	s.logger.Info("cluster-state.save", lager.Data{
 		"cluster": clusterState,
 	})
 
@@ -71,7 +78,7 @@ func (s *State) SaveCluster(clusterState structs.ClusterState) error {
 	return nil
 }
 
-func (s *State) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
+func (s *StateEtcd) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	client, err := etcd.New(etcd.Config{Endpoints: cfg.Machines})
 	if err != nil {
 		return nil, err
@@ -82,7 +89,7 @@ func (s *State) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	return api, nil
 }
 
-func (s *State) ClusterExists(instanceID structs.ClusterID) bool {
+func (s *StateEtcd) ClusterExists(instanceID structs.ClusterID) bool {
 	ctx := context.Background()
 	s.logger.Info("state.cluster-exists")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
@@ -90,16 +97,16 @@ func (s *State) ClusterExists(instanceID structs.ClusterID) bool {
 	return err == nil
 }
 
-func (s *State) LoadCluster(instanceID structs.ClusterID) (structs.ClusterState, error) {
-	var cluster structs.ClusterState
+// LoadCluster fetches the latest data/state for specific cluster
+func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.ClusterState, err error) {
 	ctx := context.Background()
 	s.logger.Info("state.load-cluster-state")
-	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 
+	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
 	if err != nil {
 		s.logger.Error("state.load-cluster-state.error", err)
-		return cluster, err
+		return
 	}
 	json.Unmarshal([]byte(resp.Node.Value), &cluster)
 
@@ -112,10 +119,10 @@ func (s *State) LoadCluster(instanceID structs.ClusterID) (structs.ClusterState,
 			node.Role = ReplicaRole
 		}
 	}
-	return cluster, nil
+	return
 }
 
-func (s *State) DeleteCluster(instanceID structs.ClusterID) error {
+func (s *StateEtcd) DeleteCluster(instanceID structs.ClusterID) error {
 	ctx := context.Background()
 	s.logger.Info("state.delete-cluster-state")
 	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)

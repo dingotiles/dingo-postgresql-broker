@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -34,6 +35,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 
 	port, err := bkr.router.AllocatePort()
 	clusterState := bkr.initCluster(instanceID, port, details)
+	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
@@ -45,18 +47,15 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	}
 
 	// Continue processing in background
+	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
-		scheduledCluster, err := bkr.scheduler.RunCluster(clusterState, features)
+		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
 			logger.Error("run-cluster", err)
+			return
 		}
 
-		err = bkr.router.AssignPortToCluster(scheduledCluster.InstanceID, port)
-		if err != nil {
-			logger.Error("assign-port", err)
-		}
-
-		err = bkr.state.SaveCluster(scheduledCluster)
+		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port)
 		if err != nil {
 			logger.Error("assign-port", err)
 		}

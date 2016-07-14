@@ -6,6 +6,7 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -25,51 +26,57 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 	return s
 }
 
-func (s *Scheduler) RunCluster(cluster structs.ClusterState, features structs.ClusterFeatures) (structs.ClusterState, error) {
-	err := s.VerifyClusterFeatures(features)
+func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (err error) {
+	err = s.VerifyClusterFeatures(features)
 	if err != nil {
-		return cluster, err
+		return
 	}
 
-	plan, err := s.newPlan(&cluster, features)
+	plan, err := s.newPlan(clusterModel, s.config.Etcd, features)
 	if err != nil {
-		return cluster, err
+		return
 	}
 
 	s.logger.Info("scheduler.run-cluster", lager.Data{
-		"instance-id": cluster.InstanceID,
+		"instance-id": clusterModel.InstanceID(),
 		"steps-count": len(plan.steps()),
 		"steps":       plan.stepTypes(),
 		"features":    features,
 	})
-	for _, step := range plan.steps() {
-		err := step.Perform()
-		if err != nil {
-			return cluster, err
-		}
-	}
-	return cluster, nil
+
+	return s.executePlan(clusterModel, plan)
 }
 
-func (s *Scheduler) StopCluster(cluster structs.ClusterState) (structs.ClusterState, error) {
-	plan, err := s.newPlan(&cluster, structs.ClusterFeatures{NodeCount: 0})
+func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
+	plan, err := s.newPlan(clusterModel, s.config.Etcd, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
-		return cluster, err
+		return err
 	}
 
 	s.logger.Info("scheduler.stop-cluster", lager.Data{
-		"instance-id": cluster.InstanceID,
+		"instance-id": clusterModel.InstanceID(),
 		"plan":        plan,
 		"steps-count": len(plan.steps()),
 		"steps":       plan.stepTypes(),
 	})
-	for _, step := range plan.steps() {
+
+	return s.executePlan(clusterModel, plan)
+}
+
+func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) error {
+	steps := plan.steps()
+	clusterModel.BeginScheduling(len(steps))
+
+	for _, step := range steps {
+		clusterModel.SchedulingStepStarted(step.StepType())
 		err := step.Perform()
 		if err != nil {
-			return cluster, err
+			clusterModel.SchedulingError(err)
+			return err
 		}
+		clusterModel.SchedulingStepCompleted()
 	}
-	return cluster, nil
+	return nil
 }
 
 func (s *Scheduler) initBackends(config []*config.Backend) backend.Backends {
