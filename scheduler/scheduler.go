@@ -70,11 +70,18 @@ func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
 		"steps-count": len(plan.steps()),
 		"steps":       plan.stepTypes(),
 	})
-	for _, step := range plan.steps() {
+
+	steps := plan.steps()
+	clusterModel.NewClusterPlan(len(steps))
+
+	for _, step := range steps {
+		clusterModel.PlanStepStarted(step.StepType())
 		err := step.Perform()
 		if err != nil {
+			clusterModel.PlanError(err)
 			return err
 		}
+		clusterModel.PlanStepComplete()
 	}
 	return nil
 }
