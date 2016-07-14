@@ -15,14 +15,10 @@ type CellsEtcd struct {
 }
 
 type Cells interface {
-	LoadStatus() (*CellsHealth, error)
+	LoadStatus(availableCells []*config.Backend) (*CellsHealth, error)
 }
 
-type CellsHealth map[string]*CellHealth
-
-type CellHealth struct {
-	NodeCount int
-}
+type CellsHealth map[string]int
 
 func NewCellsEtcd(etcdConfig config.Etcd, logger lager.Logger) (*CellsEtcd, error) {
 	return NewCellsEtcdWithPrefix(etcdConfig, "", logger)
@@ -46,8 +42,8 @@ func NewCellsEtcdWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.
 }
 
 // LoadStatus discovers the layout of cells that contain nodes
-// Cells that do not contain nodes yet are not included in the results
-func (cells *CellsEtcd) LoadStatus() (health *CellsHealth, err error) {
+// Result is map[backendID]healthCount - lower is healthier, and better for allocating new nodes
+func (cells *CellsEtcd) LoadStatus(availableCells []*config.Backend) (health *CellsHealth, err error) {
 	state, err := state.NewStateEtcdWithPrefix(cells.etcdConfig, cells.prefix, cells.logger)
 	if err != nil {
 		return
@@ -57,13 +53,15 @@ func (cells *CellsEtcd) LoadStatus() (health *CellsHealth, err error) {
 		return
 	}
 	health = &CellsHealth{}
+	for _, availableCell := range availableCells {
+		(*health)[availableCell.GUID] = 0
+	}
 	for _, cluster := range clusters {
 		for _, clusterNode := range cluster.Nodes {
 			backendID := clusterNode.BackendID
-			if (*health)[backendID] == nil {
-				(*health)[backendID] = &CellHealth{}
+			if _, ok := (*health)[backendID]; ok {
+				(*health)[backendID] += 1
 			}
-			(*health)[backendID].NodeCount += 1
 		}
 	}
 	return
