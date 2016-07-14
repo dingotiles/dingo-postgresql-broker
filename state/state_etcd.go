@@ -3,6 +3,7 @@ package state
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"golang.org/x/net/context"
 
@@ -29,6 +30,7 @@ type State interface {
 	ClusterExists(structs.ClusterID) bool
 	SaveCluster(structs.ClusterState) error
 	LoadCluster(structs.ClusterID) (structs.ClusterState, error)
+	LoadAllClusters() ([]*structs.ClusterState, error)
 	DeleteCluster(structs.ClusterID) error
 }
 
@@ -118,6 +120,26 @@ func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.C
 		} else {
 			node.Role = ReplicaRole
 		}
+	}
+	return
+}
+
+func (s *StateEtcd) LoadAllClusters() (clusters []*structs.ClusterState, err error) {
+	ctx := context.Background()
+	servicesKey := fmt.Sprintf("%s/service", s.prefix)
+	services, err := s.etcdApi.Get(ctx, servicesKey, &etcd.GetOptions{Recursive: false})
+	if err != nil {
+		return
+	}
+
+	instanceIDRegExp, _ := regexp.Compile("/service/(.*)")
+	for _, service := range services.Node.Nodes {
+		instanceID := instanceIDRegExp.FindStringSubmatch(service.Key)[1]
+		cluster, err := s.LoadCluster(structs.ClusterID(instanceID))
+		if err != nil {
+			return clusters, err
+		}
+		clusters = append(clusters, &cluster)
 	}
 	return
 }
