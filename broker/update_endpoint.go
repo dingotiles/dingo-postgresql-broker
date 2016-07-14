@@ -34,11 +34,6 @@ func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.
 		return false, err
 	}
 	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
-	err = clusterModel.ResetClusterPlan()
-	if err != nil {
-		logger.Error("reset-cluster-plan", err)
-		return false, err
-	}
 
 	go func() {
 		err = bkr.scheduler.RunCluster(clusterModel, features)

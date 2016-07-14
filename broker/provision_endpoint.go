@@ -36,11 +36,6 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	port, err := bkr.router.AllocatePort()
 	clusterState := bkr.initCluster(instanceID, port, details)
 	clusterModel := state.NewClusterStateModel(bkr.state, clusterState)
-	err = clusterModel.ResetClusterPlan()
-	if err != nil {
-		logger.Error("reset-cluster-plan", err)
-		return resp, false, err
-	}
 
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
