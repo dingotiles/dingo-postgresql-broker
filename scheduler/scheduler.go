@@ -26,13 +26,13 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 	return s
 }
 
-func (s *Scheduler) RunCluster(clusterModel *state.ClusterStateModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (err error) {
+func (s *Scheduler) RunCluster(clusterModel *state.ClusterStateModel, features structs.ClusterFeatures) (err error) {
 	err = s.VerifyClusterFeatures(features)
 	if err != nil {
 		return
 	}
 
-	plan, err := s.newPlan(clusterModel, etcdConfig, features)
+	plan, err := s.newPlan(clusterModel, s.config.Etcd, features)
 	if err != nil {
 		return
 	}
@@ -56,8 +56,8 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterStateModel, etcdConfig
 	return
 }
 
-func (s *Scheduler) StopCluster(clusterModel *state.ClusterStateModel, etcdConfig config.Etcd) error {
-	plan, err := s.newPlan(clusterModel, etcdConfig, structs.ClusterFeatures{NodeCount: 0})
+func (s *Scheduler) StopCluster(clusterModel *state.ClusterStateModel) error {
+	plan, err := s.newPlan(clusterModel, s.config.Etcd, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return err
 	}

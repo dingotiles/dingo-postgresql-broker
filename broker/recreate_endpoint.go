@@ -40,7 +40,7 @@ func (bkr *Broker) Recreate(instanceID structs.ClusterID, details brokerapi.Prov
 	}
 
 	go func() {
-		err := bkr.scheduler.RunCluster(clusterModel, bkr.etcdConfig, features)
+		err := bkr.scheduler.RunCluster(clusterModel, features)
 		if err != nil {
 			clusterModel.PlanError(err)
 			logger.Error("run-cluster", err)

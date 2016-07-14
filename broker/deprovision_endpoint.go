@@ -36,7 +36,7 @@ func (bkr *Broker) deprovision(instanceID structs.ClusterID, details brokerapi.D
 		return false, err
 	}
 
-	err = bkr.scheduler.StopCluster(clusterModel, bkr.etcdConfig)
+	err = bkr.scheduler.StopCluster(clusterModel)
 	if err != nil {
 		logger.Error("stop-cluster", err)
 		return false, err

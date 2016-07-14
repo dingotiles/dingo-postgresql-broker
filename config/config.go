@@ -33,6 +33,7 @@ type Broker struct {
 
 type Scheduler struct {
 	Backends []*Backend `yaml:"backends"`
+	Etcd     Etcd
 }
 
 // Backend describes a configured set of backend brokers
@@ -91,6 +92,8 @@ func LoadConfig(path string) (cfg *Config, err error) {
 			backend.URI = fmt.Sprintf("http://%s", backend.URI)
 		}
 	}
+
+	cfg.Scheduler.Etcd = cfg.Etcd
 
 	return
 }
