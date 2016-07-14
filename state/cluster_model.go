@@ -31,7 +31,7 @@ func NewClusterStateModel(state State, cluster structs.ClusterState) *ClusterSta
 	}
 }
 
-func (model *ClusterStateModel) Save() error {
+func (model *ClusterStateModel) save() error {
 	return model.state.SaveCluster(model.cluster)
 }
 
@@ -41,31 +41,31 @@ func (model *ClusterStateModel) ResetClusterPlan() error {
 	model.cluster.ErrorMsg = ""
 	model.cluster.Plan.Steps = 0
 	model.cluster.Plan.CompletedSteps = 0
-	return model.Save()
+	return model.save()
 }
 
 // PlanError stores the failure message for a scheduled Plan
 // This will be shown to end users via /last_operation endpoint
 func (model *ClusterStateModel) PlanError(err error) error {
 	model.cluster.ErrorMsg = err.Error()
-	return model.Save()
+	return model.save()
 }
 
 func (model *ClusterStateModel) NewClusterPlan(steps int) error {
 	model.cluster.Plan.Steps = steps
 	model.cluster.Plan.CompletedSteps = 0
 	model.cluster.Plan.Message = ""
-	return model.Save()
+	return model.save()
 }
 
 func (model *ClusterStateModel) PlanStepComplete() error {
 	model.cluster.Plan.CompletedSteps += 1
-	return model.Save()
+	return model.save()
 }
 
 func (model *ClusterStateModel) PlanStepStarted(msg string) error {
 	model.cluster.Plan.Message = msg
-	return model.Save()
+	return model.save()
 }
 
 func (model *ClusterStateModel) CurrentPlanStatus() (status *PlanStatus) {
@@ -113,9 +113,11 @@ func (model *ClusterStateModel) Nodes() []*structs.Node {
 }
 
 func (model *ClusterStateModel) AddNode(node structs.Node) error {
-	return model.cluster.AddNode(node)
+	model.cluster.AddNode(node)
+	return model.save()
 }
 
 func (model *ClusterStateModel) RemoveNode(node *structs.Node) error {
-	return model.cluster.RemoveNode(node)
+	model.cluster.RemoveNode(node)
+	return model.save()
 }

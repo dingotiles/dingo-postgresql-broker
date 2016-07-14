@@ -61,6 +61,5 @@ func (step RemoveLeader) Perform() (err error) {
 		logger.Error("remove-leader.nodes-delete", err)
 	}
 
-	step.clusterModel.Save()
 	return
 }

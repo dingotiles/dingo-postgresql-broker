@@ -63,19 +63,17 @@ func (c *ClusterState) RecreationData() *ClusterRecreationData {
 	}
 }
 
-func (c *ClusterState) AddNode(node Node) error {
+func (c *ClusterState) AddNode(node Node) {
 	c.Nodes = append(c.Nodes, &node)
-	return nil
 }
 
-func (c *ClusterState) RemoveNode(node *Node) error {
+func (c *ClusterState) RemoveNode(node *Node) {
 	for i, n := range c.Nodes {
 		if n.ID == node.ID {
 			c.Nodes = append(c.Nodes[:i], c.Nodes[i+1:]...)
 			break
 		}
 	}
-	return nil
 }
 
 type ClusterFeatures struct {
