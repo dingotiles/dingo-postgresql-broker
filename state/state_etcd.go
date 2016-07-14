@@ -9,7 +9,7 @@ import (
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -22,7 +22,7 @@ type StateEtcd struct {
 	etcdApi etcd.KeysAPI
 	prefix  string
 	logger  lager.Logger
-	patroni *patronidata.Patroni
+	patroni *patroni.Patroni
 }
 
 type State interface {
@@ -42,7 +42,7 @@ func NewStateEtcdWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.
 		logger: logger,
 	}
 
-	patroniClient, err := patronidata.NewPatroni(etcdConfig, logger)
+	patroniClient, err := patroni.NewPatroni(etcdConfig, logger)
 	if err != nil {
 		return nil, err
 	}

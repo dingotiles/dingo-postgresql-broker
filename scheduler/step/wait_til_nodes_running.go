@@ -1,7 +1,7 @@
 package step
 
 import (
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
@@ -9,12 +9,12 @@ import (
 // WaitTilNodesRunning blocks until expected number of nodes are available and running
 type WaitTilNodesRunning struct {
 	clusterModel *state.ClusterModel
-	patroni      *patronidata.Patroni
+	patroni      *patroni.Patroni
 	logger       lager.Logger
 }
 
 // NewWaitTilNodesRunning creates a WaitTilNodesRunning command
-func NewWaitTilNodesRunning(clusterModel *state.ClusterModel, patroni *patronidata.Patroni, logger lager.Logger) Step {
+func NewWaitTilNodesRunning(clusterModel *state.ClusterModel, patroni *patroni.Patroni, logger lager.Logger) Step {
 	return WaitTilNodesRunning{
 		clusterModel: clusterModel,
 		patroni:      patroni,
@@ -35,7 +35,7 @@ func (step WaitTilNodesRunning) Perform() (err error) {
 	instanceID := step.clusterModel.InstanceID()
 	nodesCount := step.clusterModel.NodeCount()
 
-	err = step.patroni.WaitTilClusterMembersRunning(instanceID, nodesCount)
+	err = step.patroni.WaitForAllMembers(instanceID, nodesCount)
 	if err != nil {
 		logger.Error("wait-til-nodes-running.perform.error", err, lager.Data{"instance-id": step.clusterModel.InstanceID()})
 		return err

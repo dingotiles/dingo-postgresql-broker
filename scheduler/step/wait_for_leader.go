@@ -1,7 +1,7 @@
 package step
 
 import (
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
@@ -9,12 +9,12 @@ import (
 // WaitForLeader blocks until leader elected and active
 type WaitForLeader struct {
 	clusterModel *state.ClusterModel
-	patroni      *patronidata.Patroni
+	patroni      *patroni.Patroni
 	logger       lager.Logger
 }
 
 // NewWaitForLeader creates a WaitForLeader command
-func NewWaitForLeader(clusterModel *state.ClusterModel, patroni *patronidata.Patroni, logger lager.Logger) Step {
+func NewWaitForLeader(clusterModel *state.ClusterModel, patroni *patroni.Patroni, logger lager.Logger) Step {
 	return WaitForLeader{
 		clusterModel: clusterModel,
 		patroni:      patroni,

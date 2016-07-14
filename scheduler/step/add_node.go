@@ -2,7 +2,7 @@ package step
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
@@ -12,17 +12,17 @@ import (
 // AddNode instructs a new cluster node be added
 type AddNode struct {
 	clusterModel      *state.ClusterModel
-	clusterData       patronidata.ClusterDataWrapper
+	patroni           *patroni.Patroni
 	availableBackends backend.Backends
 	logger            lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(clusterModel *state.ClusterModel, clusterData patronidata.ClusterDataWrapper,
+func NewStepAddNode(clusterModel *state.ClusterModel, patroni *patroni.Patroni,
 	availableBackends backend.Backends, logger lager.Logger) Step {
 	return AddNode{
 		clusterModel:      clusterModel,
-		clusterData:       clusterData,
+		patroni:           patroni,
 		availableBackends: availableBackends,
 		logger:            logger,
 	}
@@ -74,7 +74,7 @@ func (step AddNode) Perform() (err error) {
 
 	// 6. Wait until node registers itself in data store
 	logger.Info("add-node.perform.wait-til-exists", lager.Data{"member": provisionedNode.ID})
-	err = step.clusterData.WaitTilMemberExists(provisionedNode.ID)
+	err = step.patroni.WaitForMember(step.clusterModel.InstanceID(), provisionedNode.ID)
 	if err != nil {
 		logger.Error("add-node.perform.wait-til-exists.error", err, lager.Data{"member": provisionedNode.ID})
 		return err

@@ -1,9 +1,10 @@
-package patronidata
+package patroni
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 
@@ -26,6 +27,9 @@ const (
 	ReplicaRole = "replica"
 
 	RunningState = "running"
+
+	waitTilMemberRunningTimeout = 300 * time.Second
+	waitForLeaderTimeout        = 300 * time.Second
 )
 
 type ClusterMember struct {
@@ -47,6 +51,17 @@ func NewPatroni(etcdConf config.Etcd, logger lager.Logger) (*Patroni, error) {
 		etcd:   etcd,
 		logger: logger,
 	}, nil
+}
+
+func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
+	ctx := context.Background()
+	key := fmt.Sprintf("service/%s/leader", instanceID)
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
+	if err != nil {
+		p.logger.Error("patroni.cluster-leader.error", err)
+		return "", err
+	}
+	return resp.Node.Value, nil
 }
 
 func (p *Patroni) LoadMember(instanceID structs.ClusterID, memberID string) (member ClusterMember, err error) {
@@ -74,7 +89,7 @@ func (p *Patroni) WaitForLeader(instanceID structs.ClusterID) error {
 		case <-timeout:
 			return fmt.Errorf("Timed out waiting for leader of %d", instanceID)
 		case <-c:
-			if p.checkLeader(instanceID) {
+			if p.leaderRunning(instanceID) {
 				return nil
 			}
 		}
@@ -83,7 +98,7 @@ func (p *Patroni) WaitForLeader(instanceID structs.ClusterID) error {
 }
 
 // WaitTilClusterMembersRunning waits until expected number of nodes are running (not too many, not too few, and all running)
-func (p *Patroni) WaitTilClusterMembersRunning(instanceID structs.ClusterID, expectedNodeCount int) error {
+func (p *Patroni) WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error {
 	timeout := time.After(waitTilMemberRunningTimeout)
 	c := time.Tick(1 * time.Second)
 	for {
@@ -99,34 +114,57 @@ func (p *Patroni) WaitTilClusterMembersRunning(instanceID structs.ClusterID, exp
 	return nil
 }
 
+func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) error {
+	notFoundRegExp, _ := regexp.Compile("Key not found")
+
+	timeout := time.After(waitTilMemberRunningTimeout)
+	tick := time.Tick(1 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return fmt.Errorf("Timed out waiting for member %s appear in data store", memberID)
+		case <-tick:
+			member, err := p.LoadMember(instanceID, memberID)
+			if err != nil {
+				p.logger.Error("cluster-data.member-data.get", err, lager.Data{
+					"instance-id":   instanceID,
+					"member":        memberID,
+					"err":           err.Error(),
+					"not-found-yet": notFoundRegExp.MatchString(err.Error()),
+				})
+
+				if !notFoundRegExp.MatchString(err.Error()) {
+					return err
+				}
+				p.logger.Info("cluster-data.member-data.waiting", lager.Data{
+					"instance-id": instanceID,
+					"member":      memberID,
+				})
+			} else {
+				if member.State == "running" {
+					return nil
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // TODO: prove list of member IDs that cannot be member OR that can be member
 // This will ensure that success isn't for an ex-leader that hasn't died yet
-func (p *Patroni) checkLeader(instanceID structs.ClusterID) bool {
-	var err error
-
-	ctx := context.Background()
-	key := fmt.Sprintf("service/%s/leader", instanceID)
-	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{
-		Quorum:    true,
-		Recursive: true,
-	})
+func (p *Patroni) leaderRunning(instanceID structs.ClusterID) bool {
+	p.logger.Info("check-leader.find-leader", lager.Data{"instanceID": instanceID})
+	leaderID, err := p.ClusterLeader(instanceID)
 	if err != nil {
-		p.logger.Error("check-leader.etcd-leader.discover", err, lager.Data{"instance-id": instanceID})
 		return false
 	}
-
-	// Leader has been elected
-	leaderID := resp.Node.Value
-
-	// Check if leader member has finished become leader
-	leaderData, err := p.LoadMember(instanceID, leaderID)
+	p.logger.Info("check-leader.load-member", lager.Data{"instanceID": instanceID, "leader": leaderID})
+	leader, err := p.LoadMember(instanceID, leaderID)
 	if err != nil {
-		p.logger.Error("check-leader.etcd-leader.fetch", err)
 		return false
 	}
-	p.logger.Info("check-leader.leader", lager.Data{"leader": leaderID, "data": leaderData})
-
-	return leaderData.State == RunningState && leaderData.Role == LeaderRole
+	p.logger.Info("check-leader.leader", lager.Data{"leader": leaderID, "data": leader})
+	return leader.State == RunningState && leader.Role == LeaderRole
 }
 
 // Checks that the expected number of nodes are running (not too many, not too few, and all running)
@@ -160,17 +198,6 @@ func (p *Patroni) checkClusterMembersRunning(instanceID structs.ClusterID, expec
 		}
 	}
 	return true
-}
-
-func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
-	ctx := context.Background()
-	key := fmt.Sprintf("service/%s/leader", instanceID)
-	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
-	if err != nil {
-		p.logger.Error("patroni.cluster-leader.error", err)
-		return "", err
-	}
-	return resp.Node.Value, nil
 }
 
 func setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {

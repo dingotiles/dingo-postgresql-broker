@@ -3,7 +3,7 @@ package scheduler
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patronidata"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -17,8 +17,7 @@ const (
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
 	clusterModel      *state.ClusterModel
-	patroni           *patronidata.Patroni
-	clusterData       patronidata.ClusterDataWrapper
+	patroni           *patroni.Patroni
 	newFeatures       structs.ClusterFeatures
 	availableBackends backend.Backends
 	allBackends       backend.Backends
@@ -28,12 +27,11 @@ type plan struct {
 
 // Newp.est creates a p.est to change a service instance
 func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
-	patroni, err := patronidata.NewPatroni(etcdConfig, s.logger)
+	patroni, err := patroni.NewPatroni(etcdConfig, s.logger)
 	if err != nil {
-		s.logger.Error("new-plan.new-patronidata", err)
+		s.logger.Error("new-plan.new-patroni", err)
 		return plan{}, err
 	}
-	clusterData := patronidata.NewClusterDataWrapper(patroni, clusterModel.InstanceID())
 
 	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
@@ -42,7 +40,6 @@ func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.
 	return plan{
 		clusterModel:      clusterModel,
 		patroni:           patroni,
-		clusterData:       clusterData,
 		newFeatures:       features,
 		availableBackends: backends,
 		allBackends:       s.backends,
@@ -65,13 +62,13 @@ func (p plan) stepTypes() []string {
 func (p plan) steps() (steps []step.Step) {
 	addedNodes := false
 	for i := 0; i < p.clusterGrowingBy(); i++ {
-		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.clusterData, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableBackends, p.logger))
 		addedNodes = true
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
-		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.clusterData, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableBackends, p.logger))
 		addedNodes = true
 	}
 
