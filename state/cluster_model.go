@@ -12,18 +12,6 @@ type ClusterModel struct {
 	cluster structs.ClusterState
 }
 
-type PlanStatus struct {
-	Status  string
-	Message string
-}
-
-const (
-	PlanStatusUnknown    = ""
-	PlanStatusSuccess    = "success"
-	PlanStatusInProgress = "in-progress"
-	PlanStatusFailed     = "failed"
-)
-
 func NewClusterModel(state State, cluster structs.ClusterState) *ClusterModel {
 	return &ClusterModel{
 		state:   state,
@@ -37,50 +25,39 @@ func (model *ClusterModel) save() error {
 
 // PlanError stores the failure message for a scheduled Plan
 // This will be shown to end users via /last_operation endpoint
-func (model *ClusterModel) PlanError(err error) error {
-	model.cluster.ErrorMsg = err.Error()
+func (model *ClusterModel) SchedulingError(err error) error {
+	model.cluster.SchedulingInfo.LastMessage = err.Error()
+	model.cluster.SchedulingInfo.Error = true
+	model.cluster.SchedulingInfo.Status = structs.SchedulingStatusFailed
 	return model.save()
 }
 
-func (model *ClusterModel) NewClusterPlan(steps int) error {
-	model.cluster.Plan.Steps = steps
-	model.cluster.Plan.CompletedSteps = 0
-	model.cluster.Plan.Message = ""
+func (model *ClusterModel) BeginScheduling(steps int) error {
+	model.cluster.SchedulingInfo.Steps = steps
+	model.cluster.SchedulingInfo.CompletedSteps = 0
+	model.cluster.SchedulingInfo.LastMessage = "In Progress..."
+	model.cluster.SchedulingInfo.Error = false
+	model.cluster.SchedulingInfo.Status = structs.SchedulingStatusInProgress
 	return model.save()
 }
 
-func (model *ClusterModel) PlanStepComplete() error {
-	model.cluster.Plan.CompletedSteps += 1
+func (model *ClusterModel) SchedulingStepCompleted() error {
+	model.cluster.SchedulingInfo.CompletedSteps += 1
+	if model.cluster.SchedulingInfo.CompletedSteps == model.cluster.SchedulingInfo.Steps {
+		model.cluster.SchedulingInfo.Status = structs.SchedulingStatusSuccess
+		model.cluster.SchedulingInfo.LastMessage = "Scheduling Completed"
+	}
+
 	return model.save()
 }
 
-func (model *ClusterModel) PlanStepStarted(msg string) error {
-	model.cluster.Plan.Message = msg
+func (model *ClusterModel) SchedulingStepStarted(stepType string) error {
+	model.cluster.SchedulingInfo.LastMessage = fmt.Sprintf("Perfoming Step: '%s'", stepType)
 	return model.save()
 }
 
-func (model *ClusterModel) CurrentPlanStatus() (status *PlanStatus) {
-	msg := fmt.Sprintf("%s %d/%d", model.cluster.Plan.Message, model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
-	status = &PlanStatus{
-		Status:  PlanStatusInProgress,
-		Message: msg,
-	}
-	if model.cluster.ErrorMsg != "" {
-		status.Message = fmt.Sprintf("Error: %s %d/%d", model.cluster.ErrorMsg, model.cluster.Plan.Steps, model.cluster.Plan.Steps)
-		status.Status = PlanStatusFailed
-		return
-	}
-	if model.cluster.Plan.Steps == 0 {
-		status.Status = PlanStatusUnknown
-		return
-	}
-	if model.cluster.Plan.CompletedSteps == model.cluster.Plan.Steps {
-		status.Message = fmt.Sprintf("Completed %d/%d", model.cluster.Plan.CompletedSteps, model.cluster.Plan.Steps)
-		status.Status = PlanStatusSuccess
-		return
-	}
-
-	return
+func (model *ClusterModel) SchedulingInfo() structs.SchedulingInfo {
+	return model.cluster.SchedulingInfo
 }
 
 func (model *ClusterModel) Cluster() structs.ClusterState {

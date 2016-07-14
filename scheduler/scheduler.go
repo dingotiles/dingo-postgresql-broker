@@ -65,16 +65,16 @@ func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
 
 func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) error {
 	steps := plan.steps()
-	clusterModel.NewClusterPlan(len(steps))
+	clusterModel.BeginScheduling(len(steps))
 
 	for _, step := range steps {
-		clusterModel.PlanStepStarted(fmt.Sprintf("Performing step: %s", step.StepType()))
+		clusterModel.SchedulingStepStarted(step.StepType())
 		err := step.Perform()
 		if err != nil {
-			clusterModel.PlanError(err)
+			clusterModel.SchedulingError(err)
 			return err
 		}
-		clusterModel.PlanStepComplete()
+		clusterModel.SchedulingStepCompleted()
 	}
 	return nil
 }

@@ -27,20 +27,19 @@ func (bkr *Broker) lastOperation(instanceID structs.ClusterID) (resp brokerapi.L
 		return brokerapi.LastOperationResponse{State: brokerapi.LastOperationFailed, Description: err.Error()}, err
 	}
 	clusterModel := state.NewClusterModel(bkr.state, clusterState)
-	planStatus := clusterModel.CurrentPlanStatus()
-	return bkr.lastOperationFromPlanStatus(planStatus)
+	return bkr.lastOperationFromSchedulingInfo(clusterModel.SchedulingInfo())
 }
 
-func (bkr *Broker) lastOperationFromPlanStatus(planStatus *state.PlanStatus) (resp brokerapi.LastOperationResponse, err error) {
-	resp.Description = planStatus.Message
+func (bkr *Broker) lastOperationFromSchedulingInfo(schedulingInfo structs.SchedulingInfo) (resp brokerapi.LastOperationResponse, err error) {
+	resp.Description = schedulingInfo.LastMessage
 
-	switch planStatus.Status {
-	case state.PlanStatusFailed:
+	switch schedulingInfo.Status {
+	case structs.SchedulingStatusFailed:
 		resp.State = brokerapi.LastOperationFailed
 		err = fmt.Errorf(resp.Description)
-	case state.PlanStatusSuccess:
+	case structs.SchedulingStatusSuccess:
 		resp.State = brokerapi.LastOperationSucceeded
-	case state.PlanStatusInProgress:
+	case structs.SchedulingStatusInProgress:
 		resp.State = brokerapi.LastOperationInProgress
 	default:
 		resp.State = brokerapi.LastOperationInProgress
