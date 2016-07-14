@@ -53,7 +53,7 @@ func (m *ClusterModel) SchedulingStepCompleted() error {
 
 func (m *ClusterModel) SchedulingStepStarted(stepType string) error {
 	m.cluster.SchedulingInfo.LastMessage = fmt.Sprintf("Perfoming Step %d/%d: %s",
-		m.cluster.SchedulingInfo.Step,
+		m.cluster.SchedulingInfo.Steps,
 		m.cluster.SchedulingInfo.CompletedSteps+1,
 		stepType)
 	return m.save()
