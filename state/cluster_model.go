@@ -23,11 +23,10 @@ func (m *ClusterModel) save() error {
 	return m.state.SaveCluster(m.cluster)
 }
 
-// PlanError stores the failure message for a scheduled Plan
+// SchedulingError stores the failure message for a scheduled Plan
 // This will be shown to end users via /last_operation endpoint
 func (m *ClusterModel) SchedulingError(err error) error {
 	m.cluster.SchedulingInfo.LastMessage = err.Error()
-	m.cluster.SchedulingInfo.Error = true
 	m.cluster.SchedulingInfo.Status = structs.SchedulingStatusFailed
 	return m.save()
 }
@@ -36,7 +35,6 @@ func (m *ClusterModel) BeginScheduling(steps int) error {
 	m.cluster.SchedulingInfo.Steps = steps
 	m.cluster.SchedulingInfo.CompletedSteps = 0
 	m.cluster.SchedulingInfo.LastMessage = "In Progress..."
-	m.cluster.SchedulingInfo.Error = false
 	m.cluster.SchedulingInfo.Status = structs.SchedulingStatusInProgress
 	return m.save()
 }

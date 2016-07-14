@@ -49,7 +49,6 @@ type SchedulingInfo struct {
 	Steps          int              `json:"steps"`
 	CompletedSteps int              `json:"completed_steps"`
 	LastMessage    string           `json:"last_message"`
-	Error          bool             `json:"error"`
 }
 
 func (c *ClusterState) NodeCount() int {
