@@ -58,8 +58,8 @@ func NewStateEtcdWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.
 	return state, nil
 }
 
-func (s *StateEtcd) SaveCluster(clusterState structs.ClusterState) error {
-	s.logger.Info("cluster-state.save", lager.Data{
+func (s *StateEtcd) SaveCluster(clusterState structs.ClusterState) (err error) {
+	s.logger.Info("state.save-cluster", lager.Data{
 		"cluster": clusterState,
 	})
 
@@ -68,16 +68,17 @@ func (s *StateEtcd) SaveCluster(clusterState structs.ClusterState) error {
 
 	data, err := json.Marshal(clusterState)
 	if err != nil {
-		s.logger.Error("save-cluster.marshal", err)
+		s.logger.Error("state.save-cluster.marshal", err)
+		return
 	}
 
 	_, err = s.etcdApi.Set(ctx, key, string(data), &etcd.SetOptions{})
 	if err != nil {
-		s.logger.Error("save-cluster.set", err)
-		return err
+		s.logger.Error("state.save-cluster.set", err)
+		return
 	}
 
-	return nil
+	return
 }
 
 func (s *StateEtcd) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
@@ -102,12 +103,12 @@ func (s *StateEtcd) ClusterExists(instanceID structs.ClusterID) bool {
 // LoadCluster fetches the latest data/state for specific cluster
 func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.ClusterState, err error) {
 	ctx := context.Background()
-	s.logger.Info("state.load-cluster-state")
+	s.logger.Info("state.load-cluster")
 
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
 	if err != nil {
-		s.logger.Error("state.load-cluster-state.error", err)
+		s.logger.Error("state.load-cluster.error", err)
 		return
 	}
 	json.Unmarshal([]byte(resp.Node.Value), &cluster)
@@ -146,12 +147,12 @@ func (s *StateEtcd) LoadAllClusters() (clusters []*structs.ClusterState, err err
 
 func (s *StateEtcd) DeleteCluster(instanceID structs.ClusterID) error {
 	ctx := context.Background()
-	s.logger.Info("state.delete-cluster-state")
+	s.logger.Info("state.delete-cluster")
 	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)
 
 	_, err := s.etcdApi.Delete(ctx, key, &etcd.DeleteOptions{Recursive: true})
 	if err != nil {
-		s.logger.Error("state.delete-cluster-state", err)
+		s.logger.Error("state.delete-cluster", err)
 	}
 
 	return err
