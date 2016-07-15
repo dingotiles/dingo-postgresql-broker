@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
+	"github.com/dingotiles/dingo-postgresql-broker/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
@@ -16,6 +17,7 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
+	cellsHealth       cells.Cells
 	clusterModel      *state.ClusterModel
 	patroni           *patroni.Patroni
 	newFeatures       structs.ClusterFeatures
@@ -37,7 +39,14 @@ func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.
 	if err != nil {
 		return plan{}, err
 	}
+
+	cellsHealth, err := cells.NewCellsEtcd(etcdConfig, s.logger)
+	if err != nil {
+		return plan{}, err
+	}
+
 	return plan{
+		cellsHealth:       cellsHealth,
 		clusterModel:      clusterModel,
 		patroni:           patroni,
 		newFeatures:       features,
@@ -62,13 +71,13 @@ func (p plan) stepTypes() []string {
 func (p plan) steps() (steps []step.Step) {
 	addedNodes := false
 	for i := 0; i < p.clusterGrowingBy(); i++ {
-		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.cellsHealth, p.clusterModel, p.patroni, p.availableBackends, p.logger))
 		addedNodes = true
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
-		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.cellsHealth, p.clusterModel, p.patroni, p.availableBackends, p.logger))
 		addedNodes = true
 	}
 
