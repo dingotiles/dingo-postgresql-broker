@@ -32,10 +32,18 @@ func NewBackend(config *config.Backend) *Backend {
 	}
 }
 
+func (b Backends) String() string {
+	ids := make([]string, len(b))
+	for i, backend := range b {
+		ids[i] = backend.ID
+	}
+	return fmt.Sprintf("%v", ids)
+}
+
 func (b Backends) AllAvailabilityZones() []string {
 	azMap := map[string]string{}
 	for _, backend := range b {
-		azMap[backend.Config.AvailabilityZone] = backend.Config.AvailabilityZone
+		azMap[backend.AvailabilityZone] = backend.AvailabilityZone
 	}
 
 	keys := make([]string, 0, len(azMap))

@@ -1,15 +1,11 @@
 package step
 
 import (
-	"fmt"
-
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/cells"
-	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
-	"github.com/dingotiles/dingo-postgresql-broker/utils"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -43,9 +39,10 @@ func (step AddNode) Perform() (err error) {
 	logger := step.logger
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
+	existingNodes := step.clusterModel.Nodes()
 	clusterStateData := step.clusterModel.Cluster()
 
-	cellsToTry, err := step.prioritizeCellsToTry()
+	cellsToTry, err := step.prioritizeCellsToTry(existingNodes)
 	if err != nil {
 		logger.Error("add-node.perform.sorted-cells-to-try", err)
 		return err
@@ -90,32 +87,4 @@ func (step AddNode) Perform() (err error) {
 
 	logger.Info("add-node.perform.success", lager.Data{"member": provisionedNode.ID})
 	return nil
-}
-
-// Perform runs the Step action to modify the Cluster
-func (step AddNode) prioritizeCellsToTry() (cellsToTry backend.Backends, err error) {
-	// nodes := step.clusterModel.Nodes()
-	availableCells := make([]*config.Backend, len(step.availableBackends))
-	for i, cell := range step.availableBackends {
-		availableCells[i] = &config.Backend{GUID: cell.ID}
-	}
-	health, err := step.cellsHealth.LoadStatus(availableCells)
-	if err != nil {
-		return
-	}
-	fmt.Printf("health %#v\n", health)
-	vs := utils.NewValSorter(*health)
-	vs.Sort()
-	fmt.Printf("health sorted %#v\n", vs)
-	for _, nextCellID := range vs.Keys {
-		fmt.Printf("next cell %s\n", nextCellID)
-		for _, cellAPI := range step.availableBackends {
-			if cellAPI.ID == nextCellID {
-				cellsToTry = append(cellsToTry, cellAPI)
-				break
-			}
-		}
-	}
-
-	return
 }
