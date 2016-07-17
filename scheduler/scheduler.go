@@ -5,25 +5,38 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 type Scheduler struct {
-	logger   lager.Logger
-	config   config.Scheduler
-	backends backend.Backends
+	logger  lager.Logger
+	config  config.Scheduler
+	cells   cells.Cells
+	patroni *patroni.Patroni
 }
 
-func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
+func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, error) {
 	s := &Scheduler{
 		config: config,
 		logger: logger,
 	}
 
-	s.backends = s.initBackends(config.Backends)
-	return s
+	patroni, err := patroni.NewPatroni(config.Etcd, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	s.patroni = patroni
+
+	clusterLoader, err := state.NewStateEtcd(config.Etcd, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	s.cells = cells.NewCells(config.Cells, clusterLoader)
+
+	return s, nil
 }
 
 func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (err error) {
@@ -32,7 +45,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 		return
 	}
 
-	plan, err := s.newPlan(clusterModel, s.config.Etcd, features)
+	plan, err := s.newPlan(clusterModel, features)
 	if err != nil {
 		return
 	}
@@ -48,7 +61,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 }
 
 func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
-	plan, err := s.newPlan(clusterModel, s.config.Etcd, structs.ClusterFeatures{NodeCount: 0})
+	plan, err := s.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return err
 	}
@@ -79,16 +92,6 @@ func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) err
 	return nil
 }
 
-func (s *Scheduler) initBackends(config []*config.Backend) backend.Backends {
-
-	var backends []*backend.Backend
-	for _, cfg := range config {
-		backends = append(backends, backend.NewBackend(cfg))
-	}
-
-	return backends
-}
-
 func (s *Scheduler) VerifyClusterFeatures(features structs.ClusterFeatures) (err error) {
 	availableCells, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
@@ -97,35 +100,35 @@ func (s *Scheduler) VerifyClusterFeatures(features structs.ClusterFeatures) (err
 	if features.NodeCount > len(availableCells) {
 		availableCellGUIDs := make([]string, len(availableCells))
 		for i, cell := range availableCells {
-			availableCellGUIDs[i] = cell.ID
+			availableCellGUIDs[i] = cell.GUID
 		}
 		err = fmt.Errorf("Scheduler: Not enough Cell GUIDs (%v) for cluster of %d nodes", availableCellGUIDs, features.NodeCount)
 	}
 	return
 }
 
-// filterCellsByGUIDs returns all backend cells; or the subset filtered by cellGUIDS; or an error
-func (s *Scheduler) filterCellsByGUIDs(cellGUIDs []string) (backend.Backends, error) {
+// filterCellsByGUIDs returns all cell cells; or the subset filtered by cellGUIDS; or an error
+func (s *Scheduler) filterCellsByGUIDs(cellGUIDs []string) (cells.Cells, error) {
 	if len(cellGUIDs) > 0 {
-		var filteredBackends []*backend.Backend
+		var filteredCells []*cells.Cell
 		for _, cellGUID := range cellGUIDs {
 			foundCellGUID := false
-			for _, backend := range s.backends {
-				if cellGUID == backend.ID {
-					filteredBackends = append(filteredBackends, backend)
+			for _, cell := range s.cells {
+				if cellGUID == cell.GUID {
+					filteredCells = append(filteredCells, cell)
 					foundCellGUID = true
 					continue
 				}
 			}
 			if !foundCellGUID {
-				s.logger.Info("scheduler.filter-backends.unknown-cell-guid", lager.Data{"cell-guid": cellGUID})
+				s.logger.Info("scheduler.filter-cells.unknown-cell-guid", lager.Data{"cell-guid": cellGUID})
 			}
 		}
-		if len(filteredBackends) == 0 {
-			return filteredBackends, fmt.Errorf("Scheduler: Cell GUIDs do not match available cells")
+		if len(filteredCells) == 0 {
+			return filteredCells, fmt.Errorf("Scheduler: Cell GUIDs do not match available cells")
 		}
-		return filteredBackends, nil
+		return filteredCells, nil
 	} else {
-		return s.backends, nil
+		return s.cells, nil
 	}
 }

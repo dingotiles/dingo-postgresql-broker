@@ -1,4 +1,4 @@
-package backend
+package cells
 
 import (
 	"bytes"
@@ -14,28 +14,46 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-type Backend struct {
-	ID               string          `json:"guid"`
-	URI              string          `json:"uri"`
-	Config           *config.Backend `json:"config"`
-	AvailabilityZone string          `json:"az"`
+type Cell struct {
+	GUID             string
+	URI              string
+	Config           *config.Cell
+	AvailabilityZone string
+	clusterLoader    ClusterLoader
 }
 
-type Backends []*Backend
+type Cells []*Cell
 
-func NewBackend(config *config.Backend) *Backend {
-	return &Backend{
-		ID:               config.GUID,
+func NewCells(configs []*config.Cell, clusterLoader ClusterLoader) Cells {
+	var cells []*Cell
+	for _, cfg := range configs {
+		cells = append(cells, newCell(cfg, clusterLoader))
+	}
+	return cells
+}
+
+func newCell(config *config.Cell, clusterLoader ClusterLoader) *Cell {
+	return &Cell{
+		GUID:             config.GUID,
 		Config:           config,
 		AvailabilityZone: config.AvailabilityZone,
 		URI:              config.URI,
+		clusterLoader:    clusterLoader,
 	}
 }
 
-func (b Backends) AllAvailabilityZones() []string {
+func (cells Cells) String() string {
+	ids := make([]string, len(cells))
+	for i, cell := range cells {
+		ids[i] = cell.GUID
+	}
+	return fmt.Sprintf("%v", ids)
+}
+
+func (cells Cells) AllAvailabilityZones() []string {
 	azMap := map[string]string{}
-	for _, backend := range b {
-		azMap[backend.Config.AvailabilityZone] = backend.Config.AvailabilityZone
+	for _, cell := range cells {
+		azMap[cell.AvailabilityZone] = cell.AvailabilityZone
 	}
 
 	keys := make([]string, 0, len(azMap))
@@ -45,26 +63,26 @@ func (b Backends) AllAvailabilityZones() []string {
 	return keys
 }
 
-func (b Backends) AvailabilityZone(backendID string) (string, error) {
-	for _, backend := range b {
-		if backend.ID == backendID {
-			return backend.AvailabilityZone, nil
+func (cells Cells) AvailabilityZone(cellID string) (string, error) {
+	for _, cell := range cells {
+		if cell.GUID == cellID {
+			return cell.AvailabilityZone, nil
 		}
 	}
-	return "", errors.New(fmt.Sprintf("No backend with GUID %s found", backendID))
+	return "", errors.New(fmt.Sprintf("No cell with ID %s found", cellID))
 }
 
-func (b Backends) Get(backendID string) *Backend {
-	for _, backend := range b {
-		if backend.ID == backendID {
-			return backend
+func (cells Cells) Get(cellID string) *Cell {
+	for _, cell := range cells {
+		if cell.GUID == cellID {
+			return cell
 		}
 	}
 	return nil
 }
 
-func (b *Backend) ProvisionNode(clusterState structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
-	node = structs.Node{ID: uuid.New(), BackendID: b.ID, PlanID: clusterState.PlanID, ServiceID: clusterState.ServiceID}
+func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
+	node = structs.Node{ID: uuid.New(), CellGUID: cell.GUID, PlanID: clusterState.PlanID, ServiceID: clusterState.ServiceID}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterState.OrganizationGUID,
 		PlanID:           clusterState.PlanID,
@@ -82,25 +100,25 @@ func (b *Backend) ProvisionNode(clusterState structs.ClusterState, logger lager.
 		},
 	}
 
-	url := fmt.Sprintf("%s/v2/service_instances/%s", b.Config.URI, node.ID)
+	url := fmt.Sprintf("%s/v2/service_instances/%s", cell.Config.URI, node.ID)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
 	if err = json.NewEncoder(buffer).Encode(provisionDetails); err != nil {
-		logger.Error("request-node.backend-provision-encode-details", err)
+		logger.Error("request-node.cell-provision-encode-details", err)
 		return
 	}
 	req, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
-		logger.Error("request-node.backend-provision-req", err)
+		logger.Error("request-node.cell-provision-req", err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(b.Config.Username, b.Config.Password)
+	req.SetBasicAuth(cell.Config.Username, cell.Config.Password)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Error("request-node.backend-provision-resp", err)
+		logger.Error("request-node.cell-provision-resp", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -113,8 +131,8 @@ func (b *Backend) ProvisionNode(clusterState structs.ClusterState, logger lager.
 	return
 }
 
-func (b *Backend) DeprovisionNode(node *structs.Node, logger lager.Logger) (err error) {
-	url := fmt.Sprintf("%s/v2/service_instances/%s", b.URI, node.ID)
+func (cell *Cell) DeprovisionNode(node *structs.Node, logger lager.Logger) (err error) {
+	url := fmt.Sprintf("%s/v2/service_instances/%s", cell.URI, node.ID)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
@@ -124,20 +142,20 @@ func (b *Backend) DeprovisionNode(node *structs.Node, logger lager.Logger) (err 
 	}
 
 	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {
-		logger.Error("remove-node.backend.encode", err)
+		logger.Error("remove-node.cell.encode", err)
 		return err
 	}
 	req, err := http.NewRequest("DELETE", url, buffer)
 	if err != nil {
-		logger.Error("remove-node.backend.new-req", err)
+		logger.Error("remove-node.cell.new-req", err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(b.Config.Username, b.Config.Password)
+	req.SetBasicAuth(cell.Config.Username, cell.Config.Password)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Error("remove-node.backend.do", err)
+		logger.Error("remove-node.cell.do", err)
 		return err
 	}
 	defer resp.Body.Close()

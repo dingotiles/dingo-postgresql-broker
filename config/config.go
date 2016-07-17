@@ -32,13 +32,13 @@ type Broker struct {
 }
 
 type Scheduler struct {
-	Backends []*Backend `yaml:"backends"`
-	Etcd     Etcd
+	Cells []*Cell `yaml:"backends"`
+	Etcd  Etcd
 }
 
-// Backend describes a configured set of backend brokers
+// Cell describes a configured set of cell brokers
 // TODO dynamicly load from KV store
-type Backend struct {
+type Cell struct {
 	GUID             string `yaml:"guid"`
 	AvailabilityZone string `yaml:"availability_zone"`
 	URI              string `yaml:"uri"`
@@ -86,10 +86,10 @@ func LoadConfig(path string) (cfg *Config, err error) {
 		cfg.Broker.Port = 3000
 	}
 
-	for _, backend := range cfg.Scheduler.Backends {
-		match, err := regexp.MatchString("^http", backend.URI)
+	for _, cell := range cfg.Scheduler.Cells {
+		match, err := regexp.MatchString("^http", cell.URI)
 		if !match || err != nil {
-			backend.URI = fmt.Sprintf("http://%s", backend.URI)
+			cell.URI = fmt.Sprintf("http://%s", cell.URI)
 		}
 	}
 

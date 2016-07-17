@@ -2,9 +2,8 @@ package scheduler
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
@@ -16,35 +15,31 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
-	clusterModel      *state.ClusterModel
-	patroni           *patroni.Patroni
-	newFeatures       structs.ClusterFeatures
-	availableBackends backend.Backends
-	allBackends       backend.Backends
-	newNodeSize       int
-	logger            lager.Logger
+	clusterModel   *state.ClusterModel
+	patroni        *patroni.Patroni
+	newFeatures    structs.ClusterFeatures
+	availableCells cells.Cells
+	allCells       cells.Cells
+	newNodeSize    int
+	logger         lager.Logger
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
-	patroni, err := patroni.NewPatroni(etcdConfig, s.logger)
+func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (plan, error) {
+
+	cells, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
-		s.logger.Error("new-plan.new-patroni", err)
 		return plan{}, err
 	}
 
-	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
-	if err != nil {
-		return plan{}, err
-	}
 	return plan{
-		clusterModel:      clusterModel,
-		patroni:           patroni,
-		newFeatures:       features,
-		availableBackends: backends,
-		allBackends:       s.backends,
-		logger:            s.logger,
-		newNodeSize:       defaultNodeSize,
+		clusterModel:   clusterModel,
+		newFeatures:    features,
+		newNodeSize:    defaultNodeSize,
+		availableCells: cells,
+		allCells:       s.cells,
+		logger:         s.logger,
+		patroni:        s.patroni,
 	}, nil
 }
 
@@ -62,13 +57,13 @@ func (p plan) stepTypes() []string {
 func (p plan) steps() (steps []step.Step) {
 	addedNodes := false
 	for i := 0; i < p.clusterGrowingBy(); i++ {
-		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableCells, p.logger))
 		addedNodes = true
 	}
 
 	nodesToBeReplaced := p.nodesToBeReplaced()
 	for _ = range nodesToBeReplaced {
-		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableBackends, p.logger))
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableCells, p.logger))
 		addedNodes = true
 	}
 
@@ -78,12 +73,12 @@ func (p plan) steps() (steps []step.Step) {
 
 	removedNodes := false
 	for _, replica := range p.replicas(nodesToBeReplaced) {
-		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterModel, p.allBackends, p.logger))
+		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterModel, p.allCells, p.logger))
 		removedNodes = true
 	}
 
 	if leader := p.leader(nodesToBeReplaced); leader != nil {
-		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterModel, p.allBackends, p.logger))
+		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterModel, p.allCells, p.logger))
 		removedNodes = true
 	}
 
@@ -92,7 +87,7 @@ func (p plan) steps() (steps []step.Step) {
 	}
 
 	for i := 0; i < p.clusterShrinkingBy(); i++ {
-		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, p.allBackends, p.logger))
+		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, p.allCells, p.logger))
 	}
 
 	if p.newFeatures.NodeCount > 0 {
@@ -128,14 +123,14 @@ func (p plan) clusterShrinkingBy() int {
 
 func (p plan) nodesToBeReplaced() (nodes []*structs.Node) {
 	for _, node := range p.clusterModel.Nodes() {
-		validBackend := false
-		for _, backend := range p.availableBackends {
-			if node.BackendID == backend.ID {
-				validBackend = true
+		validcell := false
+		for _, cell := range p.availableCells {
+			if node.CellGUID == cell.GUID {
+				validcell = true
 				break
 			}
 		}
-		if !validBackend {
+		if !validcell {
 			nodes = append(nodes, node)
 		}
 	}

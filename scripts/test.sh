@@ -12,5 +12,9 @@ etcd_pid=$!
 trap "rm -rf $TEMPDIR && kill ${etcd_pid}" EXIT HUP INT QUIT TERM
 
 # Run the tests
-echo "--> Running tests"
-go list ./... | grep -v '/vendor/' | xargs -n1 go test -cover -timeout=360s
+if [[ "${1}X" == "X" ]]; then
+  echo "--> Running all tests"
+  go list ./... | grep -v '/vendor/' | xargs -n1 go test -cover -timeout=360s
+else
+  go test -cover -timeout=360s $@
+fi
