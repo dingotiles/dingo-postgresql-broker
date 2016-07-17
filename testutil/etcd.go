@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	LocalEtcdConfig = config.Etcd{Machines: []string{"http://localhost:4001"}}
+	LocalEtcdConfig = config.Etcd{Machines: []string{"http://localhost:2379"}}
 )
 
 func EtcdServerAvailable(t *testing.T) bool {
