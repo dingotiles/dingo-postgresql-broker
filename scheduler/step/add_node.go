@@ -3,27 +3,27 @@ package step
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	clusterModel      *state.ClusterModel
-	patroni           *patroni.Patroni
-	availableBackends backend.Backends
-	logger            lager.Logger
+	clusterModel   *state.ClusterModel
+	patroni        *patroni.Patroni
+	availableCells cells.Cells
+	logger         lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
 func NewStepAddNode(clusterModel *state.ClusterModel, patroni *patroni.Patroni,
-	availableBackends backend.Backends, logger lager.Logger) Step {
+	availableCells cells.Cells, logger lager.Logger) Step {
 	return AddNode{
-		clusterModel:      clusterModel,
-		patroni:           patroni,
-		availableBackends: availableBackends,
-		logger:            logger,
+		clusterModel:   clusterModel,
+		patroni:        patroni,
+		availableCells: availableCells,
+		logger:         logger,
 	}
 }
 
@@ -47,31 +47,30 @@ func (step AddNode) Perform() (err error) {
 	}
 	logger.Info("add-node.perform.sorted-cells-to-try", lager.Data{"cells": cellsToTry})
 
-	// 4. Send requests to sortedBackends until one says OK; else fail
+	// 4. Send requests to sortedCells until one says OK; else fail
 	var provisionedNode structs.Node
 	for _, cell := range cellsToTry {
 		provisionedNode, err = cell.ProvisionNode(clusterStateData, step.logger)
-		logBackend := lager.Data{
+		logCell := lager.Data{
 			"uri":  cell.URI,
-			"guid": cell.ID,
+			"guid": cell.GUID,
 			"az":   cell.AvailabilityZone,
 		}
 		if err == nil {
-			logger.Info("add-node.perform.sorted-backends.selected", logBackend)
+			logger.Info("add-node.perform.sorted-cells.selected", logCell)
 			break
 		} else {
-			logger.Error("add-node.perform.sorted-backends.skipped", err, logBackend)
+			logger.Error("add-node.perform.sorted-cells.skipped", err, logCell)
 		}
 	}
 	if err != nil {
-		// no sortedBackends available to run a cluster
-		logger.Error("add-node.perform.sorted-backends.unavailable", err, lager.Data{"summary": "no backends available to run a container"})
+		// no sortedCells available to run a cluster
+		logger.Error("add-node.perform.sorted-cells.unavailable", err, lager.Data{"summary": "no cells available to run a container"})
 		return err
 	}
-	// 5. Store node in KV states/<cluster>/nodes/<node>/backend -> backend uuid
 	err = step.clusterModel.AddNode(provisionedNode)
 	if err != nil {
-		logger.Error("add-node.perform.add-node", err, lager.Data{"summary": "no sorted-backends available to run a cluster"})
+		logger.Error("add-node.perform.add-node", err, lager.Data{"summary": "no sorted-cells available to run a cluster"})
 		return err
 	}
 

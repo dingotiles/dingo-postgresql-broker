@@ -23,7 +23,7 @@ type Broker struct {
 	patroni    *patroni.Patroni
 
 	logger lager.Logger
-	cells  []*config.Backend
+	cells  []*config.Cell
 
 	callbacks *Callbacks
 
@@ -38,7 +38,7 @@ func NewBroker(config *config.Config) (*Broker, error) {
 		config:     config.Broker,
 		catalog:    config.Catalog,
 		etcdConfig: config.Etcd,
-		cells:      config.Scheduler.Backends,
+		cells:      config.Scheduler.Cells,
 	}
 
 	bkr.logger = bkr.setupLogger()
@@ -100,6 +100,6 @@ func (bkr *Broker) newLoggingSession(action string, data lager.Data) lager.Logge
 	return logger
 }
 
-func (bkr *Broker) Cells() []*config.Backend {
+func (bkr *Broker) Cells() []*config.Cell {
 	return bkr.cells
 }

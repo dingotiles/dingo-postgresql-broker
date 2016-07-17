@@ -17,11 +17,11 @@ func TestPlan_Steps_NewCluster_Default(t *testing.T) {
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	schedulerConfig := config.Scheduler{
-		Backends: []*config.Backend{
-			&config.Backend{GUID: "cell1"},
-			&config.Backend{GUID: "cell2"},
-			&config.Backend{GUID: "cell3"},
-			&config.Backend{GUID: "cell4"},
+		Cells: []*config.Cell{
+			&config.Cell{GUID: "cell1"},
+			&config.Cell{GUID: "cell2"},
+			&config.Cell{GUID: "cell3"},
+			&config.Cell{GUID: "cell4"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
@@ -49,11 +49,11 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	schedulerConfig := config.Scheduler{
-		Backends: []*config.Backend{
-			&config.Backend{GUID: "cell1"},
-			&config.Backend{GUID: "cell2"},
-			&config.Backend{GUID: "cell3"},
-			&config.Backend{GUID: "cell4"},
+		Cells: []*config.Cell{
+			&config.Cell{GUID: "cell1"},
+			&config.Cell{GUID: "cell2"},
+			&config.Cell{GUID: "cell3"},
+			&config.Cell{GUID: "cell4"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
@@ -65,8 +65,8 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", BackendID: "cell1", Role: state.LeaderRole},
-			&structs.Node{ID: "b", BackendID: "cell2", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell1", Role: state.LeaderRole},
+			&structs.Node{ID: "b", CellGUID: "cell2", Role: state.ReplicaRole},
 		},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
@@ -88,11 +88,11 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	schedulerConfig := config.Scheduler{
-		Backends: []*config.Backend{
-			&config.Backend{GUID: "cell1"},
-			&config.Backend{GUID: "cell2"},
-			&config.Backend{GUID: "cell3"},
-			&config.Backend{GUID: "cell4"},
+		Cells: []*config.Cell{
+			&config.Cell{GUID: "cell1"},
+			&config.Cell{GUID: "cell2"},
+			&config.Cell{GUID: "cell3"},
+			&config.Cell{GUID: "cell4"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
@@ -104,9 +104,9 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", BackendID: "cell1", Role: state.LeaderRole},
-			&structs.Node{ID: "b", BackendID: "cell2", Role: state.ReplicaRole},
-			&structs.Node{ID: "c", BackendID: "cell3", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell1", Role: state.LeaderRole},
+			&structs.Node{ID: "b", CellGUID: "cell2", Role: state.ReplicaRole},
+			&structs.Node{ID: "c", CellGUID: "cell3", Role: state.ReplicaRole},
 		},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
@@ -128,9 +128,9 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	schedulerConfig := config.Scheduler{
-		Backends: []*config.Backend{
-			&config.Backend{GUID: "cell1"},
-			&config.Backend{GUID: "cell2"},
+		Cells: []*config.Cell{
+			&config.Cell{GUID: "cell1"},
+			&config.Cell{GUID: "cell2"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
@@ -142,8 +142,8 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", BackendID: "cell1", Role: state.LeaderRole},
-			&structs.Node{ID: "b", BackendID: "cell-unavailable", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell1", Role: state.LeaderRole},
+			&structs.Node{ID: "b", CellGUID: "cell-unavailable", Role: state.ReplicaRole},
 		},
 	}
 	clusterFeatures := structs.ClusterFeatures{
@@ -169,9 +169,9 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	schedulerConfig := config.Scheduler{
-		Backends: []*config.Backend{
-			&config.Backend{GUID: "cell1"},
-			&config.Backend{GUID: "cell2"},
+		Cells: []*config.Cell{
+			&config.Cell{GUID: "cell1"},
+			&config.Cell{GUID: "cell2"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
@@ -183,8 +183,8 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", BackendID: "cell-unavailable", Role: state.LeaderRole},
-			&structs.Node{ID: "b", BackendID: "cell2", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell-unavailable", Role: state.LeaderRole},
+			&structs.Node{ID: "b", CellGUID: "cell2", Role: state.ReplicaRole},
 		},
 	}
 	clusterFeatures := structs.ClusterFeatures{
@@ -210,9 +210,9 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	schedulerConfig := config.Scheduler{
-		Backends: []*config.Backend{
-			&config.Backend{GUID: "cell1"},
-			&config.Backend{GUID: "cell2"},
+		Cells: []*config.Cell{
+			&config.Cell{GUID: "cell1"},
+			&config.Cell{GUID: "cell2"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
@@ -224,8 +224,8 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", BackendID: "cell-x-unavailable", Role: state.LeaderRole},
-			&structs.Node{ID: "b", BackendID: "cell-y-unavailable", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell-x-unavailable", Role: state.LeaderRole},
+			&structs.Node{ID: "b", CellGUID: "cell-y-unavailable", Role: state.ReplicaRole},
 		},
 	}
 	clusterFeatures := structs.ClusterFeatures{

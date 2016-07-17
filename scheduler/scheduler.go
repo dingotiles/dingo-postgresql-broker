@@ -6,16 +6,16 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 type Scheduler struct {
-	logger   lager.Logger
-	config   config.Scheduler
-	backends backend.Backends
-	patroni  *patroni.Patroni
+	logger  lager.Logger
+	config  config.Scheduler
+	cells   cells.Cells
+	patroni *patroni.Patroni
 }
 
 func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, error) {
@@ -34,7 +34,7 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, err
 	if err != nil {
 		return nil, err
 	}
-	s.backends = backend.NewBackends(config.Backends, clusterLoader)
+	s.cells = cells.NewCells(config.Cells, clusterLoader)
 
 	return s, nil
 }
@@ -100,35 +100,35 @@ func (s *Scheduler) VerifyClusterFeatures(features structs.ClusterFeatures) (err
 	if features.NodeCount > len(availableCells) {
 		availableCellGUIDs := make([]string, len(availableCells))
 		for i, cell := range availableCells {
-			availableCellGUIDs[i] = cell.ID
+			availableCellGUIDs[i] = cell.GUID
 		}
 		err = fmt.Errorf("Scheduler: Not enough Cell GUIDs (%v) for cluster of %d nodes", availableCellGUIDs, features.NodeCount)
 	}
 	return
 }
 
-// filterCellsByGUIDs returns all backend cells; or the subset filtered by cellGUIDS; or an error
-func (s *Scheduler) filterCellsByGUIDs(cellGUIDs []string) (backend.Backends, error) {
+// filterCellsByGUIDs returns all cell cells; or the subset filtered by cellGUIDS; or an error
+func (s *Scheduler) filterCellsByGUIDs(cellGUIDs []string) (cells.Cells, error) {
 	if len(cellGUIDs) > 0 {
-		var filteredBackends []*backend.Backend
+		var filteredCells []*cells.Cell
 		for _, cellGUID := range cellGUIDs {
 			foundCellGUID := false
-			for _, backend := range s.backends {
-				if cellGUID == backend.ID {
-					filteredBackends = append(filteredBackends, backend)
+			for _, cell := range s.cells {
+				if cellGUID == cell.GUID {
+					filteredCells = append(filteredCells, cell)
 					foundCellGUID = true
 					continue
 				}
 			}
 			if !foundCellGUID {
-				s.logger.Info("scheduler.filter-backends.unknown-cell-guid", lager.Data{"cell-guid": cellGUID})
+				s.logger.Info("scheduler.filter-cells.unknown-cell-guid", lager.Data{"cell-guid": cellGUID})
 			}
 		}
-		if len(filteredBackends) == 0 {
-			return filteredBackends, fmt.Errorf("Scheduler: Cell GUIDs do not match available cells")
+		if len(filteredCells) == 0 {
+			return filteredCells, fmt.Errorf("Scheduler: Cell GUIDs do not match available cells")
 		}
-		return filteredBackends, nil
+		return filteredCells, nil
 	} else {
-		return s.backends, nil
+		return s.cells, nil
 	}
 }

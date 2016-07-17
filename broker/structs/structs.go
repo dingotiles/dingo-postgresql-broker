@@ -94,7 +94,7 @@ type PostgresCredentials struct {
 
 type Node struct {
 	ID        string `json:"node_id"`
-	BackendID string `json:"backend_id"`
+	CellGUID  string `json:"backend_id"`
 	PlanID    string `json:"plan_id"`
 	ServiceID string `json:"service_id"`
 	Role      string `json:"role"`
