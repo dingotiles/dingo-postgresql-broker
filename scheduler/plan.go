@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
@@ -26,7 +25,7 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
+func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (plan, error) {
 
 	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {

@@ -45,7 +45,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 		return
 	}
 
-	plan, err := s.newPlan(clusterModel, s.config.Etcd, features)
+	plan, err := s.newPlan(clusterModel, features)
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 }
 
 func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
-	plan, err := s.newPlan(clusterModel, s.config.Etcd, structs.ClusterFeatures{NodeCount: 0})
+	plan, err := s.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return err
 	}

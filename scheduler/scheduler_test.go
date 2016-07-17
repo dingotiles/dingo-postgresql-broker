@@ -31,7 +31,7 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 		CellGUIDs: []string{"cell-guid1", "unknown-cell-guid"},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, structs.ClusterState{InstanceID: "test"})
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, features)
+	plan, err := scheduler.newPlan(clusterModel, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -64,7 +64,7 @@ func TestScheduler_allBackends(t *testing.T) {
 
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, structs.ClusterState{InstanceID: "test"})
 	features := structs.ClusterFeatures{}
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, features)
+	plan, err := scheduler.newPlan(clusterModel, features)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}

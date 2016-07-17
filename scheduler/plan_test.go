@@ -31,7 +31,7 @@ func TestPlan_Steps_NewCluster_Default(t *testing.T) {
 	}
 
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, structs.ClusterState{})
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, structs.ClusterFeatures{NodeCount: 2})
+	plan, err := scheduler.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 2})
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 		},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, structs.ClusterFeatures{NodeCount: 3})
+	plan, err := scheduler.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 3})
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -110,7 +110,7 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 		},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, structs.ClusterFeatures{NodeCount: 2})
+	plan, err := scheduler.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 2})
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -151,7 +151,7 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 		CellGUIDs: []string{"cell1", "cell2"},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, clusterFeatures)
+	plan, err := scheduler.newPlan(clusterModel, clusterFeatures)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 		CellGUIDs: []string{"cell1", "cell2"},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, clusterFeatures)
+	plan, err := scheduler.newPlan(clusterModel, clusterFeatures)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
@@ -233,7 +233,7 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 		CellGUIDs: []string{"cell1", "cell2"},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
-	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, clusterFeatures)
+	plan, err := scheduler.newPlan(clusterModel, clusterFeatures)
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
