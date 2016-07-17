@@ -23,6 +23,14 @@ type Backend struct {
 
 type Backends []*Backend
 
+func NewBackends(configs []*config.Backend) Backends {
+	var backends []*Backend
+	for _, cfg := range configs {
+		backends = append(backends, NewBackend(cfg))
+	}
+	return backends
+}
+
 func NewBackend(config *config.Backend) *Backend {
 	return &Backend{
 		ID:               config.GUID,

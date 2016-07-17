@@ -22,7 +22,7 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
 		logger: logger,
 	}
 
-	s.backends = s.initBackends(config.Backends)
+	s.backends = backend.NewBackends(config.Backends)
 	return s
 }
 
@@ -77,16 +77,6 @@ func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) err
 		clusterModel.SchedulingStepCompleted()
 	}
 	return nil
-}
-
-func (s *Scheduler) initBackends(config []*config.Backend) backend.Backends {
-
-	var backends []*backend.Backend
-	for _, cfg := range config {
-		backends = append(backends, backend.NewBackend(cfg))
-	}
-
-	return backends
 }
 
 func (s *Scheduler) VerifyClusterFeatures(features structs.ClusterFeatures) (err error) {
