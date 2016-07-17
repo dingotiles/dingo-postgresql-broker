@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
@@ -13,16 +13,16 @@ import (
 type RemoveNode struct {
 	nodeToRemove *structs.Node
 	clusterModel *state.ClusterModel
-	backends     backend.Backends
+	cells        cells.Cells
 	logger       lager.Logger
 }
 
 // NewStepRemoveNode creates a StepRemoveNode command
-func NewStepRemoveNode(nodeToRemove *structs.Node, clusterModel *state.ClusterModel, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveNode(nodeToRemove *structs.Node, clusterModel *state.ClusterModel, cells cells.Cells, logger lager.Logger) Step {
 	return RemoveNode{
 		nodeToRemove: nodeToRemove,
 		clusterModel: clusterModel,
-		backends:     backends,
+		cells:        cells,
 		logger:       logger,
 	}
 }
@@ -36,9 +36,9 @@ func (step RemoveNode) StepType() string {
 func (step RemoveNode) Perform() (err error) {
 	logger := step.logger
 
-	backend := step.backends.Get(step.nodeToRemove.BackendID)
-	if backend == nil {
-		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", step.nodeToRemove.BackendID)
+	cell := step.cells.Get(step.nodeToRemove.CellGUID)
+	if cell == nil {
+		err = fmt.Errorf("Internal error: node assigned to a cell that no longer exists (%s)", step.nodeToRemove.CellGUID)
 		logger.Error("remove-node.perform", err)
 		return
 	}
@@ -46,10 +46,10 @@ func (step RemoveNode) Perform() (err error) {
 	logger.Info("remove-node.perform", lager.Data{
 		"instance-id": step.clusterModel.InstanceID(),
 		"node-uuid":   step.nodeToRemove.ID,
-		"backend":     backend.ID,
+		"cell":        cell.GUID,
 	})
 
-	err = backend.DeprovisionNode(step.nodeToRemove, logger)
+	err = cell.DeprovisionNode(step.nodeToRemove, logger)
 	if err != nil {
 		return nil
 	}

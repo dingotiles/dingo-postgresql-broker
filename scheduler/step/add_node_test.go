@@ -5,18 +5,17 @@ import (
 	"testing"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/testutil"
 )
 
-type CellsTest struct {
-	health *cells.CellsHealth
+type FakeClusterLoader struct {
+	Clusters []*structs.ClusterState
 }
 
-func (c *CellsTest) LoadStatus(availableCells []*config.Backend) (health *cells.CellsHealth, err error) {
-	return c.health, nil
+func (f *FakeClusterLoader) LoadAllClusters() ([]*structs.ClusterState, error) {
+	return f.Clusters, nil
 }
 
 func TestAddNode_PrioritizeCells_FirstNode(t *testing.T) {
@@ -26,27 +25,42 @@ func TestAddNode_PrioritizeCells_FirstNode(t *testing.T) {
 	testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	availableCells := backend.Backends{
-		&backend.Backend{ID: "cell-n1-z1", AvailabilityZone: "z1"},
-		&backend.Backend{ID: "cell-n2-z1", AvailabilityZone: "z1"},
-		&backend.Backend{ID: "cell-n3-z2", AvailabilityZone: "z2"},
-		&backend.Backend{ID: "cell-n4-z2", AvailabilityZone: "z2"},
-	}
-	cellsHealth := CellsTest{
-		health: &cells.CellsHealth{
-			"cell-n1-z1": 3,
-			"cell-n2-z1": 1,
-			"cell-n3-z2": 2,
-			"cell-n4-z2": 0,
+	clusterLoader := &FakeClusterLoader{
+		Clusters: []*structs.ClusterState{
+			&structs.ClusterState{
+				Nodes: []*structs.Node{
+					&structs.Node{CellGUID: "cell-n1-z1"},
+					&structs.Node{CellGUID: "cell-n3-z2"},
+				},
+			},
+			&structs.ClusterState{
+				Nodes: []*structs.Node{
+					&structs.Node{CellGUID: "cell-n1-z1"},
+					&structs.Node{CellGUID: "cell-n3-z2"},
+				},
+			},
+			&structs.ClusterState{
+				Nodes: []*structs.Node{
+					&structs.Node{CellGUID: "cell-n1-z1"},
+					&structs.Node{CellGUID: "cell-n2-z1"},
+				},
+			},
 		},
 	}
+	availableCells := cells.NewCells([]*config.Cell{
+		&config.Cell{GUID: "cell-n1-z1", AvailabilityZone: "z1"},
+		&config.Cell{GUID: "cell-n2-z1", AvailabilityZone: "z1"},
+		&config.Cell{GUID: "cell-n3-z2", AvailabilityZone: "z2"},
+		&config.Cell{GUID: "cell-n4-z2", AvailabilityZone: "z2"},
+	}, clusterLoader)
+
 	currentClusterNodes := []*structs.Node{}
 
-	step := AddNode{logger: logger, availableBackends: availableCells, cellsHealth: &cellsHealth}
+	step := AddNode{logger: logger, availableCells: availableCells}
 	cellsToTry, _ := step.prioritizeCellsToTry(currentClusterNodes)
 	cellIDs := []string{}
 	for _, cell := range cellsToTry {
-		cellIDs = append(cellIDs, cell.ID)
+		cellIDs = append(cellIDs, cell.GUID)
 	}
 	expectedPriority := []string{"cell-n4-z2", "cell-n2-z1", "cell-n3-z2", "cell-n1-z1"}
 	if !reflect.DeepEqual(cellIDs, expectedPriority) {
@@ -59,32 +73,45 @@ func TestAddNode_PrioritizeCells_SecondNodeDiffAZ(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestAddNode_PrioritizeCells_SecondNodeDiffAZ"
-	testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
-	availableCells := backend.Backends{
-		&backend.Backend{ID: "cell-n1-z1", AvailabilityZone: "z1"},
-		&backend.Backend{ID: "cell-n2-z1", AvailabilityZone: "z1"},
-		&backend.Backend{ID: "cell-n3-z2", AvailabilityZone: "z2"},
-		&backend.Backend{ID: "cell-n4-z2", AvailabilityZone: "z2"},
-	}
-	cellsHealth := CellsTest{
-		health: &cells.CellsHealth{
-			"cell-n1-z1": 3,
-			"cell-n2-z1": 1,
-			"cell-n3-z2": 2,
-			"cell-n4-z2": 0,
+	clusterLoader := &FakeClusterLoader{
+		Clusters: []*structs.ClusterState{
+			&structs.ClusterState{
+				Nodes: []*structs.Node{
+					&structs.Node{CellGUID: "cell-n1-z1"},
+					&structs.Node{CellGUID: "cell-n3-z2"},
+				},
+			},
+			&structs.ClusterState{
+				Nodes: []*structs.Node{
+					&structs.Node{CellGUID: "cell-n1-z1"},
+					&structs.Node{CellGUID: "cell-n3-z2"},
+				},
+			},
+			&structs.ClusterState{
+				Nodes: []*structs.Node{
+					&structs.Node{CellGUID: "cell-n1-z1"},
+					&structs.Node{CellGUID: "cell-n2-z1"},
+				},
+			},
 		},
 	}
+	availableCells := cells.NewCells([]*config.Cell{
+		&config.Cell{GUID: "cell-n1-z1", AvailabilityZone: "z1"},
+		&config.Cell{GUID: "cell-n2-z1", AvailabilityZone: "z1"},
+		&config.Cell{GUID: "cell-n3-z2", AvailabilityZone: "z2"},
+		&config.Cell{GUID: "cell-n4-z2", AvailabilityZone: "z2"},
+	}, clusterLoader)
 	currentClusterNodes := []*structs.Node{
-		&structs.Node{ID: "node-1", BackendID: "cell-n1-z1"},
+		&structs.Node{ID: "node-1", CellGUID: "cell-n1-z1"},
 	}
 
-	step := AddNode{logger: logger, availableBackends: availableCells, cellsHealth: &cellsHealth}
+	step := AddNode{logger: logger, availableCells: availableCells}
 	cellsToTry, _ := step.prioritizeCellsToTry(currentClusterNodes)
 	cellIDs := []string{}
 	for _, cell := range cellsToTry {
-		cellIDs = append(cellIDs, cell.ID)
+		cellIDs = append(cellIDs, cell.GUID)
 	}
 	// Expect all z2 AZs first, then z1 AZs as node-1 is in z1 already
 	expectedPriority := []string{"cell-n4-z2", "cell-n3-z2", "cell-n2-z1", "cell-n1-z1"}

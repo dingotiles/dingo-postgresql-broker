@@ -2,49 +2,48 @@ package step
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/utils"
 )
 
-func (step AddNode) prioritizeCellsToTry(existingNodes []*structs.Node) (sorted backend.Backends, err error) {
+func (step AddNode) prioritizeCellsToTry(existingNodes []*structs.Node) (sorted cells.Cells, err error) {
 	if len(existingNodes) == 0 {
 		// Select first node from across all healthy cells irrespective of AZ
-		return step.prioritizeCellsByHealth(existingNodes, step.availableBackends)
+		return step.prioritizeCellsByHealth(existingNodes, step.availableCells)
 	}
-	usedBackends, unusedBackeds := step.usedAndUnusedBackends(existingNodes, step.availableBackends)
+	usedCells, unusedCells := step.usedAndUnusedCells(existingNodes, step.availableCells)
 
-	for _, az := range step.sortBackendAZsByUnusedness(existingNodes, step.availableBackends).Keys {
-		unusedBackendsInAZ := backend.Backends{}
-		for _, backend := range unusedBackeds {
-			if backend.AvailabilityZone == az {
-				unusedBackendsInAZ = append(unusedBackendsInAZ, backend)
+	for _, az := range step.sortCellAZsByUnusedness(existingNodes, step.availableCells).Keys {
+		unusedCellsInAZ := cells.Cells{}
+		for _, cell := range unusedCells {
+			if cell.AvailabilityZone == az {
+				unusedCellsInAZ = append(unusedCellsInAZ, cell)
 			}
 		}
-		sortedUnusedBackendsInAZ, err := step.prioritizeCellsByHealth(existingNodes, unusedBackendsInAZ)
+		sortedUnusedCellsInAZ, err := step.prioritizeCellsByHealth(existingNodes, unusedCellsInAZ)
 		if err != nil {
 			return nil, err
 		}
-		for _, backend := range sortedUnusedBackendsInAZ {
-			sorted = append(sorted, backend)
+		for _, cell := range sortedUnusedCellsInAZ {
+			sorted = append(sorted, cell)
 		}
 	}
-	for _, backend := range usedBackends {
-		sorted = append(sorted, backend)
+	for _, cell := range usedCells {
+		sorted = append(sorted, cell)
 	}
 	return
 }
 
-// backendAZsByUnusedness sorts the availability zones in order of whether this cluster is using them or not
+// CellAZsByUnusednes sorts the availability zones in order of whether this cluster is using them or not
 // An AZ that is not being used at all will be early in the result.
 // All known AZs are included in the result
-func (step AddNode) sortBackendAZsByUnusedness(existingNodes []*structs.Node, backends backend.Backends) (vs *utils.ValSorter) {
+func (step AddNode) sortCellAZsByUnusedness(existingNodes []*structs.Node, cells cells.Cells) (vs *utils.ValSorter) {
 	azUsageData := map[string]int{}
-	for _, az := range backends.AllAvailabilityZones() {
+	for _, az := range cells.AllAvailabilityZones() {
 		azUsageData[az] = 0
 	}
 	for _, existingNode := range existingNodes {
-		if az, err := backends.AvailabilityZone(existingNode.BackendID); err == nil {
+		if az, err := cells.AvailabilityZone(existingNode.CellGUID); err == nil {
 			azUsageData[az] += 1
 		}
 	}
@@ -53,40 +52,35 @@ func (step AddNode) sortBackendAZsByUnusedness(existingNodes []*structs.Node, ba
 	return
 }
 
-func (step AddNode) usedAndUnusedBackends(existingNodes []*structs.Node, backends backend.Backends) (usedBackends, unusuedBackends backend.Backends) {
-	for _, backend := range backends {
+func (step AddNode) usedAndUnusedCells(existingNodes []*structs.Node, cells cells.Cells) (usedCells, unusuedCells cells.Cells) {
+	for _, cell := range cells {
 		used := false
 		for _, existingNode := range existingNodes {
-			if backend.ID == existingNode.BackendID {
-				usedBackends = append(usedBackends, backend)
+			if cell.GUID == existingNode.CellGUID {
+				usedCells = append(usedCells, cell)
 				used = true
 				break
 			}
 		}
 		if !used {
-			unusuedBackends = append(unusuedBackends, backend)
+			unusuedCells = append(unusuedCells, cell)
 		}
 	}
 	return
 }
 
 // Perform runs the Step action to modify the Cluster
-func (step AddNode) prioritizeCellsByHealth(existingNodes []*structs.Node, backends backend.Backends) (cellsToTry backend.Backends, err error) {
-	// nodes := step.clusterModel.Nodes()
-	availableCells := make([]*config.Backend, len(backends))
-	for i, cell := range backends {
-		availableCells[i] = &config.Backend{GUID: cell.ID}
-	}
+func (step AddNode) prioritizeCellsByHealth(existingNodes []*structs.Node, cells cells.Cells) (cellsToTry cells.Cells, err error) {
 	// Prioritize availableCells into [unused AZs, used AZs, used cells]
-	health, err := step.cellsHealth.LoadStatus(availableCells)
+	health, err := cells.InspectHealth()
 	if err != nil {
 		return
 	}
-	vs := utils.NewValSorter(*health)
+	vs := utils.NewValSorter(health)
 	vs.Sort()
 	for _, nextCellID := range vs.Keys {
-		for _, cellAPI := range backends {
-			if cellAPI.ID == nextCellID {
+		for _, cellAPI := range cells {
+			if cellAPI.GUID == nextCellID {
 				cellsToTry = append(cellsToTry, cellAPI)
 				break
 			}

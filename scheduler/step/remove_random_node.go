@@ -5,7 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
@@ -13,13 +13,13 @@ import (
 // RemoveRandomNode instructs cluster to delete a node, starting with replicas
 type RemoveRandomNode struct {
 	clusterModel *state.ClusterModel
-	backends     backend.Backends
+	cells        cells.Cells
 	logger       lager.Logger
 }
 
 // NewStepRemoveRandomNode creates a StepRemoveRandomNode command
-func NewStepRemoveRandomNode(clusterModel *state.ClusterModel, backends backend.Backends, logger lager.Logger) Step {
-	return RemoveRandomNode{clusterModel: clusterModel, backends: backends, logger: logger}
+func NewStepRemoveRandomNode(clusterModel *state.ClusterModel, cells cells.Cells, logger lager.Logger) Step {
+	return RemoveRandomNode{clusterModel: clusterModel, cells: cells, logger: logger}
 }
 
 // StepType prints the type of step
@@ -35,9 +35,9 @@ func (step RemoveRandomNode) Perform() (err error) {
 	nodes := step.clusterModel.Nodes()
 	nodeToRemove := randomReplicaNode(nodes)
 
-	backend := step.backends.Get(nodeToRemove.BackendID)
-	if backend == nil {
-		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", nodeToRemove.BackendID)
+	cell := step.cells.Get(nodeToRemove.CellGUID)
+	if cell == nil {
+		err = fmt.Errorf("Internal error: node assigned to a cell that no longer exists (%s)", nodeToRemove.CellGUID)
 		logger.Error("remove-random-node.perform", err)
 		return
 	}
@@ -45,10 +45,10 @@ func (step RemoveRandomNode) Perform() (err error) {
 	logger.Info("remove-random-node.perform", lager.Data{
 		"instance-id": step.clusterModel.InstanceID(),
 		"node-uuid":   nodeToRemove.ID,
-		"backend":     backend.ID,
+		"cell":        cell.GUID,
 	})
 
-	err = backend.DeprovisionNode(nodeToRemove, logger)
+	err = cell.DeprovisionNode(nodeToRemove, logger)
 	if err != nil {
 		return nil
 	}

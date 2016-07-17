@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
+	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
@@ -13,16 +13,16 @@ import (
 type RemoveLeader struct {
 	nodeToRemove *structs.Node
 	clusterModel *state.ClusterModel
-	backends     backend.Backends
+	cells        cells.Cells
 	logger       lager.Logger
 }
 
 // NewStepRemoveLeader creates a StepRemoveLeader command
-func NewStepRemoveLeader(nodeToRemove *structs.Node, clusterModel *state.ClusterModel, backends backend.Backends, logger lager.Logger) Step {
+func NewStepRemoveLeader(nodeToRemove *structs.Node, clusterModel *state.ClusterModel, cells cells.Cells, logger lager.Logger) Step {
 	return RemoveLeader{
 		nodeToRemove: nodeToRemove,
 		clusterModel: clusterModel,
-		backends:     backends,
+		cells:        cells,
 		logger:       logger,
 	}
 }
@@ -36,9 +36,9 @@ func (step RemoveLeader) StepType() string {
 func (step RemoveLeader) Perform() (err error) {
 	logger := step.logger
 
-	backend := step.backends.Get(step.nodeToRemove.BackendID)
-	if backend == nil {
-		err = fmt.Errorf("Internal error: node assigned to a backend that no longer exists (%s)", step.nodeToRemove.BackendID)
+	cell := step.cells.Get(step.nodeToRemove.CellGUID)
+	if cell == nil {
+		err = fmt.Errorf("Internal error: node assigned to a cell that no longer exists (%s)", step.nodeToRemove.CellGUID)
 		logger.Error("remove-leader.perform", err)
 		return
 	}
@@ -46,10 +46,10 @@ func (step RemoveLeader) Perform() (err error) {
 	logger.Info("remove-leader.perform", lager.Data{
 		"instance-id": step.clusterModel.InstanceID(),
 		"node-uuid":   step.nodeToRemove.ID,
-		"backend":     backend.ID,
+		"cell":        cell.GUID,
 	})
 
-	err = backend.DeprovisionNode(step.nodeToRemove, logger)
+	err = cell.DeprovisionNode(step.nodeToRemove, logger)
 	if err != nil {
 		return nil
 	}
