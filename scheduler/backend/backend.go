@@ -19,24 +19,26 @@ type Backend struct {
 	URI              string          `json:"uri"`
 	Config           *config.Backend `json:"config"`
 	AvailabilityZone string          `json:"az"`
+	clusterLoader    ClusterLoader
 }
 
 type Backends []*Backend
 
-func NewBackends(configs []*config.Backend) Backends {
+func NewBackends(configs []*config.Backend, clusterLoader ClusterLoader) Backends {
 	var backends []*Backend
 	for _, cfg := range configs {
-		backends = append(backends, NewBackend(cfg))
+		backends = append(backends, newBackend(cfg, clusterLoader))
 	}
 	return backends
 }
 
-func NewBackend(config *config.Backend) *Backend {
+func newBackend(config *config.Backend, clusterLoader ClusterLoader) *Backend {
 	return &Backend{
 		ID:               config.GUID,
 		Config:           config,
 		AvailabilityZone: config.AvailabilityZone,
 		URI:              config.URI,
+		clusterLoader:    clusterLoader,
 	}
 }
 

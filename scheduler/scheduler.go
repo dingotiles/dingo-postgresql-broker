@@ -24,12 +24,18 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, err
 		logger: logger,
 	}
 
-	s.backends = backend.NewBackends(config.Backends)
 	patroni, err := patroni.NewPatroni(config.Etcd, s.logger)
 	if err != nil {
 		return nil, err
 	}
 	s.patroni = patroni
+
+	clusterLoader, err := state.NewStateEtcd(config.Etcd, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	s.backends = backend.NewBackends(config.Backends, clusterLoader)
+
 	return s, nil
 }
 
