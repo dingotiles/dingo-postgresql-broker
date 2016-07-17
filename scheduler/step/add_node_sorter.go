@@ -78,11 +78,11 @@ func (step AddNode) prioritizeCellsByHealth(existingNodes []*structs.Node, backe
 		availableCells[i] = &config.Backend{GUID: cell.ID}
 	}
 	// Prioritize availableCells into [unused AZs, used AZs, used cells]
-	health, err := step.cellsHealth.LoadStatus(availableCells)
+	health, err := backends.InspectHealth()
 	if err != nil {
 		return
 	}
-	vs := utils.NewValSorter(*health)
+	vs := utils.NewValSorter(health)
 	vs.Sort()
 	for _, nextCellID := range vs.Keys {
 		for _, cellAPI := range backends {
