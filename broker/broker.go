@@ -43,8 +43,12 @@ func NewBroker(config *config.Config) (*Broker, error) {
 
 	bkr.logger = bkr.setupLogger()
 	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
-	bkr.scheduler = scheduler.NewScheduler(config.Scheduler, bkr.logger)
 	var err error
+	bkr.scheduler, err = scheduler.NewScheduler(config.Scheduler, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-scheduler.error", err)
+		return nil, err
+	}
 	bkr.state, err = state.NewStateEtcd(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-state.error", err)

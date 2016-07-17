@@ -5,6 +5,7 @@ import (
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
+	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/backend"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
@@ -14,16 +15,22 @@ type Scheduler struct {
 	logger   lager.Logger
 	config   config.Scheduler
 	backends backend.Backends
+	patroni  *patroni.Patroni
 }
 
-func NewScheduler(config config.Scheduler, logger lager.Logger) *Scheduler {
+func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, error) {
 	s := &Scheduler{
 		config: config,
 		logger: logger,
 	}
 
 	s.backends = backend.NewBackends(config.Backends)
-	return s
+	patroni, err := patroni.NewPatroni(config.Etcd, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	s.patroni = patroni
+	return s, nil
 }
 
 func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (err error) {

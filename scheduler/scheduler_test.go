@@ -20,8 +20,13 @@ func TestScheduler_filterBackendsByCellGUIDs(t *testing.T) {
 			&config.Backend{GUID: "cell-guid1"},
 			&config.Backend{GUID: "cell-guid2"},
 		},
+		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, logger)
+	if err != nil {
+		t.Fatalf("NewScheduler error: %v", err)
+	}
+
 	features := structs.ClusterFeatures{
 		CellGUIDs: []string{"cell-guid1", "unknown-cell-guid"},
 	}
@@ -50,8 +55,13 @@ func TestScheduler_allBackends(t *testing.T) {
 			&config.Backend{GUID: "cell-guid1"},
 			&config.Backend{GUID: "cell-guid2"},
 		},
+		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, logger)
+	if err != nil {
+		t.Fatalf("NewScheduler error: %v", err)
+	}
+
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, structs.ClusterState{InstanceID: "test"})
 	features := structs.ClusterFeatures{}
 	plan, err := scheduler.newPlan(clusterModel, testutil.LocalEtcdConfig, features)
@@ -72,19 +82,24 @@ func TestScheduler_VerifyClusterFeatures(t *testing.T) {
 
 	testPrefix := "TestScheduler_VerifyClusterFeatures"
 	logger := testutil.NewTestLogger(testPrefix, t)
-	scheduler := NewScheduler(config.Scheduler{
+	scheduler, err := NewScheduler(config.Scheduler{
 		Backends: []*config.Backend{
 			&config.Backend{GUID: "a"},
 			&config.Backend{GUID: "b"},
 			&config.Backend{GUID: "c"},
 			&config.Backend{GUID: "d"},
 		},
+		Etcd: testutil.LocalEtcdConfig,
 	}, logger)
+	if err != nil {
+		t.Fatalf("NewScheduler error: %v", err)
+	}
+
 	features := structs.ClusterFeatures{
 		NodeCount: 3,
 		CellGUIDs: []string{"a", "b", "c"},
 	}
-	err := scheduler.VerifyClusterFeatures(features)
+	err = scheduler.VerifyClusterFeatures(features)
 	if err != nil {
 		t.Fatalf("Cluster features %v should be valid", features)
 	}
@@ -95,14 +110,19 @@ func TestScheduler_VerifyClusterFeatures_UnknownCellGUIDs(t *testing.T) {
 
 	testPrefix := "TestScheduler_VerifyClusterFeatures"
 	logger := testutil.NewTestLogger(testPrefix, t)
-	scheduler := NewScheduler(config.Scheduler{
+	scheduler, err := NewScheduler(config.Scheduler{
 		Backends: []*config.Backend{},
+		Etcd:     testutil.LocalEtcdConfig,
 	}, logger)
+	if err != nil {
+		t.Fatalf("NewScheduler error: %v", err)
+	}
+
 	features := structs.ClusterFeatures{
 		NodeCount: 3,
 		CellGUIDs: []string{"a", "b", "c"},
 	}
-	err := scheduler.VerifyClusterFeatures(features)
+	err = scheduler.VerifyClusterFeatures(features)
 	if err == nil {
 		t.Fatalf("Expect 'Cell GUIDs do not match available cells' error")
 	}

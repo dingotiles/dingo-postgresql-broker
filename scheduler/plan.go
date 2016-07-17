@@ -29,11 +29,6 @@ type plan struct {
 
 // Newp.est creates a p.est to change a service instance
 func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.Etcd, features structs.ClusterFeatures) (plan, error) {
-	patroni, err := patroni.NewPatroni(etcdConfig, s.logger)
-	if err != nil {
-		s.logger.Error("new-plan.new-patroni", err)
-		return plan{}, err
-	}
 
 	backends, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
@@ -48,12 +43,12 @@ func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, etcdConfig config.
 	return plan{
 		cellsHealth:       cellsHealth,
 		clusterModel:      clusterModel,
-		patroni:           patroni,
 		newFeatures:       features,
+		newNodeSize:       defaultNodeSize,
 		availableBackends: backends,
 		allBackends:       s.backends,
 		logger:            s.logger,
-		newNodeSize:       defaultNodeSize,
+		patroni:           s.patroni,
 	}, nil
 }
 
