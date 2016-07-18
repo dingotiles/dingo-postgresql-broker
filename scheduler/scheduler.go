@@ -6,7 +6,6 @@ import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
@@ -19,17 +18,12 @@ type Scheduler struct {
 	patroni interfaces.Patroni
 }
 
-func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, error) {
+func NewScheduler(config config.Scheduler, patroni interfaces.Patroni, logger lager.Logger) (*Scheduler, error) {
 	s := &Scheduler{
-		config: config,
-		logger: logger,
+		config:  config,
+		logger:  logger,
+		patroni: patroni,
 	}
-
-	patroni, err := patroni.NewPatroni(config.Etcd, s.logger)
-	if err != nil {
-		return nil, err
-	}
-	s.patroni = patroni
 
 	clusterLoader, err := state.NewStateEtcd(config.Etcd, s.logger)
 	if err != nil {

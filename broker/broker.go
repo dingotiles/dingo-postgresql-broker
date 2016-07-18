@@ -42,11 +42,6 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr.logger = bkr.setupLogger()
 	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
 	var err error
-	bkr.scheduler, err = scheduler.NewScheduler(config.Scheduler, bkr.logger)
-	if err != nil {
-		bkr.logger.Error("new-broker.new-scheduler.error", err)
-		return nil, err
-	}
 	bkr.state, err = state.NewStateEtcd(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-state.error", err)
@@ -56,6 +51,12 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr.patroni, err = patroni.NewPatroni(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-patroni.error", err)
+		return nil, err
+	}
+
+	bkr.scheduler, err = scheduler.NewScheduler(config.Scheduler, bkr.patroni, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-scheduler.error", err)
 		return nil, err
 	}
 

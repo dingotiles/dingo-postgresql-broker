@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/fakes"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -25,7 +26,7 @@ func TestPlan_Steps_NewCluster_Default(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -57,7 +58,7 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -96,7 +97,7 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -134,7 +135,7 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -175,7 +176,7 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -216,7 +217,7 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
