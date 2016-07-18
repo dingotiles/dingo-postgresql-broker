@@ -13,10 +13,11 @@ import (
 // Config is the brokers configuration
 type Config struct {
 	Broker    Broker            `yaml:"broker"`
-	Scheduler Scheduler         `yaml:"scheduler"`
+	Cells     []*Cell           `yaml:"cells"`
 	Etcd      Etcd              `yaml:"etcd"`
 	Callbacks Callbacks         `yaml:"callbacks"`
 	Catalog   brokerapi.Catalog `yaml:"catalog"`
+	Scheduler Scheduler
 }
 
 func (cfg *Config) SupportsClusterDataBackup() bool {
@@ -32,7 +33,7 @@ type Broker struct {
 }
 
 type Scheduler struct {
-	Cells []*Cell `yaml:"backends"`
+	Cells []*Cell
 	Etcd  Etcd
 }
 
@@ -86,14 +87,17 @@ func LoadConfig(path string) (cfg *Config, err error) {
 		cfg.Broker.Port = 3000
 	}
 
-	for _, cell := range cfg.Scheduler.Cells {
+	for _, cell := range cfg.Cells {
 		match, err := regexp.MatchString("^http", cell.URI)
 		if !match || err != nil {
 			cell.URI = fmt.Sprintf("http://%s", cell.URI)
 		}
 	}
 
-	cfg.Scheduler.Etcd = cfg.Etcd
+	cfg.Scheduler = Scheduler{
+		Etcd:  cfg.Etcd,
+		Cells: cfg.Cells,
+	}
 
 	return
 }

@@ -5,18 +5,17 @@ broker:
   port: 8889
   bind_host: 10.58.111.48
 
-scheduler:
-    backends:
-    - guid: "10.244.21.7"
-      availability_zone: "z1"
-      uri: "http://10.58.111.45:10217"
-      username: "containers"
-      password: "containers"
-    - guid: "10.244.22.2"
-      availability_zone: "z2"
-      uri: "http://10.58.111.45:10222"
-      username: "containers"
-      password: "containers"
+cells:
+- guid: "10.244.21.7"
+  availability_zone: "z1"
+  uri: "http://10.58.111.45:10217"
+  username: "containers"
+  password: "containers"
+- guid: "10.244.22.2"
+  availability_zone: "z2"
+  uri: "http://10.58.111.45:10222"
+  username: "containers"
+  password: "containers"
 
 etcd:
   machines: ["http://10.58.111.48:4001"]
