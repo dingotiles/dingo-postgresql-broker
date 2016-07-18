@@ -21,7 +21,7 @@ type Broker struct {
 	catalog brokerapi.Catalog
 
 	etcdConfig config.Etcd
-	patroni    *patroni.Patroni
+	patroni    interfaces.Patroni
 
 	logger lager.Logger
 	cells  []*config.Cell

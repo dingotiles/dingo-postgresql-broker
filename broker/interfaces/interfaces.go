@@ -38,3 +38,10 @@ type ClusterModel interface {
 	SchedulingStepStarted(stepType string) error
 	SchedulingInfo() structs.SchedulingInfo
 }
+
+type Patroni interface {
+	ClusterLeader(structs.ClusterID) (string, error)
+	WaitForMember(instanceID structs.ClusterID, memberID string) error
+	WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error
+	WaitForLeader(structs.ClusterID) error
+}

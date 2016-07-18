@@ -16,7 +16,7 @@ type Scheduler struct {
 	logger  lager.Logger
 	config  config.Scheduler
 	cells   cells.Cells
-	patroni *patroni.Patroni
+	patroni interfaces.Patroni
 }
 
 func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, error) {

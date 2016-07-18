@@ -3,7 +3,6 @@ package scheduler
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
 	"github.com/pivotal-golang/lager"
@@ -16,7 +15,7 @@ const (
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
 	clusterModel   interfaces.ClusterModel
-	patroni        *patroni.Patroni
+	patroni        interfaces.Patroni
 	newFeatures    structs.ClusterFeatures
 	availableCells cells.Cells
 	allCells       cells.Cells

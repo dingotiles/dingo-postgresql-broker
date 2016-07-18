@@ -3,7 +3,6 @@ package step
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/pivotal-golang/lager"
 )
@@ -11,13 +10,13 @@ import (
 // AddNode instructs a new cluster node be added
 type AddNode struct {
 	clusterModel   interfaces.ClusterModel
-	patroni        *patroni.Patroni
+	patroni        interfaces.Patroni
 	availableCells cells.Cells
 	logger         lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(clusterModel interfaces.ClusterModel, patroni *patroni.Patroni,
+func NewStepAddNode(clusterModel interfaces.ClusterModel, patroni interfaces.Patroni,
 	availableCells cells.Cells, logger lager.Logger) Step {
 	return AddNode{
 		clusterModel:   clusterModel,

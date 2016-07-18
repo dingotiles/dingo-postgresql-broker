@@ -2,19 +2,18 @@ package step
 
 import (
 	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/pivotal-golang/lager"
 )
 
 // WaitForLeader blocks until leader elected and active
 type WaitForLeader struct {
 	clusterModel interfaces.ClusterModel
-	patroni      *patroni.Patroni
+	patroni      interfaces.Patroni
 	logger       lager.Logger
 }
 
 // NewWaitForLeader creates a WaitForLeader command
-func NewWaitForLeader(clusterModel interfaces.ClusterModel, patroni *patroni.Patroni, logger lager.Logger) Step {
+func NewWaitForLeader(clusterModel interfaces.ClusterModel, patroni interfaces.Patroni, logger lager.Logger) Step {
 	return WaitForLeader{
 		clusterModel: clusterModel,
 		patroni:      patroni,
