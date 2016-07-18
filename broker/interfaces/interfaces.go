@@ -24,7 +24,7 @@ type State interface {
 }
 
 type ClusterModel interface {
-	Cluster() structs.ClusterState
+	ClusterState() structs.ClusterState
 	InstanceID() structs.ClusterID
 	AllocatedPort() int
 	NodeCount() int

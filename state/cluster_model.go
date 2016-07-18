@@ -62,7 +62,7 @@ func (m *ClusterModel) SchedulingInfo() structs.SchedulingInfo {
 	return m.cluster.SchedulingInfo
 }
 
-func (m *ClusterModel) Cluster() structs.ClusterState {
+func (m *ClusterModel) ClusterState() structs.ClusterState {
 	return m.cluster
 }
 

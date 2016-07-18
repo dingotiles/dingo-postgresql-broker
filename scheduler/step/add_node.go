@@ -37,7 +37,7 @@ func (step AddNode) Perform() (err error) {
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
 	existingNodes := step.clusterModel.Nodes()
-	clusterStateData := step.clusterModel.Cluster()
+	clusterStateData := step.clusterModel.ClusterState()
 
 	cellsToTry, err := step.prioritizeCellsToTry(existingNodes)
 	if err != nil {
