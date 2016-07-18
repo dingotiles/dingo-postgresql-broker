@@ -10,20 +10,13 @@ import (
 	etcd "github.com/coreos/etcd/client"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/pivotal-golang/lager"
-)
-
-const (
-	LeaderRole  = "LeaderRole"
-	ReplicaRole = "ReplicaRole"
 )
 
 type StateEtcd struct {
 	etcdApi etcd.KeysAPI
 	prefix  string
 	logger  lager.Logger
-	patroni *patroni.Patroni
 }
 
 func NewStateEtcd(etcdConfig config.Etcd, logger lager.Logger) (*StateEtcd, error) {
@@ -36,12 +29,7 @@ func NewStateEtcdWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.
 		logger: logger,
 	}
 
-	patroniClient, err := patroni.NewPatroni(etcdConfig, logger)
-	if err != nil {
-		return nil, err
-	}
-	state.patroni = patroniClient
-
+	var err error
 	state.etcdApi, err = state.setupEtcd(etcdConfig)
 	if err != nil {
 		return nil, err
@@ -105,15 +93,6 @@ func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.C
 	}
 	json.Unmarshal([]byte(resp.Node.Value), &cluster)
 
-	leaderID, _ := s.patroni.ClusterLeader(instanceID)
-
-	for _, node := range cluster.Nodes {
-		if node.ID == leaderID {
-			node.Role = LeaderRole
-		} else {
-			node.Role = ReplicaRole
-		}
-	}
 	return
 }
 
