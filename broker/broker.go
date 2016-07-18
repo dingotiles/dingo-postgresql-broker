@@ -20,9 +20,6 @@ type Broker struct {
 	config  config.Broker
 	catalog brokerapi.Catalog
 
-	etcdConfig config.Etcd
-	patroni    interfaces.Patroni
-
 	logger lager.Logger
 	cells  []*config.Cell
 
@@ -31,15 +28,15 @@ type Broker struct {
 	router    interfaces.Router
 	scheduler interfaces.Scheduler
 	state     interfaces.State
+	patroni   interfaces.Patroni
 }
 
 // NewBroker is a constructor for a Broker webapp struct
 func NewBroker(config *config.Config) (*Broker, error) {
 	bkr := &Broker{
-		config:     config.Broker,
-		catalog:    config.Catalog,
-		etcdConfig: config.Etcd,
-		cells:      config.Scheduler.Cells,
+		config:  config.Broker,
+		catalog: config.Catalog,
+		cells:   config.Scheduler.Cells,
 	}
 
 	bkr.logger = bkr.setupLogger()
