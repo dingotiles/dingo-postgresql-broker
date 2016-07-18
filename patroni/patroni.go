@@ -64,22 +64,6 @@ func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
 	return resp.Node.Value, nil
 }
 
-func (p *Patroni) LoadMember(instanceID structs.ClusterID, memberID string) (member ClusterMember, err error) {
-	ctx := context.Background()
-	key := fmt.Sprintf("service/%s/members/%s", instanceID, memberID)
-	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
-	if err != nil {
-		p.logger.Error("load-member.etcd-get", err, lager.Data{"member": memberID, "key": key})
-		return
-	}
-	member, err = p.deserializeMember(resp.Node.Value)
-	if err != nil {
-		p.logger.Error("load-member.decode", err, lager.Data{"member": memberID})
-		return
-	}
-	return
-}
-
 // WaitForLeader blocks until leader is elected and active
 func (p *Patroni) WaitForLeader(instanceID structs.ClusterID) error {
 	timeout := time.After(waitForLeaderTimeout)
@@ -124,7 +108,7 @@ func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) e
 		case <-timeout:
 			return fmt.Errorf("Timed out waiting for member %s appear in data store", memberID)
 		case <-tick:
-			member, err := p.LoadMember(instanceID, memberID)
+			member, err := p.loadMember(instanceID, memberID)
 			if err != nil {
 				p.logger.Error("cluster-data.member-data.get", err, lager.Data{
 					"instance-id":   instanceID,
@@ -159,7 +143,7 @@ func (p *Patroni) leaderRunning(instanceID structs.ClusterID) bool {
 		return false
 	}
 	p.logger.Info("check-leader.load-member", lager.Data{"instanceID": instanceID, "leader": leaderID})
-	leader, err := p.LoadMember(instanceID, leaderID)
+	leader, err := p.loadMember(instanceID, leaderID)
 	if err != nil {
 		return false
 	}
@@ -209,6 +193,22 @@ func setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	api := etcd.NewKeysAPI(client)
 
 	return api, nil
+}
+
+func (p *Patroni) loadMember(instanceID structs.ClusterID, memberID string) (member ClusterMember, err error) {
+	ctx := context.Background()
+	key := fmt.Sprintf("service/%s/members/%s", instanceID, memberID)
+	resp, err := p.etcd.Get(ctx, key, &etcd.GetOptions{Quorum: true})
+	if err != nil {
+		p.logger.Error("load-member.etcd-get", err, lager.Data{"member": memberID, "key": key})
+		return
+	}
+	member, err = p.deserializeMember(resp.Node.Value)
+	if err != nil {
+		p.logger.Error("load-member.decode", err, lager.Data{"member": memberID})
+		return
+	}
+	return
 }
 
 func (p *Patroni) deserializeMember(jsonValue string) (member ClusterMember, err error) {
