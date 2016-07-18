@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
@@ -27,9 +28,9 @@ type Broker struct {
 
 	callbacks *Callbacks
 
-	router    Router
-	scheduler Scheduler
-	state     state.State
+	router    interfaces.Router
+	scheduler interfaces.Scheduler
+	state     interfaces.State
 }
 
 // NewBroker is a constructor for a Broker webapp struct

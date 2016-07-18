@@ -3,6 +3,7 @@ package scheduler
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
@@ -39,7 +40,7 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, err
 	return s, nil
 }
 
-func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (err error) {
+func (s *Scheduler) RunCluster(clusterModel interfaces.ClusterModel, features structs.ClusterFeatures) (err error) {
 	err = s.VerifyClusterFeatures(features)
 	if err != nil {
 		return
@@ -60,7 +61,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 	return s.executePlan(clusterModel, plan)
 }
 
-func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
+func (s *Scheduler) StopCluster(clusterModel interfaces.ClusterModel) error {
 	plan, err := s.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return err
@@ -76,7 +77,7 @@ func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
 	return s.executePlan(clusterModel, plan)
 }
 
-func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) error {
+func (s *Scheduler) executePlan(clusterModel interfaces.ClusterModel, plan plan) error {
 	steps := plan.steps()
 	clusterModel.BeginScheduling(len(steps))
 

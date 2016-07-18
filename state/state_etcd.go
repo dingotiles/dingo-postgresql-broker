@@ -26,13 +26,6 @@ type StateEtcd struct {
 	patroni *patroni.Patroni
 }
 
-type State interface {
-	ClusterExists(structs.ClusterID) bool
-	SaveCluster(structs.ClusterState) error
-	LoadCluster(structs.ClusterID) (structs.ClusterState, error)
-	DeleteCluster(structs.ClusterID) error
-}
-
 func NewStateEtcd(etcdConfig config.Etcd, logger lager.Logger) (*StateEtcd, error) {
 	return NewStateEtcdWithPrefix(etcdConfig, "", logger)
 }

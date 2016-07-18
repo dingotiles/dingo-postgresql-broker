@@ -1,11 +1,11 @@
 package scheduler
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -15,7 +15,7 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
-	clusterModel   *state.ClusterModel
+	clusterModel   interfaces.ClusterModel
 	patroni        *patroni.Patroni
 	newFeatures    structs.ClusterFeatures
 	availableCells cells.Cells
@@ -25,7 +25,7 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (plan, error) {
+func (s *Scheduler) newPlan(clusterModel interfaces.ClusterModel, features structs.ClusterFeatures) (plan, error) {
 
 	cells, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
