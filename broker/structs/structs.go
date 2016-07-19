@@ -84,7 +84,7 @@ func (c *ClusterState) RemoveNode(node *Node) {
 
 type ClusterFeatures struct {
 	NodeCount int      `mapstructure:"node-count"`
-	CellGUIDs []string `mapstructure:"cell-guids"`
+	CellGUIDs []string `mapstructure:"cells"`
 }
 
 type PostgresCredentials struct {

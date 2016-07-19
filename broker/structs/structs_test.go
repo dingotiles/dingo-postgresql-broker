@@ -24,7 +24,7 @@ func TestFeatures_FromProvisionDetails_Overrides(t *testing.T) {
 
 	params := map[string]interface{}{
 		"node-count": 3,
-		"cell-guids": []string{"a", "b", "c"},
+		"cells":      []string{"a", "b", "c"},
 	}
 	features, err := ClusterFeaturesFromParameters(params)
 	if err != nil {
@@ -44,7 +44,7 @@ func TestFeatures_FromProvisionDetails_Illegal(t *testing.T) {
 
 	params := map[string]interface{}{
 		"node-count": -1,
-		"cell-guids": []string{"a", "b", "c"},
+		"cells":      []string{"a", "b", "c"},
 	}
 	_, err := ClusterFeaturesFromParameters(params)
 	if err == nil {
