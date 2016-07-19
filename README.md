@@ -180,3 +180,15 @@ cf create-service dingo-postgresql cluster good-cells -c '{"cells": ["10.244.22.
 ```
 
 The same parameters can be used if growing a cluster with `cf update-service`.
+
+### Move cluster into different cells
+
+As a database grows, it might require dedicated infrastructure or different cells/vms than it was original provisioned into. An administrator can move a cluster into different cells using the `cf update-service` command and the `cells` parameter (as introduced above).
+
+```
+cf update-service their-db -c '{"cells": ["10.244.22.3", "10.244.21.8"]}'
+```
+
+This process will first expand the cluster adding two new nodes into the `10.244.22.3` and `10.244.21.8` cells, then failing over the current leader to one of the new replica nodes, and then shutting down the original nodes.
+
+This sequence should result in minimal downtime for bound apps. Bound apps may be required to re-create long lived database connections after this operation.
