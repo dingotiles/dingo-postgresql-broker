@@ -124,7 +124,8 @@ func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.C
 	return
 }
 
-func (s *StateEtcd) LoadAllClusters() (clusters []*structs.ClusterState, err error) {
+// LoadAllRunningClusters fetches the /state information for all running clusters
+func (s *StateEtcd) LoadAllRunningClusters() (clusters []*structs.ClusterState, err error) {
 	ctx := context.Background()
 	servicesKey := fmt.Sprintf("%s/service", s.prefix)
 	services, err := s.etcdApi.Get(ctx, servicesKey, &etcd.GetOptions{Recursive: false})
@@ -135,10 +136,7 @@ func (s *StateEtcd) LoadAllClusters() (clusters []*structs.ClusterState, err err
 	instanceIDRegExp, _ := regexp.Compile("/service/(.*)")
 	for _, service := range services.Node.Nodes {
 		instanceID := instanceIDRegExp.FindStringSubmatch(service.Key)[1]
-		cluster, err := s.LoadCluster(structs.ClusterID(instanceID))
-		if err != nil {
-			return clusters, err
-		}
+		cluster, _ := s.LoadCluster(structs.ClusterID(instanceID))
 		clusters = append(clusters, &cluster)
 	}
 	return
