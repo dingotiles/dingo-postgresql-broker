@@ -11,7 +11,7 @@ type FakeClusterLoader struct {
 	Clusters []*structs.ClusterState
 }
 
-func (f *FakeClusterLoader) LoadAllClusters() ([]*structs.ClusterState, error) {
+func (f *FakeClusterLoader) LoadAllRunningClusters() ([]*structs.ClusterState, error) {
 	return f.Clusters, nil
 }
 

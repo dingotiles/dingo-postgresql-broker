@@ -7,7 +7,7 @@ func (cells Cells) InspectHealth() (CellsHealth, error) {
 		return CellsHealth{}, nil
 	}
 	clusterLoader := cells[0].clusterLoader
-	clusters, err := clusterLoader.LoadAllClusters()
+	clusters, err := clusterLoader.LoadAllRunningClusters()
 	if err != nil {
 		return nil, err
 	}
