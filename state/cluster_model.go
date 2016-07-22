@@ -3,16 +3,17 @@ package state
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 )
 
 // ClusterModel provides a clean .Save() wrapper around a ClusterState for a given State backend
 type ClusterModel struct {
-	state   State
+	state   interfaces.State
 	cluster structs.ClusterState
 }
 
-func NewClusterModel(state State, cluster structs.ClusterState) *ClusterModel {
+func NewClusterModel(state interfaces.State, cluster structs.ClusterState) *ClusterModel {
 	return &ClusterModel{
 		state:   state,
 		cluster: cluster,
@@ -61,7 +62,7 @@ func (m *ClusterModel) SchedulingInfo() structs.SchedulingInfo {
 	return m.cluster.SchedulingInfo
 }
 
-func (m *ClusterModel) Cluster() structs.ClusterState {
+func (m *ClusterModel) ClusterState() structs.ClusterState {
 	return m.cluster
 }
 

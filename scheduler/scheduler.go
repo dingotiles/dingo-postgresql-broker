@@ -3,9 +3,9 @@ package scheduler
 import (
 	"fmt"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
@@ -15,20 +15,15 @@ type Scheduler struct {
 	logger  lager.Logger
 	config  config.Scheduler
 	cells   cells.Cells
-	patroni *patroni.Patroni
+	patroni interfaces.Patroni
 }
 
-func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, error) {
+func NewScheduler(config config.Scheduler, patroni interfaces.Patroni, logger lager.Logger) (*Scheduler, error) {
 	s := &Scheduler{
-		config: config,
-		logger: logger,
+		config:  config,
+		logger:  logger,
+		patroni: patroni,
 	}
-
-	patroni, err := patroni.NewPatroni(config.Etcd, s.logger)
-	if err != nil {
-		return nil, err
-	}
-	s.patroni = patroni
 
 	clusterLoader, err := state.NewStateEtcd(config.Etcd, s.logger)
 	if err != nil {
@@ -39,7 +34,7 @@ func NewScheduler(config config.Scheduler, logger lager.Logger) (*Scheduler, err
 	return s, nil
 }
 
-func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (err error) {
+func (s *Scheduler) RunCluster(clusterModel interfaces.ClusterModel, features structs.ClusterFeatures) (err error) {
 	err = s.VerifyClusterFeatures(features)
 	if err != nil {
 		return
@@ -60,7 +55,7 @@ func (s *Scheduler) RunCluster(clusterModel *state.ClusterModel, features struct
 	return s.executePlan(clusterModel, plan)
 }
 
-func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
+func (s *Scheduler) StopCluster(clusterModel interfaces.ClusterModel) error {
 	plan, err := s.newPlan(clusterModel, structs.ClusterFeatures{NodeCount: 0})
 	if err != nil {
 		return err
@@ -76,7 +71,7 @@ func (s *Scheduler) StopCluster(clusterModel *state.ClusterModel) error {
 	return s.executePlan(clusterModel, plan)
 }
 
-func (s *Scheduler) executePlan(clusterModel *state.ClusterModel, plan plan) error {
+func (s *Scheduler) executePlan(clusterModel interfaces.ClusterModel, plan plan) error {
 	steps := plan.steps()
 	clusterModel.BeginScheduling(len(steps))
 

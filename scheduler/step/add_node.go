@@ -1,23 +1,22 @@
 package step
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
 // AddNode instructs a new cluster node be added
 type AddNode struct {
-	clusterModel   *state.ClusterModel
-	patroni        *patroni.Patroni
+	clusterModel   interfaces.ClusterModel
+	patroni        interfaces.Patroni
 	availableCells cells.Cells
 	logger         lager.Logger
 }
 
 // NewStepAddNode creates a StepAddNode command
-func NewStepAddNode(clusterModel *state.ClusterModel, patroni *patroni.Patroni,
+func NewStepAddNode(clusterModel interfaces.ClusterModel, patroni interfaces.Patroni,
 	availableCells cells.Cells, logger lager.Logger) Step {
 	return AddNode{
 		clusterModel:   clusterModel,
@@ -38,7 +37,7 @@ func (step AddNode) Perform() (err error) {
 	logger.Info("add-node.perform", lager.Data{"instance-id": step.clusterModel.InstanceID()})
 
 	existingNodes := step.clusterModel.Nodes()
-	clusterStateData := step.clusterModel.Cluster()
+	clusterStateData := step.clusterModel.ClusterState()
 
 	cellsToTry, err := step.prioritizeCellsToTry(existingNodes)
 	if err != nil {

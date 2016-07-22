@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/routing"
@@ -19,36 +20,28 @@ type Broker struct {
 	config  config.Broker
 	catalog brokerapi.Catalog
 
-	etcdConfig config.Etcd
-	patroni    *patroni.Patroni
-
 	logger lager.Logger
 	cells  []*config.Cell
 
 	callbacks *Callbacks
 
-	router    Router
-	scheduler Scheduler
-	state     state.State
+	router    interfaces.Router
+	scheduler interfaces.Scheduler
+	state     interfaces.State
+	patroni   interfaces.Patroni
 }
 
 // NewBroker is a constructor for a Broker webapp struct
 func NewBroker(config *config.Config) (*Broker, error) {
 	bkr := &Broker{
-		config:     config.Broker,
-		catalog:    config.Catalog,
-		etcdConfig: config.Etcd,
-		cells:      config.Scheduler.Cells,
+		config:  config.Broker,
+		catalog: config.Catalog,
+		cells:   config.Scheduler.Cells,
 	}
 
 	bkr.logger = bkr.setupLogger()
 	bkr.callbacks = NewCallbacks(config.Callbacks, bkr.logger)
 	var err error
-	bkr.scheduler, err = scheduler.NewScheduler(config.Scheduler, bkr.logger)
-	if err != nil {
-		bkr.logger.Error("new-broker.new-scheduler.error", err)
-		return nil, err
-	}
 	bkr.state, err = state.NewStateEtcd(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-state.error", err)
@@ -58,6 +51,12 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr.patroni, err = patroni.NewPatroni(config.Etcd, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-patroni.error", err)
+		return nil, err
+	}
+
+	bkr.scheduler, err = scheduler.NewScheduler(config.Scheduler, bkr.patroni, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-scheduler.error", err)
 		return nil, err
 	}
 

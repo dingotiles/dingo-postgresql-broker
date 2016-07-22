@@ -1,11 +1,10 @@
 package scheduler
 
 import (
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/cells"
 	"github.com/dingotiles/dingo-postgresql-broker/scheduler/step"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/pivotal-golang/lager"
 )
 
@@ -15,8 +14,8 @@ const (
 
 // p.est represents a user-originating p.est to change a service instance (grow, scale, move)
 type plan struct {
-	clusterModel   *state.ClusterModel
-	patroni        *patroni.Patroni
+	clusterModel   interfaces.ClusterModel
+	patroni        interfaces.Patroni
 	newFeatures    structs.ClusterFeatures
 	availableCells cells.Cells
 	allCells       cells.Cells
@@ -25,7 +24,7 @@ type plan struct {
 }
 
 // Newp.est creates a p.est to change a service instance
-func (s *Scheduler) newPlan(clusterModel *state.ClusterModel, features structs.ClusterFeatures) (plan, error) {
+func (s *Scheduler) newPlan(clusterModel interfaces.ClusterModel, features structs.ClusterFeatures) (plan, error) {
 
 	cells, err := s.filterCellsByGUIDs(features.CellGUIDs)
 	if err != nil {
@@ -55,14 +54,20 @@ func (p plan) stepTypes() []string {
 
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (p plan) steps() (steps []step.Step) {
+	leaderID, _ := p.patroni.ClusterLeader(p.clusterModel.InstanceID())
+
 	addedNodes := false
 	for i := 0; i < p.clusterGrowingBy(); i++ {
 		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableCells, p.logger))
 		addedNodes = true
 	}
 
-	nodesToBeReplaced := p.nodesToBeReplaced()
-	for _ = range nodesToBeReplaced {
+	replicasToBeReplaced, leaderToBeReplaced := p.nodesToBeReplaced(leaderID)
+	for _ = range replicasToBeReplaced {
+		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableCells, p.logger))
+		addedNodes = true
+	}
+	if leaderToBeReplaced != nil {
 		steps = append(steps, step.NewStepAddNode(p.clusterModel, p.patroni, p.availableCells, p.logger))
 		addedNodes = true
 	}
@@ -72,13 +77,13 @@ func (p plan) steps() (steps []step.Step) {
 	}
 
 	removedNodes := false
-	for _, replica := range p.replicas(nodesToBeReplaced) {
+	for _, replica := range replicasToBeReplaced {
 		steps = append(steps, step.NewStepRemoveNode(replica, p.clusterModel, p.allCells, p.logger))
 		removedNodes = true
 	}
 
-	if leader := p.leader(nodesToBeReplaced); leader != nil {
-		steps = append(steps, step.NewStepRemoveLeader(leader, p.clusterModel, p.allCells, p.logger))
+	if leaderToBeReplaced != nil {
+		steps = append(steps, step.NewStepRemoveLeader(leaderToBeReplaced, p.clusterModel, p.allCells, p.logger))
 		removedNodes = true
 	}
 
@@ -121,37 +126,15 @@ func (p plan) clusterShrinkingBy() int {
 	return 0
 }
 
-func (p plan) nodesToBeReplaced() (nodes []*structs.Node) {
+func (p plan) nodesToBeReplaced(leaderID string) (replicas []*structs.Node, leader *structs.Node) {
 	for _, node := range p.clusterModel.Nodes() {
-		validcell := false
-		for _, cell := range p.availableCells {
-			if node.CellGUID == cell.GUID {
-				validcell = true
-				break
+		if !p.availableCells.ContainsCell(node.CellGUID) {
+			if node.ID == leaderID {
+				leader = node
+			} else {
+				replicas = append(replicas, node)
 			}
 		}
-		if !validcell {
-			nodes = append(nodes, node)
-		}
 	}
 	return
-}
-
-func (p plan) replicas(nodes []*structs.Node) (replicas []*structs.Node) {
-	for _, node := range nodes {
-		if node.Role != state.LeaderRole {
-			replicas = append(replicas, node)
-			continue
-		}
-	}
-	return
-}
-
-func (p plan) leader(nodes []*structs.Node) *structs.Node {
-	for _, node := range nodes {
-		if node.Role == state.LeaderRole {
-			return node
-		}
-	}
-	return nil
 }

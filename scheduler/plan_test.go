@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/fakes"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -25,7 +26,7 @@ func TestPlan_Steps_NewCluster_Default(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -57,7 +58,7 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -65,8 +66,8 @@ func TestPlan_Steps_NewCluster_IncreaseCount(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", CellGUID: "cell1", Role: state.LeaderRole},
-			&structs.Node{ID: "b", CellGUID: "cell2", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell1"},
+			&structs.Node{ID: "b", CellGUID: "cell2"},
 		},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
@@ -96,7 +97,7 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -104,9 +105,9 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", CellGUID: "cell1", Role: state.LeaderRole},
-			&structs.Node{ID: "b", CellGUID: "cell2", Role: state.ReplicaRole},
-			&structs.Node{ID: "c", CellGUID: "cell3", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell1"},
+			&structs.Node{ID: "b", CellGUID: "cell2"},
+			&structs.Node{ID: "c", CellGUID: "cell3"},
 		},
 	}
 	clusterModel := state.NewClusterModel(&state.StateEtcd{}, clusterState)
@@ -134,7 +135,7 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -142,8 +143,8 @@ func TestPlan_Steps_NewCluster_MoveReplica(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", CellGUID: "cell1", Role: state.LeaderRole},
-			&structs.Node{ID: "b", CellGUID: "cell-unavailable", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell1"},
+			&structs.Node{ID: "b", CellGUID: "cell-unavailable"},
 		},
 	}
 	clusterFeatures := structs.ClusterFeatures{
@@ -175,7 +176,9 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	patroni := new(fakes.FakePatroni)
+	patroni.ClusterLeaderStub = func(structs.ClusterID) (string, error) { return "a", nil }
+	scheduler, err := NewScheduler(schedulerConfig, patroni, logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -183,8 +186,8 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", CellGUID: "cell-unavailable", Role: state.LeaderRole},
-			&structs.Node{ID: "b", CellGUID: "cell2", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell-unavailable"},
+			&structs.Node{ID: "b", CellGUID: "cell2"},
 		},
 	}
 	clusterFeatures := structs.ClusterFeatures{
@@ -216,7 +219,9 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	patroni := new(fakes.FakePatroni)
+	patroni.ClusterLeaderStub = func(structs.ClusterID) (string, error) { return "a", nil }
+	scheduler, err := NewScheduler(schedulerConfig, patroni, logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -224,8 +229,8 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 	clusterState := structs.ClusterState{
 		InstanceID: "test",
 		Nodes: []*structs.Node{
-			&structs.Node{ID: "a", CellGUID: "cell-x-unavailable", Role: state.LeaderRole},
-			&structs.Node{ID: "b", CellGUID: "cell-y-unavailable", Role: state.ReplicaRole},
+			&structs.Node{ID: "a", CellGUID: "cell-x-unavailable"},
+			&structs.Node{ID: "b", CellGUID: "cell-y-unavailable"},
 		},
 	}
 	clusterFeatures := structs.ClusterFeatures{

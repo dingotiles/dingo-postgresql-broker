@@ -1,20 +1,19 @@
 package step
 
 import (
-	"github.com/dingotiles/dingo-postgresql-broker/patroni"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
 	"github.com/pivotal-golang/lager"
 )
 
 // WaitForAllMembers blocks until expected number of nodes are available and running
 type WaitForAllMembers struct {
-	clusterModel *state.ClusterModel
-	patroni      *patroni.Patroni
+	clusterModel interfaces.ClusterModel
+	patroni      interfaces.Patroni
 	logger       lager.Logger
 }
 
 // NewWaitForAllMembers creates a WaitForAllMembers command
-func NewWaitForAllMembers(clusterModel *state.ClusterModel, patroni *patroni.Patroni, logger lager.Logger) Step {
+func NewWaitForAllMembers(clusterModel interfaces.ClusterModel, patroni interfaces.Patroni, logger lager.Logger) Step {
 	return WaitForAllMembers{
 		clusterModel: clusterModel,
 		patroni:      patroni,

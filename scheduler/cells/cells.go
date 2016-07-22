@@ -81,6 +81,15 @@ func (cells Cells) Get(cellID string) *Cell {
 	return nil
 }
 
+func (cells Cells) ContainsCell(cellID string) bool {
+	for _, cell := range cells {
+		if cell.GUID == cellID {
+			return true
+		}
+	}
+	return false
+}
+
 func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
 	node = structs.Node{ID: uuid.New(), CellGUID: cell.GUID, PlanID: clusterState.PlanID, ServiceID: clusterState.ServiceID}
 	provisionDetails := brokerapi.ProvisionDetails{

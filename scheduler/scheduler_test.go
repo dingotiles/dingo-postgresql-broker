@@ -3,6 +3,7 @@ package scheduler
 import (
 	"testing"
 
+	"github.com/dingotiles/dingo-postgresql-broker/broker/fakes"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/dingotiles/dingo-postgresql-broker/config"
 	"github.com/dingotiles/dingo-postgresql-broker/state"
@@ -22,7 +23,7 @@ func TestScheduler_filterCellsByCellGUIDs(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -57,7 +58,7 @@ func TestScheduler_allCells(t *testing.T) {
 		},
 		Etcd: testutil.LocalEtcdConfig,
 	}
-	scheduler, err := NewScheduler(schedulerConfig, logger)
+	scheduler, err := NewScheduler(schedulerConfig, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -90,7 +91,7 @@ func TestScheduler_VerifyClusterFeatures(t *testing.T) {
 			&config.Cell{GUID: "d"},
 		},
 		Etcd: testutil.LocalEtcdConfig,
-	}, logger)
+	}, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
@@ -113,7 +114,7 @@ func TestScheduler_VerifyClusterFeatures_UnknownCellGUIDs(t *testing.T) {
 	scheduler, err := NewScheduler(config.Scheduler{
 		Cells: []*config.Cell{},
 		Etcd:  testutil.LocalEtcdConfig,
-	}, logger)
+	}, new(fakes.FakePatroni), logger)
 	if err != nil {
 		t.Fatalf("NewScheduler error: %v", err)
 	}
