@@ -18,6 +18,23 @@ Run Tests
 make test
 ```
 
+Test Fakes
+---------
+
+To test packages that depend on the interfaces in the `github.com/dingotiles/broker/interfaces` package stand-in implementations located in the `github.com/dingotiles/broker/fakes` package are used.
+They are generated with the help of `github.com/maxbrunsfeld/counterfeiter`.
+
+To install counterfeiter:
+```
+go get github.com/maxbrunsfeld/counterfeiter
+```
+
+To generate a new fake for an existing interface (eg. `interfaces.Patroni`):
+```
+$ counterfeiter -o broker/fakes/fake_patroni.go  broker/interfaces/interfaces.go Patroni
+Wrote `FakePatroni` to `broker/fakes/fake_patroni.go`
+```
+
 Playing
 -------
 
