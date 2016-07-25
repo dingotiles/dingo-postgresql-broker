@@ -54,6 +54,14 @@ func (p plan) stepTypes() []string {
 
 // steps is the ordered sequence of workflow steps to orchestrate a service instance change
 func (p plan) steps() (steps []step.Step) {
+	if p.newFeatures.NodeCount == 0 {
+		for i := 0; i < p.clusterModel.NodeCount(); i++ {
+			steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, "", p.allCells, p.logger))
+		}
+		return
+	}
+
+	// we know the leader must survive because the cluster isn't being deleted
 	leaderID, _ := p.patroni.ClusterLeader(p.clusterModel.InstanceID())
 
 	addedNodes := false
@@ -82,8 +90,8 @@ func (p plan) steps() (steps []step.Step) {
 		removedNodes = true
 	}
 
-	if leaderToBeReplaced != nil {
-		steps = append(steps, step.NewStepRemoveLeader(leaderToBeReplaced, p.clusterModel, p.allCells, p.logger))
+	for i := 0; i < p.clusterShrinkingBy(); i++ {
+		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, leaderID, p.allCells, p.logger))
 		removedNodes = true
 	}
 
@@ -91,13 +99,12 @@ func (p plan) steps() (steps []step.Step) {
 		steps = append(steps, step.NewWaitForAllMembers(p.clusterModel, p.patroni, p.logger))
 	}
 
-	for i := 0; i < p.clusterShrinkingBy(); i++ {
-		steps = append(steps, step.NewStepRemoveRandomNode(p.clusterModel, p.allCells, p.logger))
+	if leaderToBeReplaced != nil {
+		steps = append(steps, step.NewStepFailoverFrom(p.clusterModel, leaderID, p.patroni, p.logger))
+		steps = append(steps, step.NewStepRemoveNode(leaderToBeReplaced, p.clusterModel, p.allCells, p.logger))
 	}
 
-	if p.newFeatures.NodeCount > 0 {
-		steps = append(steps, step.NewWaitForLeader(p.clusterModel, p.patroni, p.logger))
-	}
+	steps = append(steps, step.NewWaitForLeader(p.clusterModel, p.patroni, p.logger))
 
 	return
 }
