@@ -44,4 +44,5 @@ type Patroni interface {
 	WaitForMember(instanceID structs.ClusterID, memberID string) error
 	WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error
 	WaitForLeader(structs.ClusterID) error
+	FailoverFrom(instanceID structs.ClusterID, nodeID string) error
 }

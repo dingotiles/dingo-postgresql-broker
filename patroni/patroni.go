@@ -134,6 +134,10 @@ func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) e
 	return nil
 }
 
+func (p *Patroni) FailoverFrom(instanceID structs.ClusterID, nodeID string) error {
+	return nil
+}
+
 // TODO: prove list of member IDs that cannot be member OR that can be member
 // This will ensure that success isn't for an ex-leader that hasn't died yet
 func (p *Patroni) leaderRunning(instanceID structs.ClusterID) bool {
