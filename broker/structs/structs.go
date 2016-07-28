@@ -19,6 +19,7 @@ type SchedulingStatus string
 type ClusterID string
 
 type ClusterRecreationData struct {
+	ServiceInstanceName  string              `json:"service_instance_name"`
 	InstanceID           ClusterID           `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
 	PlanID               string              `json:"plan_id"`
@@ -58,6 +59,7 @@ func (c *ClusterState) NodeCount() int {
 
 func (c *ClusterState) RecreationData() *ClusterRecreationData {
 	return &ClusterRecreationData{
+		ServiceInstanceName:  c.ServiceInstanceName,
 		InstanceID:           c.InstanceID,
 		ServiceID:            c.ServiceID,
 		PlanID:               c.PlanID,
