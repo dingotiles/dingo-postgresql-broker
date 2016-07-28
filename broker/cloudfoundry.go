@@ -37,7 +37,7 @@ func (cf *CloudFoundryFromConfig) LookupServiceName(instanceID structs.ClusterID
 		return "", fmt.Errorf("Cannot lookup Service Name for %d without Cloud Foundry credentials", instanceID)
 	}
 	var siResp serviceInstanceResponse
-	r := cf.client.NewRequest("GET", fmt.Sprintf("/v2/service_instances/%d", instanceID))
+	r := cf.client.NewRequest("GET", fmt.Sprintf("/v2/service_instances/%s", instanceID))
 	resp, err := cf.client.DoRequest(r)
 	if err != nil {
 		return "", fmt.Errorf("Error querying service instances %v", err)

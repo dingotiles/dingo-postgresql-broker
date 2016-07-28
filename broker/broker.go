@@ -73,6 +73,8 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr.cf, err = NewCloudFoundryFromConfig(config.CloudFoundry, bkr.logger)
 	if err != nil {
 		bkr.logger.Error("new-broker.new-cf.error", err)
+	} else {
+		bkr.logger.Info("new-broker.new-cf.success", lager.Data{"api-url": config.CloudFoundry.ApiAddress})
 	}
 
 	return bkr, nil
