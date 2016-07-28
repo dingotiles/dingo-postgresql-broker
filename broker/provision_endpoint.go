@@ -49,15 +49,14 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	// Continue processing in background
 	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
-		err := bkr.scheduler.RunCluster(clusterModel, features)
-		if err != nil {
+		if err := bkr.scheduler.RunCluster(clusterModel, features); err != nil {
 			logger.Error("run-cluster", err)
 			return
 		}
 
-		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port)
-		if err != nil {
+		if err := bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port); err != nil {
 			logger.Error("assign-port", err)
+			return
 		}
 	}()
 	return resp, true, err
