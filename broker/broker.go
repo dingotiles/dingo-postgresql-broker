@@ -29,6 +29,7 @@ type Broker struct {
 	scheduler interfaces.Scheduler
 	state     interfaces.State
 	patroni   interfaces.Patroni
+	cf        interfaces.CloudFoundry
 }
 
 // NewBroker is a constructor for a Broker webapp struct
@@ -64,6 +65,14 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	if err != nil {
 		bkr.logger.Error("new-broker.new-router.error", err)
 		return nil, err
+	}
+
+	// Optionally, provisioned services can asynchronously look up service name
+	// to aide disaster recovery/undo-delete/recreate-from-backup by users
+	// that only recall the service instance name they provided Cloud Foundry
+	bkr.cf, err = NewCloudFoundryFromConfig(config.CloudFoundry, bkr.logger)
+	if err != nil {
+		bkr.logger.Error("new-broker.new-cf.error", err)
 	}
 
 	return bkr, nil

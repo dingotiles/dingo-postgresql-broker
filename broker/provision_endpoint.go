@@ -58,6 +58,22 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 			logger.Error("assign-port", err)
 			return
 		}
+
+		// If broker has credentials for a Cloud Foundry,
+		// attempt to look up service instance to get its user-provided name.
+		// This can then be used in future to undo/recreate-from-backup when user
+		// only knows the name they provided; and not the internal service instance ID.
+		// If operation fails, that's temporarily unfortunate but might be due to credentials
+		// not yet having SpaceDeveloper role for the Space being used.
+		if bkr.cf != nil {
+			serviceInstanceName, err := bkr.cf.LookupServiceName(clusterModel.InstanceID())
+			if err != nil {
+				logger.Error("lookup-service-name.error", err,
+					lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
+			} else {
+				logger.Info("lookup-service-name", lager.Data{"name": serviceInstanceName})
+			}
+		}
 	}()
 	return resp, true, err
 }
