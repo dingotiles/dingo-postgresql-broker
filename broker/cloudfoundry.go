@@ -33,6 +33,9 @@ func NewCloudFoundryFromConfig(creds config.CloudFoundryCredentials, logger lage
 }
 
 func (cf *CloudFoundryFromConfig) LookupServiceName(instanceID structs.ClusterID) (name string, err error) {
+	if cf.client == nil {
+		return "", fmt.Errorf("Cannot lookup Service Name for %d without Cloud Foundry credentials", instanceID)
+	}
 	var siResp serviceInstanceResponse
 	r := cf.client.NewRequest("GET", fmt.Sprintf("/v2/service_instances/%d", instanceID))
 	resp, err := cf.client.DoRequest(r)
