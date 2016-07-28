@@ -66,13 +66,23 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 		// only knows the name they provided; and not the internal service instance ID.
 		// If operation fails, that's temporarily unfortunate but might be due to credentials
 		// not yet having SpaceDeveloper role for the Space being used.
-		if bkr.cf != nil {
+		if bkr.cf != nil && bkr.callbacks.Configured() {
 			serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
 			if err != nil {
 				logger.Error("lookup-service-name.error", err,
 					lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
+			}
+			if serviceInstanceName == "" {
+				logger.Info("lookup-service-name.not-found")
 			} else {
-				logger.Info("lookup-service-name", lager.Data{"name": serviceInstanceName})
+				clusterState.ServiceInstanceName = serviceInstanceName
+				bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
+				data, err := bkr.callbacks.RestoreRecreationData(instanceID)
+				if !reflect.DeepEqual(clusterState.RecreationData(), data) {
+					logger.Error("lookup-service-name.update-recreation-data.failure", err)
+				} else {
+					logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
+				}
 			}
 		}
 	}()

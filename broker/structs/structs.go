@@ -42,6 +42,7 @@ type ClusterState struct {
 	AllocatedPort        int                 `json:"allocated_port"`
 	Nodes                []*Node             `json:"nodes"`
 	SchedulingInfo       SchedulingInfo      `json:"info"`
+	ServiceInstanceName  string              `json:"service_instance_name"`
 }
 
 type SchedulingInfo struct {
