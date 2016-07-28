@@ -14,6 +14,7 @@ import (
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	return bkr.provision(structs.ClusterID(instanceID), details, acceptsIncomplete)
 }
+
 func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, details, acceptsIncomplete)
@@ -54,7 +55,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 			return
 		}
 
-		if err := bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port); err != nil {
+		if err := bkr.router.AssignPortToCluster(instanceID, port); err != nil {
 			logger.Error("assign-port", err)
 			return
 		}
@@ -66,7 +67,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 		// If operation fails, that's temporarily unfortunate but might be due to credentials
 		// not yet having SpaceDeveloper role for the Space being used.
 		if bkr.cf != nil {
-			serviceInstanceName, err := bkr.cf.LookupServiceName(clusterModel.InstanceID())
+			serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
 			if err != nil {
 				logger.Error("lookup-service-name.error", err,
 					lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})

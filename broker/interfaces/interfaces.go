@@ -47,5 +47,5 @@ type Patroni interface {
 }
 
 type CloudFoundry interface {
-	LookupServiceName(structs.ClusterID) (serviceInstanceName string, err error)
+	LookupServiceName(instanceID structs.ClusterID) (name string, err error)
 }

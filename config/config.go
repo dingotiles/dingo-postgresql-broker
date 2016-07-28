@@ -56,7 +56,7 @@ type Etcd struct {
 // CloudFoundryCredentials describes credentials for looking up service instance info/name
 // Requires SpaceDeveloper access to all Spaces for which access is enabled.
 type CloudFoundryCredentials struct {
-	ApiAddress        string `yaml:"api"`
+	ApiAddress        string `yaml:"api_endpoint"`
 	Username          string `yaml:"username"`
 	Password          string `yaml:"password"`
 	SkipSslValidation bool   `yaml:"skip_ssl_validation"`

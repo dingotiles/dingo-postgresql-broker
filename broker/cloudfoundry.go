@@ -1,7 +1,9 @@
 package broker
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
@@ -30,6 +32,27 @@ func NewCloudFoundryFromConfig(creds config.CloudFoundryCredentials, logger lage
 	return
 }
 
-func (cf *CloudFoundryFromConfig) LookupServiceName(structs.ClusterID) (serviceInstanceName string, err error) {
-	return
+func (cf *CloudFoundryFromConfig) LookupServiceName(instanceID structs.ClusterID) (name string, err error) {
+	var siResp serviceInstanceResponse
+	r := cf.client.NewRequest("GET", fmt.Sprintf("/v2/service_instances/%d", instanceID))
+	resp, err := cf.client.DoRequest(r)
+	if err != nil {
+		return "", fmt.Errorf("Error querying service instances %v", err)
+	}
+	resBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Error reading service instances response: %v", err)
+	}
+
+	err = json.Unmarshal(resBody, &siResp)
+	if err != nil {
+		return "", fmt.Errorf("Error unmarshaling service instances response %v", err)
+	}
+	return siResp.Entity.Name, nil
+}
+
+type serviceInstanceResponse struct {
+	Entity struct {
+		Name string `json:"name"`
+	} `json:"entity"`
 }
