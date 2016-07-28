@@ -137,12 +137,12 @@ func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) e
 // TODO: prove list of member IDs that cannot be member OR that can be member
 // This will ensure that success isn't for an ex-leader that hasn't died yet
 func (p *Patroni) leaderRunning(instanceID structs.ClusterID) bool {
-	p.logger.Info("check-leader.find-leader", lager.Data{"instanceID": instanceID})
+	p.logger.Info("check-leader.find-leader", lager.Data{"instance-id": instanceID})
 	leaderID, err := p.ClusterLeader(instanceID)
 	if err != nil {
 		return false
 	}
-	p.logger.Info("check-leader.load-member", lager.Data{"instanceID": instanceID, "leader": leaderID})
+	p.logger.Info("check-leader.load-member", lager.Data{"instance-id": instanceID, "leader": leaderID})
 	leader, err := p.loadMember(instanceID, leaderID)
 	if err != nil {
 		return false

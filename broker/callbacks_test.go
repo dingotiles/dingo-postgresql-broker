@@ -47,7 +47,7 @@ func TestCallbacks_WriteRecreationData(t *testing.T) {
 	}
 
 	recreationData := &structs.ClusterRecreationData{
-		InstanceID:       "instanceID",
+		InstanceID:       "instance-id",
 		OrganizationGUID: "OrganizationGUID",
 		PlanID:           "PlanID",
 		ServiceID:        "ServiceID",

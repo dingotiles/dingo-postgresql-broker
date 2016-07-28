@@ -20,7 +20,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 		return bkr.Recreate(instanceID, details, acceptsIncomplete)
 	}
 
-	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("provision", lager.Data{"instance-id": instanceID})
 	defer logger.Info("done")
 
 	features, err := structs.ClusterFeaturesFromParameters(details.Parameters)

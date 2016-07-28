@@ -14,7 +14,7 @@ func (bkr *Broker) Update(instanceID string, updateDetails brokerapi.UpdateDetai
 	return bkr.update(structs.ClusterID(instanceID), updateDetails, acceptsIncomplete)
 }
 func (bkr *Broker) update(instanceID structs.ClusterID, updateDetails brokerapi.UpdateDetails, acceptsIncomplete bool) (async bool, err error) {
-	logger := bkr.newLoggingSession("update", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("update", lager.Data{"instance-id": instanceID})
 	defer logger.Info("done")
 
 	features, err := structs.ClusterFeaturesFromParameters(updateDetails.Parameters)
