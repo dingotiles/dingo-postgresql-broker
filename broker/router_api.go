@@ -28,6 +28,10 @@ func (httpRouter httpRouter) Put(url string, handler http.HandlerFunc) {
 	httpRouter.muxRouter.HandleFunc(url, handler).Methods("PUT")
 }
 
+func (httpRouter httpRouter) Post(url string, handler http.HandlerFunc) {
+	httpRouter.muxRouter.HandleFunc(url, handler).Methods("POST")
+}
+
 func (httpRouter httpRouter) Patch(url string, handler http.HandlerFunc) {
 	httpRouter.muxRouter.HandleFunc(url, handler).Methods("PATCH")
 }

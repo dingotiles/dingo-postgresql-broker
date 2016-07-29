@@ -81,6 +81,14 @@ func (c *ClusterState) RemoveNode(node *Node) {
 		}
 	}
 }
+func (m *ClusterState) NodeOnCell(cellGUID string) (Node, error) {
+	for _, node := range m.Nodes {
+		if node.CellGUID == cellGUID {
+			return *node, nil
+		}
+	}
+	return Node{}, fmt.Errorf("Cluster %s has no node on cell %s", m.InstanceID, cellGUID)
+}
 
 type ClusterFeatures struct {
 	NodeCount int      `mapstructure:"node-count"`
