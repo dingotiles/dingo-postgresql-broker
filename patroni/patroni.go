@@ -181,14 +181,21 @@ func (p *Patroni) FailoverFrom(instanceID structs.ClusterID, memberID string) er
 			}
 
 			responseText, _ := ioutil.ReadAll(resp.Body)
+
+			// Another node is already the leader
 			if match, _ := regexp.Match(leaderNameDoesNotMatch, responseText); match == true {
 				p.logger.Info("patroni.failover-from.leader-does-not-match", lager.Data{"instance-id": instanceID, "member-id": memberID})
 				return nil
 			}
+
+			// This node is the only one so we cannot failover
 			if match, _ := regexp.Match(noOtherMembers, responseText); match == true {
 				p.logger.Info("patroni.failover-from.no-other-members", lager.Data{"instance-id": instanceID, "leader-id": memberID})
 				return nil
 			}
+
+			// Other nodes are present but not up to date with leader.
+			// Retry to see if they catch up.
 			if match, _ := regexp.Match(noGoodCandidates, responseText); match == true {
 				p.logger.Info("patroni.failover-from.no-good-candidates", lager.Data{"instance-id": instanceID, "leader-id": memberID})
 				continue

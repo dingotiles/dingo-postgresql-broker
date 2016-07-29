@@ -62,7 +62,7 @@ func (step RemoveRandomNode) Perform() (err error) {
 	return
 }
 
-// currently random any node, doesn't have to be a replica
+// picks a random node that isn't leaderID (unless thats the only one)
 func randomNode(nodes []*structs.Node, leaderID string) *structs.Node {
 	n := rand.Intn(len(nodes))
 	if nodes[n].ID == leaderID {
