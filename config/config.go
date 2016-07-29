@@ -12,12 +12,13 @@ import (
 
 // Config is the brokers configuration
 type Config struct {
-	Broker    Broker            `yaml:"broker"`
-	Cells     []*Cell           `yaml:"cells"`
-	Etcd      Etcd              `yaml:"etcd"`
-	Callbacks Callbacks         `yaml:"callbacks"`
-	Catalog   brokerapi.Catalog `yaml:"catalog"`
-	Scheduler Scheduler
+	Broker       Broker                  `yaml:"broker"`
+	Cells        []*Cell                 `yaml:"cells"`
+	Etcd         Etcd                    `yaml:"etcd"`
+	Callbacks    Callbacks               `yaml:"callbacks"`
+	Catalog      brokerapi.Catalog       `yaml:"catalog"`
+	Scheduler    Scheduler               `yaml:"scheduler"`
+	CloudFoundry CloudFoundryCredentials `yaml:"cf"`
 }
 
 func (cfg *Config) SupportsClusterDataBackup() bool {
@@ -50,6 +51,15 @@ type Cell struct {
 // KVStore describes the KV store used by all the components
 type Etcd struct {
 	Machines []string `yaml:"machines"`
+}
+
+// CloudFoundryCredentials describes credentials for looking up service instance info/name
+// Requires SpaceDeveloper access to all Spaces for which access is enabled.
+type CloudFoundryCredentials struct {
+	ApiAddress        string `yaml:"api_url"`
+	Username          string `yaml:"username"`
+	Password          string `yaml:"password"`
+	SkipSslValidation bool   `yaml:"skip_ssl_validation"`
 }
 
 // Callbacks allows plug'n'play scripts to be run when events have completed

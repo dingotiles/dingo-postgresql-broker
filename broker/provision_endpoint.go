@@ -14,12 +14,13 @@ import (
 func (bkr *Broker) Provision(instanceID string, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	return bkr.provision(structs.ClusterID(instanceID), details, acceptsIncomplete)
 }
+
 func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.ProvisionDetails, acceptsIncomplete bool) (resp brokerapi.ProvisioningResponse, async bool, err error) {
 	if details.ServiceID == "" && details.PlanID == "" {
 		return bkr.Recreate(instanceID, details, acceptsIncomplete)
 	}
 
-	logger := bkr.newLoggingSession("provision", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("provision", lager.Data{"instance-id": instanceID})
 	defer logger.Info("done")
 
 	features, err := structs.ClusterFeaturesFromParameters(details.Parameters)
@@ -49,15 +50,40 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	// Continue processing in background
 	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
-		err := bkr.scheduler.RunCluster(clusterModel, features)
-		if err != nil {
+		if err := bkr.scheduler.RunCluster(clusterModel, features); err != nil {
 			logger.Error("run-cluster", err)
 			return
 		}
 
-		err = bkr.router.AssignPortToCluster(clusterModel.InstanceID(), port)
-		if err != nil {
+		if err := bkr.router.AssignPortToCluster(instanceID, port); err != nil {
 			logger.Error("assign-port", err)
+			return
+		}
+
+		// If broker has credentials for a Cloud Foundry,
+		// attempt to look up service instance to get its user-provided name.
+		// This can then be used in future to undo/recreate-from-backup when user
+		// only knows the name they provided; and not the internal service instance ID.
+		// If operation fails, that's temporarily unfortunate but might be due to credentials
+		// not yet having SpaceDeveloper role for the Space being used.
+		if bkr.cf != nil && bkr.callbacks.Configured() {
+			serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
+			if err != nil {
+				logger.Error("lookup-service-name.error", err,
+					lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
+			}
+			if serviceInstanceName == "" {
+				logger.Info("lookup-service-name.not-found")
+			} else {
+				clusterState.ServiceInstanceName = serviceInstanceName
+				bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
+				data, err := bkr.callbacks.RestoreRecreationData(instanceID)
+				if !reflect.DeepEqual(clusterState.RecreationData(), data) {
+					logger.Error("lookup-service-name.update-recreation-data.failure", err)
+				} else {
+					logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
+				}
+			}
 		}
 	}()
 	return resp, true, err

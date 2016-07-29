@@ -29,7 +29,7 @@ func (bkr *Broker) Bind(instanceID string, bindingID string, details brokerapi.B
 }
 
 func (bkr *Broker) bind(instanceID structs.ClusterID, bindingID string, details brokerapi.BindDetails) (brokerapi.BindingResponse, error) {
-	logger := bkr.newLoggingSession("bind", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("bind", lager.Data{"instance-id": instanceID})
 	defer logger.Info("done")
 
 	if err := bkr.assertBindPrecondition(instanceID); err != nil {

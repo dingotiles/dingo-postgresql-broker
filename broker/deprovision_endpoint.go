@@ -15,7 +15,7 @@ func (bkr *Broker) Deprovision(instanceID string, details brokerapi.DeprovisionD
 }
 
 func (bkr *Broker) deprovision(instanceID structs.ClusterID, details brokerapi.DeprovisionDetails, acceptsIncomplete bool) (async bool, err error) {
-	logger := bkr.newLoggingSession("deprovision", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("deprovision", lager.Data{"instance-id": instanceID})
 	defer logger.Info("done")
 
 	if err = bkr.assertDeprovisionPrecondition(instanceID, details); err != nil {

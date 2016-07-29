@@ -45,3 +45,7 @@ type Patroni interface {
 	WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error
 	WaitForLeader(structs.ClusterID) error
 }
+
+type CloudFoundry interface {
+	LookupServiceName(instanceID structs.ClusterID) (name string, err error)
+}

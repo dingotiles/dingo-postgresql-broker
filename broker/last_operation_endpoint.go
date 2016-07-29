@@ -18,7 +18,7 @@ func (bkr *Broker) LastOperation(instanceID string) (resp brokerapi.LastOperatio
 }
 
 func (bkr *Broker) lastOperation(instanceID structs.ClusterID) (resp brokerapi.LastOperationResponse, err error) {
-	logger := bkr.newLoggingSession("last-opration", lager.Data{"instanceID": instanceID})
+	logger := bkr.newLoggingSession("last-opration", lager.Data{"instance-id": instanceID})
 	defer logger.Info("done")
 
 	clusterState, err := bkr.state.LoadCluster(instanceID)
