@@ -64,8 +64,9 @@ type CloudFoundryCredentials struct {
 
 // Callbacks allows plug'n'play scripts to be run when events have completed
 type Callbacks struct {
-	ClusterDataBackup  *CallbackCommand `yaml:"clusterdata_backup"`
-	ClusterDataRestore *CallbackCommand `yaml:"clusterdata_restore"`
+	ClusterDataBackup     *CallbackCommand `yaml:"clusterdata_backup"`
+	ClusterDataRestore    *CallbackCommand `yaml:"clusterdata_restore"`
+	ClusterDataFindByName *CallbackCommand `yaml:"clusterdata_find_by_name"`
 }
 
 // CallbackCommand describes a command that can be run via os/exec's Command
