@@ -104,11 +104,8 @@ type PostgresCredentials struct {
 }
 
 type Node struct {
-	ID        string `json:"node_id"`
-	CellGUID  string `json:"backend_id"`
-	PlanID    string `json:"plan_id"`
-	ServiceID string `json:"service_id"`
-	Role      string `json:"role"`
+	ID       string `json:"node_id"`
+	CellGUID string `json:"backend_id"`
 }
 
 func ClusterFeaturesFromParameters(params map[string]interface{}) (features ClusterFeatures, err error) {
