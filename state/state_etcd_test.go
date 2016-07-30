@@ -91,7 +91,7 @@ func TestState_LoadCluster(t *testing.T) {
 	t.Parallel()
 
 	testPrefix := "TestState_LoadClusterState"
-	testutil.ResetEtcd(t, testPrefix)
+	etcdApi := testutil.ResetEtcd(t, testPrefix)
 	logger := testutil.NewTestLogger(testPrefix, t)
 
 	state, err := NewStateEtcdWithPrefix(testutil.LocalEtcdConfig, testPrefix, logger)
@@ -101,21 +101,31 @@ func TestState_LoadCluster(t *testing.T) {
 
 	instanceID := structs.ClusterID(uuid.New())
 	planID := uuid.New()
+
+	node := structs.Node{ID: "node_id", CellGUID: "cell_guid"}
 	clusterState := structs.ClusterState{
 		InstanceID:       instanceID,
 		OrganizationGUID: "OrganizationGUID",
 		PlanID:           planID,
 		ServiceID:        "ServiceID",
 		SpaceGUID:        "SpaceGUID",
+		SchedulingInfo: structs.SchedulingInfo{
+			Status: structs.SchedulingStatusInProgress,
+		},
 	}
+	clusterState.Nodes = []*structs.Node{&node}
 	err = state.SaveCluster(clusterState)
 	if err != nil {
 		t.Fatalf("SaveCluster failed %s", err)
 	}
+	data, err := json.Marshal(node)
+	key := fmt.Sprintf(
+		"/%s/service/%s/nodes/%s", testPrefix, clusterState.InstanceID, node.ID)
+	etcdApi.Set(context.Background(), key, string(data), &etcd.SetOptions{})
 
 	loadedState, err := state.LoadCluster(instanceID)
 	if !reflect.DeepEqual(clusterState, loadedState) {
-		t.Fatalf("Failed to load ClusterState")
+		t.Fatalf("Failed to load ClusterState. Expected: %v, actual: %v", clusterState, loadedState)
 	}
 }
 

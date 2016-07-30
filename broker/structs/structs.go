@@ -41,9 +41,9 @@ type ClusterState struct {
 	SuperuserCredentials PostgresCredentials `json:"superuser_credentials"`
 	AppCredentials       PostgresCredentials `json:"app_credentials"`
 	AllocatedPort        int                 `json:"allocated_port"`
-	Nodes                []*Node             `json:"nodes"`
 	SchedulingInfo       SchedulingInfo      `json:"info"`
 	ServiceInstanceName  string              `json:"service_instance_name"`
+	Nodes                []*Node             `json:"nodes"`
 }
 
 type SchedulingInfo struct {
@@ -105,7 +105,7 @@ type PostgresCredentials struct {
 
 type Node struct {
 	ID       string `json:"node_id"`
-	CellGUID string `json:"backend_id"`
+	CellGUID string `json:"cell_guid"`
 }
 
 func ClusterFeaturesFromParameters(params map[string]interface{}) (features ClusterFeatures, err error) {

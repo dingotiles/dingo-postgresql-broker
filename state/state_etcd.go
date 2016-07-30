@@ -85,13 +85,29 @@ func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.C
 	ctx := context.Background()
 	s.logger.Info("state.load-cluster")
 
-	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
-	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
+	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)
+	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{Recursive: true})
 	if err != nil {
 		s.logger.Error("state.load-cluster.error", err)
 		return
 	}
-	json.Unmarshal([]byte(resp.Node.Value), &cluster)
+
+	nodes := []*structs.Node{}
+	for _, path := range resp.Node.Nodes {
+		if match, _ := regexp.MatchString(fmt.Sprintf("%s/state", key), path.Key); match == true {
+			json.Unmarshal([]byte(path.Value), &cluster)
+		}
+		if match, _ := regexp.MatchString(fmt.Sprintf("%s/nodes", key), path.Key); match == true {
+			for _, member := range path.Nodes {
+				var node structs.Node
+				json.Unmarshal([]byte(member.Value), &node)
+				if node.ID != "" && node.CellGUID != "" {
+					nodes = append(nodes, &node)
+				}
+			}
+		}
+	}
+	cluster.Nodes = nodes
 
 	return
 }
