@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
-	"github.com/dingotiles/dingo-postgresql-broker/state"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -26,8 +25,7 @@ func (bkr *Broker) lastOperation(instanceID structs.ClusterID) (resp brokerapi.L
 		logger.Error("load-cluster.error", err)
 		return brokerapi.LastOperationResponse{State: brokerapi.LastOperationFailed, Description: err.Error()}, err
 	}
-	clusterModel := state.NewClusterModel(bkr.state, clusterState)
-	return bkr.lastOperationFromSchedulingInfo(clusterModel.SchedulingInfo())
+	return bkr.lastOperationFromSchedulingInfo(clusterState.SchedulingInfo)
 }
 
 func (bkr *Broker) lastOperationFromSchedulingInfo(schedulingInfo structs.SchedulingInfo) (resp brokerapi.LastOperationResponse, err error) {
