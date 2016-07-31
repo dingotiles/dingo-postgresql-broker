@@ -18,7 +18,7 @@ func NewAdminAPI(serviceBroker *Broker, logger lager.Logger, brokerCredentials b
 	router.Post("/admin/cells/{cell_guid}/demote", demoteCell(serviceBroker, router, logger))
 	router.Get("/admin/cells", adminCells(serviceBroker, router, logger))
 	router.Get("/admin/service_instances/{instance_id}", adminServiceInstances(serviceBroker, router, logger))
-	router.Get("/admin/spaces/{space_guid}/service_instances_by_name/{name}", adminFindServiceInstanceByName(serviceBroker, router, logger))
+	router.Get("/admin/spaces/{space_guid}/clusterdata_backup_by_name/{name}", adminFindServiceInstanceByName(serviceBroker, router, logger))
 	return wrapAuth(router, brokerCredentials)
 }
 
