@@ -155,13 +155,24 @@ func (c *Callbacks) RestoreRecreationData(instanceID structs.ClusterID) (*struct
 	return clusterData, nil
 }
 
-func (c *Callbacks) ClusterDataFindServiceInstanceByName(spaceGUID, name string) (interface{}, error) {
+// Input: {"space_guid": "GUID", "name": "NAME"}
+// Output: {"instance_id":"71c27bbe-...", ...}
+func (c *Callbacks) ClusterDataFindServiceInstanceByName(spaceGUID, name string) (*structs.ClusterRecreationData, error) {
 	callback := c.findByNameCallback
 	logger := c.logger
 
 	if callback == nil {
 		err := fmt.Errorf("Broker not configured to support discovery of existing clusterdata backups by name")
 		logger.Error("callbacks.find-by-name.callback-missing", err, lager.Data{"missing-config": "callbacks.clusterdata_find_by_name"})
+		return nil, err
+	}
+
+	data, err := json.Marshal(map[string]string{
+		"space_guid": spaceGUID,
+		"name":       name,
+	})
+	if err != nil {
+		logger.Error("callbacks.write-data.data-marshal", err)
 		return nil, err
 	}
 
@@ -191,12 +202,12 @@ func (c *Callbacks) ClusterDataFindServiceInstanceByName(spaceGUID, name string)
 	go func() {
 		defer wg.Done()
 		defer stdin.Close()
-		io.Copy(stdin, bytes.NewBufferString("{}"))
+		io.Copy(stdin, bytes.NewBufferString(string(data)))
 	}()
 	clusterData := &structs.ClusterRecreationData{}
 	go func() {
 		defer wg.Done()
-		if err := json.NewDecoder(stdout).Decode(&clusterData); err != nil {
+		if err = json.NewDecoder(stdout).Decode(&clusterData); err != nil {
 			logger.Error("callbacks.find-by-name.marshal-error", err)
 			return
 		}
@@ -210,6 +221,9 @@ func (c *Callbacks) ClusterDataFindServiceInstanceByName(spaceGUID, name string)
 	if err != nil {
 		logger.Error("callbacks.find-by-name.error", err)
 		return nil, err
+	}
+	if clusterData.InstanceID == "" {
+		return nil, fmt.Errorf("Failed to fetch backup clusterdata for %s / %s", spaceGUID, name)
 	}
 	logger.Info("callbacks.find-by-name.done", lager.Data{"clusterData": clusterData})
 	return clusterData, nil

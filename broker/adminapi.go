@@ -129,13 +129,20 @@ func demoteCell(bkr *Broker, router httpRouter, logger lager.Logger) http.Handle
 func adminFindServiceInstanceByName(bkr *Broker, router httpRouter, logger lager.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		vars := router.Vars(req)
-		spaceGUID := structs.ClusterID(vars["space_guid"])
-		name := structs.ClusterID(vars["name"])
+		spaceGUID := string(vars["space_guid"])
+		name := string(vars["name"])
 
 		logger := bkr.newLoggingSession("admin.find-service-instance-by-name",
 			lager.Data{"space-guid": spaceGUID, "name": name})
 		defer logger.Info("done")
 
-		respond(w, http.StatusNotFound, "")
+		data, err := bkr.callbacks.ClusterDataFindServiceInstanceByName(spaceGUID, name)
+		if err != nil {
+			logger.Error("error", err)
+			respond(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		respond(w, http.StatusNotFound, data)
 	}
 }
