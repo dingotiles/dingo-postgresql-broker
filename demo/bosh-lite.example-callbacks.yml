@@ -20,6 +20,11 @@ cells:
 etcd:
   machines: ["http://10.58.111.48:4001"]
 
+callbacks:
+  clusterdata_backup: {cmd: jq, args: ["-r", "."]}
+  clusterdata_restore: {cmd: echo, args: ['{"service_instance_name": "test", "instance_id":"TESTID-1458690055","service_id":"beb5973c-e1b2-11e5-a736-c7c0b526363d","plan_id":"b96d0936-e423-11e5-accb-93d374e93368","organization_guid":"","space_guid":"","parameters":null,"node_count":1,"node_size":20,"allocated_port":"33000"}']}
+  clusterdata_find_by_name: {cmd: echo, args: ['{"service_instance_name": "test", "instance_id":"TESTID-1458690055","service_id":"beb5973c-e1b2-11e5-a736-c7c0b526363d","plan_id":"b96d0936-e423-11e5-accb-93d374e93368"}']}
+
 cf:
   api_url: https://api.10-58-111-48.sslip.io
   username: admin
