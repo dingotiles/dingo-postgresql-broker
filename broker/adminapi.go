@@ -2,7 +2,9 @@ package broker
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/frodenas/brokerapi"
@@ -13,6 +15,7 @@ import (
 func NewAdminAPI(serviceBroker *Broker, logger lager.Logger, brokerCredentials brokerapi.BrokerCredentials) http.Handler {
 	router := newHTTPRouter()
 
+	router.Post("/admin/cells/{cell_guid}/demote", demoteCell(serviceBroker, router, logger))
 	router.Get("/admin/cells", adminCells(serviceBroker, router, logger))
 	router.Get("/admin/service_instances/{instance_id}", adminServiceInstances(serviceBroker, router, logger))
 	return wrapAuth(router, brokerCredentials)
@@ -76,5 +79,48 @@ func adminServiceInstances(bkr *Broker, router httpRouter, logger lager.Logger) 
 		}
 
 		respond(w, http.StatusOK, cluster)
+	}
+}
+
+func demoteCell(bkr *Broker, router httpRouter, logger lager.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		vars := router.Vars(req)
+		cellGUID := vars["cell_guid"]
+
+		logger := bkr.newLoggingSession("admin.cells.demote", lager.Data{"cell-guid": cellGUID})
+		defer logger.Info("done")
+
+		allClusters, err := bkr.state.LoadAllRunningClusters()
+		if err != nil {
+			logger.Error("load-clusters.error", err)
+			respond(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		var wg sync.WaitGroup
+		for _, cluster := range allClusters {
+			wg.Add(1)
+			thisCluster := cluster
+			go func() {
+				defer wg.Done()
+
+				node, err := thisCluster.NodeOnCell(cellGUID)
+				if err != nil {
+					logger.Error("node-on-cell.error", err)
+					return
+				}
+
+				err = bkr.patroni.FailoverFrom(thisCluster.InstanceID, node.ID)
+				if err != nil {
+					logger.Error("failover.error",
+						fmt.Errorf("Couldn't failover member %s from instance %s: '%s'",
+							node.ID, thisCluster.InstanceID, err))
+					return
+				}
+				logger.Info("failover.success", lager.Data{"instance-id": thisCluster.InstanceID, "member-id": node.ID})
+			}()
+		}
+		wg.Wait()
+		respond(w, http.StatusOK, fmt.Sprintf("Failover from cell %s completed", cellGUID))
 	}
 }

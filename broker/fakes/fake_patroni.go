@@ -44,6 +44,15 @@ type FakePatroni struct {
 	waitForLeaderReturns struct {
 		result1 error
 	}
+	FailoverFromStub        func(instanceID structs.ClusterID, nodeID string) error
+	failoverFromMutex       sync.RWMutex
+	failoverFromArgsForCall []struct {
+		instanceID structs.ClusterID
+		nodeID     string
+	}
+	failoverFromReturns struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -183,6 +192,40 @@ func (fake *FakePatroni) WaitForLeaderReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakePatroni) FailoverFrom(instanceID structs.ClusterID, nodeID string) error {
+	fake.failoverFromMutex.Lock()
+	fake.failoverFromArgsForCall = append(fake.failoverFromArgsForCall, struct {
+		instanceID structs.ClusterID
+		nodeID     string
+	}{instanceID, nodeID})
+	fake.recordInvocation("FailoverFrom", []interface{}{instanceID, nodeID})
+	fake.failoverFromMutex.Unlock()
+	if fake.FailoverFromStub != nil {
+		return fake.FailoverFromStub(instanceID, nodeID)
+	} else {
+		return fake.failoverFromReturns.result1
+	}
+}
+
+func (fake *FakePatroni) FailoverFromCallCount() int {
+	fake.failoverFromMutex.RLock()
+	defer fake.failoverFromMutex.RUnlock()
+	return len(fake.failoverFromArgsForCall)
+}
+
+func (fake *FakePatroni) FailoverFromArgsForCall(i int) (structs.ClusterID, string) {
+	fake.failoverFromMutex.RLock()
+	defer fake.failoverFromMutex.RUnlock()
+	return fake.failoverFromArgsForCall[i].instanceID, fake.failoverFromArgsForCall[i].nodeID
+}
+
+func (fake *FakePatroni) FailoverFromReturns(result1 error) {
+	fake.FailoverFromStub = nil
+	fake.failoverFromReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakePatroni) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -194,6 +237,8 @@ func (fake *FakePatroni) Invocations() map[string][][]interface{} {
 	defer fake.waitForAllMembersMutex.RUnlock()
 	fake.waitForLeaderMutex.RLock()
 	defer fake.waitForLeaderMutex.RUnlock()
+	fake.failoverFromMutex.RLock()
+	defer fake.failoverFromMutex.RUnlock()
 	return fake.invocations
 }
 

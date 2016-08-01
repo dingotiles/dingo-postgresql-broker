@@ -2,6 +2,7 @@ package step
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 
 	"github.com/dingotiles/dingo-postgresql-broker/broker/interfaces"
@@ -13,13 +14,14 @@ import (
 // RemoveRandomNode instructs cluster to delete a node, starting with replicas
 type RemoveRandomNode struct {
 	clusterModel interfaces.ClusterModel
+	leaderID     string
 	cells        cells.Cells
 	logger       lager.Logger
 }
 
 // NewStepRemoveRandomNode creates a StepRemoveRandomNode command
-func NewStepRemoveRandomNode(clusterModel interfaces.ClusterModel, cells cells.Cells, logger lager.Logger) Step {
-	return RemoveRandomNode{clusterModel: clusterModel, cells: cells, logger: logger}
+func NewStepRemoveRandomNode(clusterModel interfaces.ClusterModel, leaderID string, cells cells.Cells, logger lager.Logger) Step {
+	return RemoveRandomNode{clusterModel: clusterModel, leaderID: leaderID, cells: cells, logger: logger}
 }
 
 // StepType prints the type of step
@@ -31,9 +33,9 @@ func (step RemoveRandomNode) StepType() string {
 func (step RemoveRandomNode) Perform() (err error) {
 	logger := step.logger
 
-	// 1. Get list of replicas and pick a random one; else pick a random master
+	// 1. Get list of replicas and pick a random one
 	nodes := step.clusterModel.Nodes()
-	nodeToRemove := randomReplicaNode(nodes)
+	nodeToRemove := randomNode(nodes, step.leaderID)
 
 	cell := step.cells.Get(nodeToRemove.CellGUID)
 	if cell == nil {
@@ -60,8 +62,11 @@ func (step RemoveRandomNode) Perform() (err error) {
 	return
 }
 
-// currently random any node, doesn't have to be a replica
-func randomReplicaNode(nodes []*structs.Node) *structs.Node {
+// picks a random node that isn't leaderID (unless thats the only one)
+func randomNode(nodes []*structs.Node, leaderID string) *structs.Node {
 	n := rand.Intn(len(nodes))
+	if nodes[n].ID == leaderID {
+		n = int(math.Mod(float64(n+1), float64(len(nodes))))
+	}
 	return nodes[n]
 }

@@ -115,7 +115,7 @@ func TestPlan_Steps_NewCluster_DecreaseCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"RemoveRandomNode", "WaitForLeader"}
+	expectedStepTypes := []string{"RemoveRandomNode", "WaitForAllMembers", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -199,7 +199,7 @@ func TestPlan_Steps_NewCluster_MoveLeader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "WaitForAllMembers", "RemoveLeader(a)", "WaitForAllMembers", "WaitForLeader"}
+	expectedStepTypes := []string{"AddNode", "WaitForAllMembers", "FailoverFrom(a)", "RemoveNode(a)", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)
@@ -242,7 +242,7 @@ func TestPlan_Steps_NewCluster_MoveEverything(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scheduler.newPlan error: %v", err)
 	}
-	expectedStepTypes := []string{"AddNode", "AddNode", "WaitForAllMembers", "RemoveNode(b)", "RemoveLeader(a)", "WaitForAllMembers", "WaitForLeader"}
+	expectedStepTypes := []string{"AddNode", "AddNode", "WaitForAllMembers", "RemoveNode(b)", "WaitForAllMembers", "FailoverFrom(a)", "RemoveNode(a)", "WaitForLeader"}
 	stepTypes := plan.stepTypes()
 	if !reflect.DeepEqual(stepTypes, expectedStepTypes) {
 		t.Fatalf("plan should have steps %v, got %v", expectedStepTypes, stepTypes)

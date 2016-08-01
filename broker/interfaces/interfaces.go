@@ -21,6 +21,7 @@ type State interface {
 	SaveCluster(structs.ClusterState) error
 	LoadCluster(structs.ClusterID) (structs.ClusterState, error)
 	DeleteCluster(structs.ClusterID) error
+	LoadAllRunningClusters() ([]*structs.ClusterState, error)
 }
 
 type ClusterModel interface {
@@ -44,6 +45,7 @@ type Patroni interface {
 	WaitForMember(instanceID structs.ClusterID, memberID string) error
 	WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error
 	WaitForLeader(structs.ClusterID) error
+	FailoverFrom(instanceID structs.ClusterID, memberID string) error
 }
 
 type CloudFoundry interface {
