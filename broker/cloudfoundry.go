@@ -16,8 +16,9 @@ type CloudFoundryFromConfig struct {
 }
 
 func NewCloudFoundryFromConfig(creds config.CloudFoundryCredentials, logger lager.Logger) (cf *CloudFoundryFromConfig, err error) {
+	cf = &CloudFoundryFromConfig{}
 	if creds.ApiAddress == "" {
-		return nil, fmt.Errorf("Cloud Foundry credentials not provided")
+		return cf, fmt.Errorf("Cloud Foundry credentials not provided")
 	}
 	client, err := cfclient.NewClient(&cfclient.Config{
 		ApiAddress:        creds.ApiAddress,
@@ -28,7 +29,7 @@ func NewCloudFoundryFromConfig(creds config.CloudFoundryCredentials, logger lage
 	if err != nil {
 		return
 	}
-	cf = &CloudFoundryFromConfig{client: client}
+	cf.client = client
 	return
 }
 
