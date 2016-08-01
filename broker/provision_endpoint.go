@@ -60,15 +60,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 			return
 		}
 
-		// If broker has credentials for a Cloud Foundry,
-		// attempt to look up service instance to get its user-provided name.
-		// This can then be used in future to undo/recreate-from-backup when user
-		// only knows the name they provided; and not the internal service instance ID.
-		// If operation fails, that's temporarily unfortunate but might be due to credentials
-		// not yet having SpaceDeveloper role for the Space being used.
-		if bkr.cf != nil && bkr.callbacks.Configured() {
-			bkr.fetchAndBackupServiceInstanceName(instanceID, &clusterState, logger)
-		}
+		bkr.fetchAndBackupServiceInstanceName(instanceID, &clusterState, logger)
 	}()
 	return resp, true, err
 }
@@ -104,22 +96,30 @@ func (bkr *Broker) assertProvisionPrecondition(instanceID structs.ClusterID, fea
 	return bkr.scheduler.VerifyClusterFeatures(features)
 }
 
+// If broker has credentials for a Cloud Foundry,
+// attempt to look up service instance to get its user-provided name.
+// This can then be used in future to undo/recreate-from-backup when user
+// only knows the name they provided; and not the internal service instance ID.
+// If operation fails, that's temporarily unfortunate but might be due to credentials
+// not yet having SpaceDeveloper role for the Space being used.
 func (bkr *Broker) fetchAndBackupServiceInstanceName(instanceID structs.ClusterID, clusterState *structs.ClusterState, logger lager.Logger) {
-	serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
-	if err != nil {
-		logger.Error("lookup-service-name.error", err,
-			lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
-	}
-	if serviceInstanceName == "" {
-		logger.Info("lookup-service-name.not-found")
-	} else {
-		clusterState.ServiceInstanceName = serviceInstanceName
-		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
-		data, err := bkr.callbacks.RestoreRecreationData(instanceID)
-		if !reflect.DeepEqual(clusterState.RecreationData(), data) {
-			logger.Error("lookup-service-name.update-recreation-data.failure", err)
+	if bkr.cf != nil && bkr.callbacks.Configured() {
+		serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
+		if err != nil {
+			logger.Error("lookup-service-name.error", err,
+				lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
+		}
+		if serviceInstanceName == "" {
+			logger.Info("lookup-service-name.not-found")
 		} else {
-			logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
+			clusterState.ServiceInstanceName = serviceInstanceName
+			bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
+			data, err := bkr.callbacks.RestoreRecreationData(instanceID)
+			if !reflect.DeepEqual(clusterState.RecreationData(), data) {
+				logger.Error("lookup-service-name.update-recreation-data.failure", err)
+			} else {
+				logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
+			}
 		}
 	}
 }
