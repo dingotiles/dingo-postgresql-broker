@@ -41,8 +41,13 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
 		data, err := bkr.callbacks.RestoreRecreationData(instanceID)
+		if err != nil {
+			logger.Error("recreation-data.save-failure.error", err)
+			return resp, false, err
+		}
 		if !reflect.DeepEqual(clusterState.RecreationData(), data) {
-			logger.Error("recreation-data.failure", err)
+			err = fmt.Errorf("Cluster recreation data was not saved successfully")
+			logger.Error("recreation-data.save-failure.deep-equal", err)
 			return resp, false, err
 		}
 	}
