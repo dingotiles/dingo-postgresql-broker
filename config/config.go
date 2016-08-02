@@ -16,6 +16,7 @@ type Config struct {
 	Cells        []*Cell                 `yaml:"cells"`
 	Etcd         Etcd                    `yaml:"etcd"`
 	Callbacks    Callbacks               `yaml:"callbacks"`
+	Backups      Backups                 `yaml:"backups"`
 	Catalog      brokerapi.Catalog       `yaml:"catalog"`
 	Scheduler    Scheduler               `yaml:"scheduler"`
 	CloudFoundry CloudFoundryCredentials `yaml:"cf"`
@@ -60,6 +61,10 @@ type CloudFoundryCredentials struct {
 	Username          string `yaml:"username"`
 	Password          string `yaml:"password"`
 	SkipSslValidation bool   `yaml:"skip_ssl_validation"`
+}
+
+type Backups struct {
+	BaseURI string `yaml:"base_uri"`
 }
 
 // Callbacks allows plug'n'play scripts to be run when events have completed

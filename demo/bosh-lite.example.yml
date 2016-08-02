@@ -26,6 +26,9 @@ callbacks:
   clusterdata_find_by_name: {cmd: ./demo/example_clusterdata_find_by_name.sh}
   backups_copy: {cmd: ./demo/example_backups_copy.sh}
 
+backups:
+  base_uri: s3://some-bucket/backups
+
 cf:
   api_url: https://api.10-58-111-48.sslip.io
   username: admin
