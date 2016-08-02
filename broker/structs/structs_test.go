@@ -51,3 +51,19 @@ func TestFeatures_FromProvisionDetails_Illegal(t *testing.T) {
 		t.Fatalf("Expected Error on negative input")
 	}
 }
+
+func TestFeatures_FromProvisionDetails_PrepopulateClone(t *testing.T) {
+	t.Parallel()
+
+	params := map[string]interface{}{
+		"clone-from": "test-db",
+	}
+	features, err := ClusterFeaturesFromParameters(params)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+
+	if features.CloneFromServiceName != "test-db" {
+		t.Fatalf("features.CloneFrom should be 'test-db'")
+	}
+}
