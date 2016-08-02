@@ -52,21 +52,20 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 		}
 	}
 
+	var existingClusterData *structs.ClusterRecreationData
 	if features.CloneFromServiceName != "" {
 		// Confirm that backup can be found before continuing asynchronously
-		data, err := bkr.lookupClusterDataBackupByServiceInstanceName(details.SpaceGUID, features.CloneFromServiceName, logger)
+		existingClusterData, err = bkr.lookupClusterDataBackupByServiceInstanceName(details.SpaceGUID, features.CloneFromServiceName, logger)
 		if err != nil {
 			logger.Error("lookup-service-name", err)
 			return resp, false, err
 		}
-		fmt.Printf("%#v\n", data)
-		return resp, false, fmt.Errorf("%#v\n", data)
 	}
 
 	// Continue processing in background
 	go func() {
-		if features.CloneFromServiceName != "" {
-			if err := bkr.prepopulateDatabaseFromExistingBackupByServiceInstanceName(details.SpaceGUID, features.CloneFromServiceName, instanceID, &clusterState, logger); err != nil {
+		if existingClusterData != nil {
+			if err := bkr.prepopulateDatabaseFromExistingClusterData(existingClusterData, instanceID, &clusterState, logger); err != nil {
 				logger.Error("pre-populate-cluster", err)
 				clusterModel.SchedulingError(fmt.Errorf("Unsuccessful pre-populating database from backup. Please contact administrator: %s", err.Error()))
 				return
@@ -163,6 +162,6 @@ func (bkr *Broker) lookupClusterDataBackupByServiceInstanceName(spaceGUID, name 
 }
 
 // If requested to pre-populate database from a backup of previous/existing database
-func (bkr *Broker) prepopulateDatabaseFromExistingBackupByServiceInstanceName(fromSpaceGUID string, fromServiceInstanceName string, toInstanceID structs.ClusterID, clusterState *structs.ClusterState, logger lager.Logger) (err error) {
-	return fmt.Errorf("Could not locate backup for service instance '%s'", fromServiceInstanceName)
+func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterData *structs.ClusterRecreationData, toInstanceID structs.ClusterID, clusterState *structs.ClusterState, logger lager.Logger) (err error) {
+	return fmt.Errorf("Could not locate database backups for existing cluster data '%s'", existingClusterData.InstanceID)
 }
