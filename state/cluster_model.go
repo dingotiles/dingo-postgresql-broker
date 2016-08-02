@@ -99,3 +99,9 @@ func (m *ClusterModel) RemoveNode(node *structs.Node) error {
 	m.cluster.RemoveNode(node)
 	return m.save()
 }
+
+func (m *ClusterModel) UpdateCredentials(adminCreds, superuserCreds structs.PostgresCredentials) error {
+	m.cluster.AdminCredentials = adminCreds
+	m.cluster.SuperuserCredentials = superuserCreds
+	return m.save()
+}

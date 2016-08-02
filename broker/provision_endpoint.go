@@ -66,7 +66,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	go func() {
 		if existingClusterData != nil {
 			clusterModel.SchedulingMessage(fmt.Sprintf("Cloning existing database %s", existingClusterData.ServiceInstanceName))
-			if err := bkr.prepopulateDatabaseFromExistingClusterData(existingClusterData, instanceID, &clusterState, logger); err != nil {
+			if err := bkr.prepopulateDatabaseFromExistingClusterData(existingClusterData, instanceID, clusterModel, logger); err != nil {
 				logger.Error("pre-populate-cluster", err)
 				clusterModel.SchedulingError(fmt.Errorf("Unsuccessful pre-populating database from backup. Please contact administrator: %s", err.Error()))
 				return
@@ -163,7 +163,8 @@ func (bkr *Broker) lookupClusterDataBackupByServiceInstanceName(spaceGUID, name 
 }
 
 // If requested to pre-populate database from a backup of previous/existing database
-func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterData *structs.ClusterRecreationData, toInstanceID structs.ClusterID, clusterState *structs.ClusterState, logger lager.Logger) (err error) {
+// and updates clusterState with DB credentials
+func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterData *structs.ClusterRecreationData, toInstanceID structs.ClusterID, clusterModel *state.ClusterModel, logger lager.Logger) (err error) {
 	if bkr.backups.BaseURI == "" {
 		return fmt.Errorf("Failed to copy existing database backup: missing backups.base_uri configuration")
 	}
@@ -174,5 +175,6 @@ func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterDat
 		logger.Error("prepopulate-database", err)
 		return fmt.Errorf("Failed to copy existing database backup to new database: %s", err.Error())
 	}
-	return nil
+
+	return clusterModel.UpdateCredentials(existingClusterData.AdminCredentials, existingClusterData.SuperuserCredentials)
 }
