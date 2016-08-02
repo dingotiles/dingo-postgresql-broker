@@ -163,5 +163,12 @@ func (bkr *Broker) lookupClusterDataBackupByServiceInstanceName(spaceGUID, name 
 
 // If requested to pre-populate database from a backup of previous/existing database
 func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterData *structs.ClusterRecreationData, toInstanceID structs.ClusterID, clusterState *structs.ClusterState, logger lager.Logger) (err error) {
-	return fmt.Errorf("Could not locate database backups for existing cluster data '%s'", existingClusterData.InstanceID)
+	fromDatabaseBackup := "s3://bucket/db/folder/from"
+	toDatabaseBackup := "s3://bucket/db/folder/to"
+	err = bkr.callbacks.CopyDatabaseBackup(fromDatabaseBackup, toDatabaseBackup, bkr.logger)
+	if err != nil {
+		logger.Error("prepopulate-database", err)
+		return fmt.Errorf("Failed to copy existing database backup to new database: %s", err.Error())
+	}
+	return nil
 }

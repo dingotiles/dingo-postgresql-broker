@@ -67,6 +67,7 @@ type Callbacks struct {
 	ClusterDataBackup     *CallbackCommand `yaml:"clusterdata_backup"`
 	ClusterDataRestore    *CallbackCommand `yaml:"clusterdata_restore"`
 	ClusterDataFindByName *CallbackCommand `yaml:"clusterdata_find_by_name"`
+	BackupsCopy           *CallbackCommand `yaml:"backups_copy"`
 }
 
 // CallbackCommand describes a command that can be run via os/exec's Command

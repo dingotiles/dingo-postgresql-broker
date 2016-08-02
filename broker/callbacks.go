@@ -15,18 +15,20 @@ import (
 )
 
 type Callbacks struct {
-	backupCallback     *config.CallbackCommand
-	restoreCallback    *config.CallbackCommand
-	findByNameCallback *config.CallbackCommand
-	logger             lager.Logger
+	backupCallback             *config.CallbackCommand
+	restoreCallback            *config.CallbackCommand
+	findByNameCallback         *config.CallbackCommand
+	copyDatabaseBackupCallback *config.CallbackCommand
+	logger                     lager.Logger
 }
 
 func NewCallbacks(config config.Callbacks, logger lager.Logger) *Callbacks {
 	callbacks := &Callbacks{
-		backupCallback:     config.ClusterDataBackup,
-		restoreCallback:    config.ClusterDataRestore,
-		findByNameCallback: config.ClusterDataFindByName,
-		logger:             logger,
+		backupCallback:             config.ClusterDataBackup,
+		restoreCallback:            config.ClusterDataRestore,
+		findByNameCallback:         config.ClusterDataFindByName,
+		copyDatabaseBackupCallback: config.BackupsCopy,
+		logger: logger,
 	}
 	return callbacks
 }
@@ -227,4 +229,72 @@ func (c *Callbacks) ClusterDataFindServiceInstanceByName(spaceGUID, name string)
 	}
 	logger.Info("callbacks.find-by-name.done", lager.Data{"clusterData": clusterData})
 	return clusterData, nil
+}
+
+// Input: {"space_guid": "GUID", "name": "NAME"}
+// Output: {"instance_id":"71c27bbe-...", ...}
+func (c *Callbacks) CopyDatabaseBackup(fromDatabaseBackupURI, toDatabaseBackupURI string, callerlogger lager.Logger) (err error) {
+	callback := c.copyDatabaseBackupCallback
+	logger := callerlogger.Session("callbacks.copy-database-backup")
+	logger.Info("start", lager.Data{"from-uri": fromDatabaseBackupURI, "to-uri": toDatabaseBackupURI})
+	defer logger.Info("done")
+
+	if callback == nil {
+		err = fmt.Errorf("Broker not configured to copy/clone database backups")
+		logger.Error("callback-missing", err, lager.Data{"missing-config": "callbacks.clusterdata_find_by_name"})
+		return
+	}
+
+	data, err := json.Marshal(map[string]string{
+		"from_uri": fromDatabaseBackupURI,
+		"to_uri":   toDatabaseBackupURI,
+	})
+	if err != nil {
+		logger.Error("data-marshal", err)
+		return
+	}
+
+	cmd := exec.Command(callback.Command, callback.Arguments...)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		logger.Error("stdin-pipe", err)
+		return
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		logger.Error("stdout-pipe", err)
+		return
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		logger.Error("stderr-pipe", err)
+		return
+	}
+	err = cmd.Start()
+	if err != nil {
+		logger.Error("start", err)
+		return
+	}
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		defer stdin.Close()
+		io.Copy(stdin, bytes.NewBufferString(string(data)))
+	}()
+	go func() {
+		defer wg.Done()
+		io.Copy(os.Stdout, stdout)
+	}()
+	go func() {
+		defer wg.Done()
+		io.Copy(os.Stderr, stderr)
+	}()
+	wg.Wait()
+	err = cmd.Wait()
+	if err != nil {
+		logger.Error("error", err)
+		return
+	}
+	return nil
 }
