@@ -20,6 +20,11 @@ cells:
 etcd:
   machines: ["http://10.58.111.48:4001"]
 
+callbacks:
+  clusterdata_backup: {cmd: ./demo/example_clusterdata_backup.sh}
+  clusterdata_restore: {cmd: ./demo/example_clusterdata_restore.sh}
+  clusterdata_find_by_name: {cmd: ./demo/example_clusterdata_find_by_name.sh}
+
 cf:
   api_url: https://api.10-58-111-48.sslip.io
   username: admin
