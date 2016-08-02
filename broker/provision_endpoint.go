@@ -65,6 +65,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	// Continue processing in background
 	go func() {
 		if existingClusterData != nil {
+			clusterModel.SchedulingMessage(fmt.Sprintf("Cloning existing database %s", existingClusterData.ServiceInstanceName))
 			if err := bkr.prepopulateDatabaseFromExistingClusterData(existingClusterData, instanceID, &clusterState, logger); err != nil {
 				logger.Error("pre-populate-cluster", err)
 				clusterModel.SchedulingError(fmt.Errorf("Unsuccessful pre-populating database from backup. Please contact administrator: %s", err.Error()))

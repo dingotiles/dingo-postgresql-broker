@@ -32,6 +32,14 @@ func (m *ClusterModel) SchedulingError(err error) error {
 	return m.save()
 }
 
+// SchedulingMessage stores an arbitrary status message
+// This will be shown to end users via /last_operation endpoint
+func (m *ClusterModel) SchedulingMessage(msg string) error {
+	m.cluster.SchedulingInfo.LastMessage = msg
+	m.cluster.SchedulingInfo.Status = structs.SchedulingStatusInProgress
+	return m.save()
+}
+
 func (m *ClusterModel) BeginScheduling(steps int) error {
 	m.cluster.SchedulingInfo.Steps = steps
 	m.cluster.SchedulingInfo.CompletedSteps = 0
