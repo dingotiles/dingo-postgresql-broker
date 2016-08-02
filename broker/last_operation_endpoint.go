@@ -32,6 +32,7 @@ func (bkr *Broker) lastOperation(instanceID structs.ClusterID) (resp brokerapi.L
 
 func (bkr *Broker) lastOperationFromSchedulingInfo(schedulingInfo structs.SchedulingInfo) (resp brokerapi.LastOperationResponse, err error) {
 	resp.Description = schedulingInfo.LastMessage
+	resp.State = brokerapi.LastOperationInProgress
 
 	switch schedulingInfo.Status {
 	case structs.SchedulingStatusFailed:
@@ -39,10 +40,7 @@ func (bkr *Broker) lastOperationFromSchedulingInfo(schedulingInfo structs.Schedu
 		err = fmt.Errorf(resp.Description)
 	case structs.SchedulingStatusSuccess:
 		resp.State = brokerapi.LastOperationSucceeded
-	case structs.SchedulingStatusInProgress:
-		resp.State = brokerapi.LastOperationInProgress
 	default:
-		resp.State = brokerapi.LastOperationInProgress
 		resp.Description = "Preparing..."
 	}
 	return
