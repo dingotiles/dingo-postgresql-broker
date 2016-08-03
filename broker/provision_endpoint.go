@@ -176,5 +176,5 @@ func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterDat
 		return fmt.Errorf("Failed to copy existing database backup to new database: %s", err.Error())
 	}
 
-	return clusterModel.UpdateCredentials(existingClusterData.AdminCredentials, existingClusterData.SuperuserCredentials)
+	return clusterModel.UpdateCredentials(existingClusterData)
 }
