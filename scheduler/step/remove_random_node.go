@@ -50,7 +50,7 @@ func (step RemoveRandomNode) Perform() (err error) {
 		"cell":        cell.GUID,
 	})
 
-	err = cell.DeprovisionNode(nodeToRemove, logger)
+	err = cell.DeprovisionNode(step.clusterModel.ClusterState(), nodeToRemove, logger)
 	if err != nil {
 		return nil
 	}

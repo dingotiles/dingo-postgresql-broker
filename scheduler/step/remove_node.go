@@ -49,7 +49,7 @@ func (step RemoveNode) Perform() (err error) {
 		"cell":        cell.GUID,
 	})
 
-	err = cell.DeprovisionNode(step.nodeToRemove, logger)
+	err = cell.DeprovisionNode(step.clusterModel.ClusterState(), step.nodeToRemove, logger)
 	if err != nil {
 		return nil
 	}

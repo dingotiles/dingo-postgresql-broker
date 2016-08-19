@@ -91,7 +91,7 @@ func (cells Cells) ContainsCell(cellID string) bool {
 }
 
 func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.Logger) (node structs.Node, err error) {
-	node = structs.Node{ID: uuid.New(), CellGUID: cell.GUID, PlanID: clusterState.PlanID, ServiceID: clusterState.ServiceID}
+	node = structs.Node{ID: uuid.New(), CellGUID: cell.GUID}
 	provisionDetails := brokerapi.ProvisionDetails{
 		OrganizationGUID: clusterState.OrganizationGUID,
 		PlanID:           clusterState.PlanID,
@@ -140,14 +140,14 @@ func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.
 	return
 }
 
-func (cell *Cell) DeprovisionNode(node *structs.Node, logger lager.Logger) (err error) {
+func (cell *Cell) DeprovisionNode(clusterState structs.ClusterState, node *structs.Node, logger lager.Logger) (err error) {
 	url := fmt.Sprintf("%s/v2/service_instances/%s", cell.URI, node.ID)
 	client := &http.Client{}
 	buffer := &bytes.Buffer{}
 
 	deleteDetails := brokerapi.DeprovisionDetails{
-		PlanID:    node.PlanID,
-		ServiceID: node.ServiceID,
+		PlanID:    clusterState.PlanID,
+		ServiceID: clusterState.ServiceID,
 	}
 
 	if err = json.NewEncoder(buffer).Encode(deleteDetails); err != nil {
