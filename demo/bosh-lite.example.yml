@@ -8,12 +8,12 @@ broker:
 cells:
 - guid: "10.244.21.7"
   availability_zone: "z1"
-  uri: "http://10.58.111.45:10217"
+  uri: "http://10.58.111.48:10217"
   username: "containers"
   password: "containers"
 - guid: "10.244.22.2"
   availability_zone: "z2"
-  uri: "http://10.58.111.45:10222"
+  uri: "http://10.58.111.48:10222"
   username: "containers"
   password: "containers"
 
@@ -21,8 +21,13 @@ etcd:
   machines: ["http://10.58.111.48:4001"]
 
 callbacks:
-  clusterdata_backup: {cmd: jq, args: ["-r", "."]}
-  clusterdata_restore: {cmd: echo, args: ['{"instance_id":"TESTID-1458690055","service_id":"beb5973c-e1b2-11e5-a736-c7c0b526363d","plan_id":"b96d0936-e423-11e5-accb-93d374e93368","organization_guid":"","space_guid":"","parameters":null,"node_count":1,"node_size":20,"allocated_port":"33000"}']}
+  clusterdata_backup: {cmd: ./demo/example_clusterdata_backup.sh}
+  clusterdata_restore: {cmd: ./demo/example_clusterdata_restore.sh}
+  clusterdata_find_by_name: {cmd: ./demo/example_clusterdata_find_by_name.sh}
+  backups_copy: {cmd: ./demo/example_backups_copy.sh}
+
+backups:
+  base_uri: s3://some-bucket/backups
 
 cf:
   api_url: https://api.10-58-111-48.sslip.io

@@ -24,6 +24,7 @@ type Broker struct {
 	cells  []*config.Cell
 
 	callbacks *Callbacks
+	backups   config.Backups
 
 	router    interfaces.Router
 	scheduler interfaces.Scheduler
@@ -37,6 +38,7 @@ func NewBroker(config *config.Config) (*Broker, error) {
 	bkr := &Broker{
 		config:  config.Broker,
 		catalog: config.Catalog,
+		backups: config.Backups,
 		cells:   config.Scheduler.Cells,
 	}
 

@@ -41,15 +41,38 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
 		data, err := bkr.callbacks.RestoreRecreationData(instanceID)
+		if err != nil {
+			logger.Error("recreation-data.save-failure.error", err)
+			return resp, false, err
+		}
 		if !reflect.DeepEqual(clusterState.RecreationData(), data) {
-			logger.Error("recreation-data.failure", err)
+			err = fmt.Errorf("Cluster recreation data was not saved successfully")
+			logger.Error("recreation-data.save-failure.deep-equal", err)
+			return resp, false, err
+		}
+	}
+
+	var existingClusterData *structs.ClusterRecreationData
+	if features.CloneFromServiceName != "" {
+		// Confirm that backup can be found before continuing asynchronously
+		existingClusterData, err = bkr.lookupClusterDataBackupByServiceInstanceName(details.SpaceGUID, features.CloneFromServiceName, logger)
+		if err != nil {
+			logger.Error("lookup-service-name", err)
 			return resp, false, err
 		}
 	}
 
 	// Continue processing in background
-	// TODO: if error, store it into etcd; and last_operation_endpoint should look for errors first
 	go func() {
+		if existingClusterData != nil {
+			clusterModel.SchedulingMessage(fmt.Sprintf("Cloning existing database %s", existingClusterData.ServiceInstanceName))
+			if err := bkr.prepopulateDatabaseFromExistingClusterData(existingClusterData, instanceID, clusterModel, logger); err != nil {
+				logger.Error("pre-populate-cluster", err)
+				clusterModel.SchedulingError(fmt.Errorf("Unsuccessful pre-populating database from backup. Please contact administrator: %s", err.Error()))
+				return
+			}
+		}
+
 		if err := bkr.scheduler.RunCluster(clusterModel, features); err != nil {
 			logger.Error("run-cluster", err)
 			return
@@ -57,34 +80,11 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 
 		if err := bkr.router.AssignPortToCluster(instanceID, port); err != nil {
 			logger.Error("assign-port", err)
+			clusterModel.SchedulingError(fmt.Errorf("Unsuccessful mapping database to routing mesh. Please contact administrator: %s", err.Error()))
 			return
 		}
 
-		// If broker has credentials for a Cloud Foundry,
-		// attempt to look up service instance to get its user-provided name.
-		// This can then be used in future to undo/recreate-from-backup when user
-		// only knows the name they provided; and not the internal service instance ID.
-		// If operation fails, that's temporarily unfortunate but might be due to credentials
-		// not yet having SpaceDeveloper role for the Space being used.
-		if bkr.cf != nil && bkr.callbacks.Configured() {
-			serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
-			if err != nil {
-				logger.Error("lookup-service-name.error", err,
-					lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
-			}
-			if serviceInstanceName == "" {
-				logger.Info("lookup-service-name.not-found")
-			} else {
-				clusterState.ServiceInstanceName = serviceInstanceName
-				bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
-				data, err := bkr.callbacks.RestoreRecreationData(instanceID)
-				if !reflect.DeepEqual(clusterState.RecreationData(), data) {
-					logger.Error("lookup-service-name.update-recreation-data.failure", err)
-				} else {
-					logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
-				}
-			}
-		}
+		bkr.fetchAndBackupServiceInstanceName(instanceID, &clusterState, logger)
 	}()
 	return resp, true, err
 }
@@ -118,4 +118,63 @@ func (bkr *Broker) assertProvisionPrecondition(instanceID structs.ClusterID, fea
 	}
 
 	return bkr.scheduler.VerifyClusterFeatures(features)
+}
+
+// If broker has credentials for a Cloud Foundry,
+// attempt to look up service instance to get its user-provided name.
+// This can then be used in future to undo/recreate-from-backup when user
+// only knows the name they provided; and not the internal service instance ID.
+// If operation fails, that's temporarily unfortunate but might be due to credentials
+// not yet having SpaceDeveloper role for the Space being used.
+func (bkr *Broker) fetchAndBackupServiceInstanceName(instanceID structs.ClusterID, clusterState *structs.ClusterState, logger lager.Logger) {
+	if bkr.callbacks.Configured() {
+		serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
+		if err != nil {
+			logger.Error("lookup-service-name.error", err,
+				lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
+		}
+		if serviceInstanceName == "" {
+			logger.Info("lookup-service-name.not-found")
+		} else {
+			clusterState.ServiceInstanceName = serviceInstanceName
+			bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
+			data, err := bkr.callbacks.RestoreRecreationData(instanceID)
+			if !reflect.DeepEqual(clusterState.RecreationData(), data) {
+				logger.Error("lookup-service-name.update-recreation-data.failure", err)
+			} else {
+				logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
+			}
+		}
+	}
+}
+
+// Find clusterdata backup information for a space_guid/service_name, else error
+func (bkr *Broker) lookupClusterDataBackupByServiceInstanceName(spaceGUID, name string, logger lager.Logger) (data *structs.ClusterRecreationData, err error) {
+	if bkr.callbacks.Configured() {
+		data, err = bkr.callbacks.ClusterDataFindServiceInstanceByName(spaceGUID, name)
+		if err != nil {
+			logger.Error("lookup-clusterdata-backup", err)
+			return nil, fmt.Errorf("Could not locate backup for service instance '%s'", name)
+		}
+	} else {
+		return nil, fmt.Errorf("Dingo PostgreSQL broker is not configured for this operation")
+	}
+	return
+}
+
+// If requested to pre-populate database from a backup of previous/existing database
+// and updates clusterState with DB credentials
+func (bkr *Broker) prepopulateDatabaseFromExistingClusterData(existingClusterData *structs.ClusterRecreationData, toInstanceID structs.ClusterID, clusterModel *state.ClusterModel, logger lager.Logger) (err error) {
+	if bkr.backups.BaseURI == "" {
+		return fmt.Errorf("Failed to copy existing database backup: missing backups.base_uri configuration")
+	}
+	fromDatabaseBackup := fmt.Sprintf("%s/%s", bkr.backups.BaseURI, existingClusterData.InstanceID)
+	toDatabaseBackup := fmt.Sprintf("%s/%s", bkr.backups.BaseURI, toInstanceID)
+	err = bkr.callbacks.CopyDatabaseBackup(fromDatabaseBackup, toDatabaseBackup, bkr.logger)
+	if err != nil {
+		logger.Error("prepopulate-database", err)
+		return fmt.Errorf("Failed to copy existing database backup to new database: %s", err.Error())
+	}
+
+	return clusterModel.UpdateCredentials(existingClusterData)
 }

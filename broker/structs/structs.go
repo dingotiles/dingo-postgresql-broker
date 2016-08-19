@@ -94,8 +94,9 @@ func (m *ClusterState) NodeOnCell(cellGUID string) (Node, error) {
 }
 
 type ClusterFeatures struct {
-	NodeCount int      `mapstructure:"node-count"`
-	CellGUIDs []string `mapstructure:"cells"`
+	NodeCount            int      `mapstructure:"node-count"`
+	CellGUIDs            []string `mapstructure:"cells"`
+	CloneFromServiceName string   `mapstructure:"clone-from"`
 }
 
 type PostgresCredentials struct {

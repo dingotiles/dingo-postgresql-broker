@@ -16,6 +16,7 @@ type Config struct {
 	Cells        []*Cell                 `yaml:"cells"`
 	Etcd         Etcd                    `yaml:"etcd"`
 	Callbacks    Callbacks               `yaml:"callbacks"`
+	Backups      Backups                 `yaml:"backups"`
 	Catalog      brokerapi.Catalog       `yaml:"catalog"`
 	Scheduler    Scheduler               `yaml:"scheduler"`
 	CloudFoundry CloudFoundryCredentials `yaml:"cf"`
@@ -62,10 +63,16 @@ type CloudFoundryCredentials struct {
 	SkipSslValidation bool   `yaml:"skip_ssl_validation"`
 }
 
+type Backups struct {
+	BaseURI string `yaml:"base_uri"`
+}
+
 // Callbacks allows plug'n'play scripts to be run when events have completed
 type Callbacks struct {
-	ClusterDataBackup  *CallbackCommand `yaml:"clusterdata_backup"`
-	ClusterDataRestore *CallbackCommand `yaml:"clusterdata_restore"`
+	ClusterDataBackup     *CallbackCommand `yaml:"clusterdata_backup"`
+	ClusterDataRestore    *CallbackCommand `yaml:"clusterdata_restore"`
+	ClusterDataFindByName *CallbackCommand `yaml:"clusterdata_find_by_name"`
+	BackupsCopy           *CallbackCommand `yaml:"backups_copy"`
 }
 
 // CallbackCommand describes a command that can be run via os/exec's Command

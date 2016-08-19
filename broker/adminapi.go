@@ -18,6 +18,7 @@ func NewAdminAPI(serviceBroker *Broker, logger lager.Logger, brokerCredentials b
 	router.Post("/admin/cells/{cell_guid}/demote", demoteCell(serviceBroker, router, logger))
 	router.Get("/admin/cells", adminCells(serviceBroker, router, logger))
 	router.Get("/admin/service_instances/{instance_id}", adminServiceInstances(serviceBroker, router, logger))
+	router.Get("/admin/spaces/{space_guid}/clusterdata_backup_by_name/{name}", adminFindServiceInstanceByName(serviceBroker, router, logger))
 	return wrapAuth(router, brokerCredentials)
 }
 
@@ -122,5 +123,26 @@ func demoteCell(bkr *Broker, router httpRouter, logger lager.Logger) http.Handle
 		}
 		wg.Wait()
 		respond(w, http.StatusOK, fmt.Sprintf("Failover from cell %s completed", cellGUID))
+	}
+}
+
+func adminFindServiceInstanceByName(bkr *Broker, router httpRouter, logger lager.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		vars := router.Vars(req)
+		spaceGUID := string(vars["space_guid"])
+		name := string(vars["name"])
+
+		logger := bkr.newLoggingSession("admin.find-service-instance-by-name",
+			lager.Data{"space-guid": spaceGUID, "name": name})
+		defer logger.Info("done")
+
+		data, err := bkr.callbacks.ClusterDataFindServiceInstanceByName(spaceGUID, name)
+		if err != nil {
+			logger.Error("error", err)
+			respond(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		respond(w, http.StatusNotFound, data)
 	}
 }
