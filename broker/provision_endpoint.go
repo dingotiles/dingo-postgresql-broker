@@ -54,6 +54,10 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 
 	var existingClusterData *structs.ClusterRecreationData
 	if features.CloneFromServiceName != "" {
+		if bkr.backups.BaseURI == "" {
+			return resp, false, fmt.Errorf("Broker missing configuration backups.base_uri to support 'clone-from' feature")
+		}
+
 		// Confirm that backup can be found before continuing asynchronously
 		existingClusterData, err = bkr.lookupClusterDataBackupByServiceInstanceName(details.SpaceGUID, features.CloneFromServiceName, logger)
 		if err != nil {
