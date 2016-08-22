@@ -70,6 +70,9 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 
 	// Continue processing in background
 	go func() {
+		logger.Info("async-begin")
+		defer logger.Info("async-complete")
+
 		if existingClusterData != nil {
 			clusterModel.SchedulingMessage(fmt.Sprintf("Cloning existing database %s", existingClusterData.ServiceInstanceName))
 			if err := bkr.prepopulateDatabaseFromExistingClusterData(existingClusterData, instanceID, clusterModel, logger); err != nil {
