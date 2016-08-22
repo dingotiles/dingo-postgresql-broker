@@ -41,7 +41,9 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	clusterModel.SchedulingMessage("Initializing...")
 
 	if bkr.callbacks.Configured() {
+		logger.Info("recreation-data.writing")
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
+		logger.Info("recreation-data.restoring")
 		data, err := bkr.callbacks.RestoreRecreationData(instanceID)
 		if err != nil {
 			logger.Error("recreation-data.save-failure.error", err)
@@ -52,6 +54,7 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 			logger.Error("recreation-data.save-failure.deep-equal", err)
 			return resp, false, err
 		}
+		logger.Info("recreation-data.success")
 	}
 
 	var existingClusterData *structs.ClusterRecreationData
@@ -61,11 +64,13 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 		}
 
 		// Confirm that backup can be found before continuing asynchronously
+		logger.Info("lookup-service-name.start")
 		existingClusterData, err = bkr.lookupClusterDataBackupByServiceInstanceName(details.SpaceGUID, features.CloneFromServiceName, logger)
 		if err != nil {
-			logger.Error("lookup-service-name", err)
+			logger.Error("lookup-service-name.error", err)
 			return resp, false, err
 		}
+		logger.Info("lookup-service-name.success")
 	}
 
 	// Continue processing in background
@@ -139,19 +144,19 @@ func (bkr *Broker) fetchAndBackupServiceInstanceName(instanceID structs.ClusterI
 	if bkr.callbacks.Configured() {
 		serviceInstanceName, err := bkr.cf.LookupServiceName(instanceID)
 		if err != nil {
-			logger.Error("lookup-service-name.error", err,
+			logger.Error("backup-name.error", err,
 				lager.Data{"action-required": "Fix issue and run errand/script to update clusterdata backups to include service names"})
 		}
 		if serviceInstanceName == "" {
-			logger.Info("lookup-service-name.not-found")
+			logger.Info("backup-name.not-found")
 		} else {
 			clusterState.ServiceInstanceName = serviceInstanceName
 			bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
 			data, err := bkr.callbacks.RestoreRecreationData(instanceID)
 			if !reflect.DeepEqual(clusterState.RecreationData(), data) {
-				logger.Error("lookup-service-name.update-recreation-data.failure", err)
+				logger.Error("backup-name.update-recreation-data.failure", err)
 			} else {
-				logger.Info("lookup-service-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
+				logger.Info("backup-name.update-recreation-data.saved", lager.Data{"name": serviceInstanceName})
 			}
 		}
 	}
