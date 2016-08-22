@@ -38,6 +38,8 @@ func (bkr *Broker) provision(instanceID structs.ClusterID, details brokerapi.Pro
 	clusterState := bkr.initCluster(instanceID, port, details)
 	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 
+	clusterModel.SchedulingMessage("Initializing...")
+
 	if bkr.callbacks.Configured() {
 		bkr.callbacks.WriteRecreationData(clusterState.RecreationData())
 		data, err := bkr.callbacks.RestoreRecreationData(instanceID)
