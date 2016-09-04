@@ -118,14 +118,13 @@ func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) e
 		case <-tick:
 			member, err := p.loadMember(instanceID, memberID)
 			if err != nil {
-				p.logger.Error("cluster-data.member-data.get", err, lager.Data{
-					"instance-id":   instanceID,
-					"member":        memberID,
-					"err":           err.Error(),
-					"not-found-yet": notFoundRegExp.MatchString(err.Error()),
-				})
-
 				if !notFoundRegExp.MatchString(err.Error()) {
+					p.logger.Error("cluster-data.member-data.get", err, lager.Data{
+						"instance-id":   instanceID,
+						"member":        memberID,
+						"err":           err.Error(),
+						"not-found-yet": notFoundRegExp.MatchString(err.Error()),
+					})
 					return err
 				}
 				p.logger.Info("cluster-data.member-data.waiting", lager.Data{
