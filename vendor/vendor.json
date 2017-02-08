@@ -3,79 +3,112 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "xorgphEPdQssa3c/1phbssuLO/k=",
+			"path": "github.com/cloudfoundry-community/go-cfclient",
+			"revision": "856f0964bf1bc7986264979f34003bb9e463b953",
+			"revisionTime": "2017-02-07T16:25:15Z"
+		},
+		{
 			"checksumSHA1": "kLaD7Wn764L6NKeg4ESHFssNs8E=",
-			"comment": "1.2.0-197-gcf1f63a",
 			"path": "github.com/codegangsta/cli",
-			"revision": "cf1f63a7274872768d4037305d572b70b1199397"
+			"revision": "cf1f63a7274872768d4037305d572b70b1199397",
+			"revisionTime": "2016-01-30T03:19:57Z"
 		},
 		{
 			"checksumSHA1": "Fa/Hw0ByZgcIDU5iG+Jt0MdeYYg=",
 			"path": "github.com/coreos/etcd/client",
-			"revision": "62b4d1cef733a60935f9b0ce97b3f80307f90560",
-			"revisionTime": "2016-05-18T22:52:21Z"
+			"revision": "78d9ae1820f4e7c0a1f05add60e1b69ba2981b75",
+			"revisionTime": "2016-06-23T20:01:26Z"
 		},
 		{
 			"checksumSHA1": "mKIXx1kDwmVmdIpZ3pJtRBuUKso=",
 			"path": "github.com/coreos/etcd/pkg/pathutil",
-			"revision": "62b4d1cef733a60935f9b0ce97b3f80307f90560",
-			"revisionTime": "2016-05-18T22:52:21Z"
+			"revision": "78d9ae1820f4e7c0a1f05add60e1b69ba2981b75",
+			"revisionTime": "2016-06-23T20:01:26Z"
 		},
 		{
 			"checksumSHA1": "kGLbveUJwLvoqg9yeWAnY0BQXtA=",
 			"path": "github.com/coreos/etcd/pkg/types",
-			"revision": "62b4d1cef733a60935f9b0ce97b3f80307f90560",
-			"revisionTime": "2016-05-18T22:52:21Z"
+			"revision": "78d9ae1820f4e7c0a1f05add60e1b69ba2981b75",
+			"revisionTime": "2016-06-23T20:01:26Z"
 		},
 		{
 			"checksumSHA1": "KcWn8tpMrYMswaDX4vFSSJcK418=",
 			"path": "github.com/frodenas/brokerapi",
-			"revision": "ac1ed76a08954bbd7b40a8794738539404a84313"
+			"revision": "ac1ed76a08954bbd7b40a8794738539404a84313",
+			"revisionTime": "2015-10-22T02:46:46Z"
 		},
 		{
 			"checksumSHA1": "ReI++fCJwuomAaQF0rC63bhRfOM=",
 			"path": "github.com/frodenas/brokerapi/auth",
-			"revision": "ac1ed76a08954bbd7b40a8794738539404a84313"
+			"revision": "ac1ed76a08954bbd7b40a8794738539404a84313",
+			"revisionTime": "2015-10-22T02:46:46Z"
 		},
 		{
 			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",
 			"path": "github.com/gorilla/context",
-			"revision": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+			"revision": "1ea25387ff6f684839d82767c1733ff4d4d15d0a",
+			"revisionTime": "2016-02-26T21:46:23Z"
 		},
 		{
 			"checksumSHA1": "9savgTOzXpR06MLoj5F+E/rEICY=",
 			"path": "github.com/gorilla/mux",
-			"revision": "c9e326e2bdec29039a3761c07bece13133863e1e"
+			"revision": "c9e326e2bdec29039a3761c07bece13133863e1e",
+			"revisionTime": "2016-02-29T03:40:56Z"
 		},
 		{
 			"checksumSHA1": "KCJhN9Dx329wAN/SeL4CxeypPyk=",
 			"path": "github.com/mitchellh/mapstructure",
-			"revision": "d2dd0262208475919e1a362f675cfc0e7c10e905"
+			"revision": "d2dd0262208475919e1a362f675cfc0e7c10e905",
+			"revisionTime": "2016-02-12T03:18:39Z"
 		},
 		{
 			"checksumSHA1": "xN14ZoFcgefABp24aowYtQVMDsc=",
-			"comment": "v1.0-11-gc55201b",
 			"path": "github.com/pborman/uuid",
-			"revision": "c55201b036063326c5b1b89ccfe45a184973d073"
+			"revision": "c55201b036063326c5b1b89ccfe45a184973d073",
+			"revisionTime": "2016-02-16T16:37:10Z"
 		},
 		{
-			"checksumSHA1": "EkVV1/3mZa7cpH3wSrgfi7vf2hQ=",
+			"checksumSHA1": "x8vUU+B8SayhUWxirNbUjq7Hlns=",
 			"path": "github.com/pivotal-golang/lager",
-			"revision": "95b2ada4cdf781bdcf07e5207879e034ac8c5314"
+			"revision": "7639e31ce6622c55c15aa64144b85d5f4873d127",
+			"revisionTime": "2016-03-11T18:00:00Z"
 		},
 		{
 			"checksumSHA1": "ImlfEQlXLepC8f2Ba/JLodjYULs=",
 			"path": "github.com/ugorji/go/codec",
-			"revision": "03b46f3d7a8e0457836a5ecd906b4961a5815a63"
+			"revision": "03b46f3d7a8e0457836a5ecd906b4961a5815a63",
+			"revisionTime": "2016-02-21T00:14:30Z"
 		},
 		{
-			"checksumSHA1": "pancewZW3HwGvpDwfH5Imrbadc4=",
+			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
 			"path": "golang.org/x/net/context",
-			"revision": "fb93926129b8ec0056f2f458b1f519654814edf0"
+			"revision": "77412025ac6f6821b4938edeb45af939de5cccec",
+			"revisionTime": "2017-01-09T20:27:39Z"
+		},
+		{
+			"checksumSHA1": "Zt7DIRCaUg5qfhfxyR1wCA+EjCE=",
+			"path": "golang.org/x/oauth2",
+			"revision": "4464e7848382e6f39db55097f70e1460bdf944b3",
+			"revisionTime": "2016-06-04T04:11:54Z"
+		},
+		{
+			"checksumSHA1": "nhXr6+glxEyO4YodkB+1YHAnIVw=",
+			"path": "golang.org/x/oauth2/clientcredentials",
+			"revision": "4464e7848382e6f39db55097f70e1460bdf944b3",
+			"revisionTime": "2016-06-04T04:11:54Z"
+		},
+		{
+			"checksumSHA1": "P+95/2BHoySnSCQdS6Enn3WQOyc=",
+			"path": "golang.org/x/oauth2/internal",
+			"revision": "4464e7848382e6f39db55097f70e1460bdf944b3",
+			"revisionTime": "2016-06-04T04:11:54Z"
 		},
 		{
 			"checksumSHA1": "MGk7cSnHqiL5soaovzgcJaNH3fc=",
 			"path": "gopkg.in/yaml.v1",
-			"revision": "9f9df34309c04878acc86042b16630b0f696e1de"
+			"revision": "9f9df34309c04878acc86042b16630b0f696e1de",
+			"revisionTime": "2014-09-24T16:16:07Z"
 		}
 	],
 	"rootPath": "github.com/dingotiles/dingo-postgresql-broker"
