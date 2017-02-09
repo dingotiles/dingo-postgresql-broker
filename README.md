@@ -5,10 +5,8 @@ Usage
 -----
 
 ```
-export PATRONI_BROKER_CONFIG=config/bosh-lite.example.yml
+export PATRONI_BROKER_CONFIG=demo/bosh-lite.example.yml
 go run main.go broker
-go run main.go service-status
-go run main.go show-cells
 ```
 
 Run Tests
