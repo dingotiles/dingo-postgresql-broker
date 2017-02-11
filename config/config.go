@@ -15,11 +15,33 @@ type Config struct {
 	Broker       Broker                  `yaml:"broker"`
 	Cells        []*Cell                 `yaml:"cells"`
 	Etcd         Etcd                    `yaml:"etcd"`
+	Archives     Archives                `yaml:"archives"`
 	Callbacks    Callbacks               `yaml:"callbacks"`
 	Backups      Backups                 `yaml:"backups"`
 	Catalog      brokerapi.Catalog       `yaml:"catalog"`
 	Scheduler    Scheduler               `yaml:"scheduler"`
 	CloudFoundry CloudFoundryCredentials `yaml:"cf"`
+}
+
+// Archives describes the different supported backends for patroni/wal-e
+type Archives struct {
+	Method string `yaml:"method"`
+	S3     struct {
+		AWSAccessKeyID    string `yaml:"aws_access_key_id,omitempty"`
+		AWSSecretAccessID string `yaml:"aws_secret_access_id,omitempty"`
+		S3Bucket          string `yaml:"s3_bucket,omitempty"`
+		S3Endpoint        string `yaml:"s3_endpoint,omitempty"`
+	} `yaml:"s3,omitempty"`
+	Local struct {
+		LocalBackupVolume string `yaml:"local_backup_volume,omitempty"`
+	} `yaml:"local,omitempty"`
+	SSH struct {
+		Host       string `yaml:"host,omitempty"`
+		Port       string `yaml:"port,omitempty"`
+		User       string `yaml:"user,omitempty"`
+		PrivateKey string `yaml:"private_key,omitempty"`
+		BasePath   string `yaml:"base_path,omitempty"`
+	} `yaml:"ssh,omitempty"`
 }
 
 func (cfg *Config) SupportsClusterDataBackup() bool {
@@ -28,10 +50,10 @@ func (cfg *Config) SupportsClusterDataBackup() bool {
 
 // Broker connection configuration
 type Broker struct {
-	Port     int    `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	BindHost string `yaml:"bind_host"`
+	Port       int    `yaml:"port"`
+	Username   string `yaml:"username"`
+	Password   string `yaml:"password"`
+	RouterHost string `yaml:"router_host"`
 }
 
 type Scheduler struct {
@@ -52,6 +74,11 @@ type Cell struct {
 // KVStore describes the KV store used by all the components
 type Etcd struct {
 	Machines []string `yaml:"machines"`
+}
+
+// URI returns a complete URI for connecting/authenticating with etcd
+func (etcd Etcd) URI() string {
+	return etcd.Machines[0]
 }
 
 // CloudFoundryCredentials describes credentials for looking up service instance info/name

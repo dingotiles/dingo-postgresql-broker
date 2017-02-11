@@ -12,6 +12,7 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
+// NewAdminAPI adds HTTP endpoints for admins
 func NewAdminAPI(serviceBroker *Broker, logger lager.Logger, brokerCredentials brokerapi.BrokerCredentials) http.Handler {
 	router := newHTTPRouter()
 

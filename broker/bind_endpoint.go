@@ -45,7 +45,7 @@ func (bkr *Broker) bind(instanceID structs.ClusterID, bindingID string, details 
 
 	publicPort := cluster.AllocatedPort
 
-	routerHost := bkr.config.BindHost
+	routerHost := bkr.config.RouterHost
 	appUsername := cluster.AppCredentials.Username
 	appPassword := cluster.AppCredentials.Password
 	uri := fmt.Sprintf("postgres://%s:%s@%s:%d/postgres", appUsername, appPassword, routerHost, publicPort)

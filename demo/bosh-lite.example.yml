@@ -3,7 +3,7 @@ broker:
   username: starkandwayne
   password: starkandwayne
   port: 8889
-  bind_host: 10.58.111.48
+  router_host: 10.58.111.48
 
 cells:
 - guid: "10.244.21.7"
@@ -19,6 +19,14 @@ cells:
 
 etcd:
   machines: ["http://10.58.111.48:4001"]
+
+archives:
+  method: s3
+  s3:
+    aws_access_key_id: "UNKNOWN"
+    aws_secret_access_id: "UNKNOWN"
+    s3_bucket: "UNKNOWN"
+    s3_endpoint: https+path://s3.amazonaws.com:443
 
 callbacks:
   clusterdata_backup: {cmd: ./demo/example_clusterdata_backup.sh}

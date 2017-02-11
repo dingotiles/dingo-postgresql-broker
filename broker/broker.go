@@ -17,6 +17,7 @@ import (
 
 // Broker is the core struct for the Broker webapp
 type Broker struct {
+	global  *config.Config
 	config  config.Broker
 	catalog brokerapi.Catalog
 
@@ -36,6 +37,7 @@ type Broker struct {
 // NewBroker is a constructor for a Broker webapp struct
 func NewBroker(config *config.Config) (*Broker, error) {
 	bkr := &Broker{
+		global:  config,
 		config:  config.Broker,
 		catalog: config.Catalog,
 		backups: config.Backups,
@@ -95,6 +97,9 @@ func (bkr *Broker) Run() {
 
 	adminAPI := NewAdminAPI(bkr, bkr.logger, credentials)
 	http.Handle("/admin/", adminAPI)
+
+	agentAPI := NewAgentAPI(bkr, bkr.logger, credentials)
+	http.Handle("/agent/", agentAPI)
 
 	bkr.logger.Fatal("http-listen", http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
 }
