@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 
@@ -24,9 +25,19 @@ func agentStartRequest(bkr *Broker, router httpRouter, logger lager.Logger) http
 		logger := bkr.newLoggingSession("agent.start", lager.Data{})
 		defer logger.Info("done")
 
+		startupReq := &agentconfig.ContainerStartupRequest{}
+		// TODO marshal req into startupReq
+		err := json.NewDecoder(req.Body).Decode(startupReq)
+		if err != nil {
+			respond(w, http.StatusBadRequest, "Missing startup request parameters")
+			return
+		}
+
 		clusterSpec := agentconfig.ClusterSpecification{}
-		clusterSpec.Cluster.Name = "dummy"
-		clusterSpec.Cluster.Scope = "dummy"
+		// TODO - need UUID for containers within cluster
+		// Name vs Scope?
+		clusterSpec.Cluster.Name = startupReq.ClusterName
+		clusterSpec.Cluster.Scope = startupReq.ClusterName
 
 		arch := &clusterSpec.Archives
 		archConfig := bkr.global.Archives
