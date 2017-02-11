@@ -11,7 +11,7 @@ func TestStructs_ClusterFeaturesFromParameters_Defaults(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	if features.NodeCount != 2 {
+	if features.NodeCount != 1 {
 		t.Fatalf("features.NodeCount should be 2 by default")
 	}
 	if len(features.CellGUIDs) != 0 {

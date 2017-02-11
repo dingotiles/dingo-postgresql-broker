@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	defaultNodeCount = 2
+	defaultNodeCount = 1
 
 	SchedulingStatusUnknown    = SchedulingStatus("")
 	SchedulingStatusSuccess    = SchedulingStatus("success")
