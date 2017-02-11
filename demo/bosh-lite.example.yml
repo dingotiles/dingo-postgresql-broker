@@ -26,7 +26,7 @@ archives:
     aws_access_key_id: "UNKNOWN"
     aws_secret_access_id: "UNKNOWN"
     s3_bucket: "UNKNOWN"
-    s3_endpoint: https+path://s3.amazonaws.com:443
+    aws_region: us-east-1
 
 callbacks:
   clusterdata_backup: {cmd: ./demo/example_clusterdata_backup.sh}

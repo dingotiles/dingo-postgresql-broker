@@ -2,6 +2,7 @@ package broker
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -45,7 +46,7 @@ func agentStartRequest(bkr *Broker, router httpRouter, logger lager.Logger) http
 		arch.S3.AWSAccessKeyID = archConfig.S3.AWSAccessKeyID
 		arch.S3.AWSSecretAccessID = archConfig.S3.AWSSecretAccessID
 		arch.S3.S3Bucket = archConfig.S3.S3Bucket
-		arch.S3.S3Endpoint = archConfig.S3.S3Endpoint
+		arch.S3.S3Endpoint = awsRegionToS3Endpoint(archConfig.S3.AWSRegion)
 		arch.SSH.Host = archConfig.SSH.Host
 		arch.SSH.Port = archConfig.SSH.Port
 		arch.SSH.User = archConfig.SSH.User
@@ -70,4 +71,20 @@ func requiredEnv(envKey string) string {
 		missingRequiredEnvs = append(missingRequiredEnvs, envKey)
 	}
 	return os.Getenv(envKey)
+}
+
+// http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+func awsRegionToS3Endpoint(awsRegion string) string {
+	if awsRegion == "" {
+		return ""
+	}
+	switch awsRegion {
+	case "us-east-1":
+		return "https+path://s3.amazonaws.com:443"
+	case "ap-northeast-1":
+		return "https+path://s3-ap-northeast-1.amazonaws.com:443"
+	case "sa-east-1":
+		return "https+path://s3-sa-east-1.amazonaws.com:443"
+	}
+	return fmt.Sprintf("https+path://s3.%s.amazonaws.com:443", awsRegion)
 }

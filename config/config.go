@@ -30,7 +30,7 @@ type Archives struct {
 		AWSAccessKeyID    string `yaml:"aws_access_key_id,omitempty"`
 		AWSSecretAccessID string `yaml:"aws_secret_access_id,omitempty"`
 		S3Bucket          string `yaml:"s3_bucket,omitempty"`
-		S3Endpoint        string `yaml:"s3_endpoint,omitempty"`
+		AWSRegion         string `yaml:"aws_region,omitempty"`
 	} `yaml:"s3,omitempty"`
 	Local struct {
 		LocalBackupVolume string `yaml:"local_backup_volume,omitempty"`
