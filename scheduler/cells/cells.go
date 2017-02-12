@@ -98,14 +98,10 @@ func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.
 		ServiceID:        clusterState.ServiceID,
 		SpaceGUID:        clusterState.SpaceGUID,
 		Parameters: map[string]interface{}{
-			"PATRONI_SCOPE":      clusterState.InstanceID,
-			"NODE_ID":            node.ID,
-			"ADMIN_USERNAME":     clusterState.AdminCredentials.Username,
-			"ADMIN_PASSWORD":     clusterState.AdminCredentials.Password,
-			"SUPERUSER_USERNAME": clusterState.SuperuserCredentials.Username,
-			"SUPERUSER_PASSWORD": clusterState.SuperuserCredentials.Password,
-			"APPUSER_USERNAME":   clusterState.AppCredentials.Username,
-			"APPUSER_PASSWORD":   clusterState.AppCredentials.Password,
+			"PATRONI_SCOPE":   clusterState.InstanceID,
+			"NODE_ID":         node.ID,
+			"DINGO_CLUSTER":   clusterState.InstanceID,
+			"DINGO_ORG_TOKEN": "required-but-not-used",
 		},
 	}
 
