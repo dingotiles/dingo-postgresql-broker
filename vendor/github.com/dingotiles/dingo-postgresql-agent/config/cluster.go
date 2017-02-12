@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ import (
 type ContainerStartupRequest struct {
 	ImageVersion string `json:"image_version"`
 	ClusterName  string `json:"cluster"`
+	NodeName     string `json:"node"`
 	OrgAuthToken string `json:"org_token"`
 }
 
@@ -65,6 +67,8 @@ type Archives struct {
 // TODO: POST ClusterName & OrgAuthToken to API
 
 // FetchClusterSpec retrieves the new/existing configuration for a cluster from central API
+// If agent does not have $DINGO_NODE/APISpec().NodeName, then
+// construct from Host:Port5432 so as to be unique
 func FetchClusterSpec() (cluster *ClusterSpecification, err error) {
 	apiSpec := APISpec()
 	apiClusterSpec := fmt.Sprintf("%s/api", apiSpec.APIURI)
@@ -73,9 +77,16 @@ func FetchClusterSpec() (cluster *ClusterSpecification, err error) {
 		Timeout: time.Second * 10,
 	}
 
+	nodeName := apiSpec.NodeName
+	if nodeName == "" {
+		hostDiscovery := HostDiscoverySpec()
+		nodeName = fmt.Sprintf("%s-%s", hostDiscovery.IP, hostDiscovery.Port5432)
+		nodeName = strings.Replace(nodeName, ".", "-", -1)
+	}
 	startupReq := ContainerStartupRequest{
 		ImageVersion: apiSpec.ImageVersion,
 		ClusterName:  apiSpec.ClusterName,
+		NodeName:     nodeName,
 		OrgAuthToken: apiSpec.OrgAuthToken,
 	}
 	b := new(bytes.Buffer)

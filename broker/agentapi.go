@@ -37,7 +37,7 @@ func agentStartRequest(bkr *Broker, router httpRouter, logger lager.Logger) http
 		clusterSpec := agentconfig.ClusterSpecification{}
 		// TODO - need UUID for containers within cluster
 		// Name vs Scope?
-		clusterSpec.Cluster.Name = startupReq.ClusterName
+		clusterSpec.Cluster.Name = startupReq.NodeName
 		clusterSpec.Cluster.Scope = startupReq.ClusterName
 
 		arch := &clusterSpec.Archives

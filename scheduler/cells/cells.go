@@ -101,6 +101,7 @@ func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.
 			"PATRONI_SCOPE":   clusterState.InstanceID,
 			"NODE_ID":         node.ID,
 			"DINGO_CLUSTER":   clusterState.InstanceID,
+			"DINGO_NODE":      node.ID,
 			"DINGO_ORG_TOKEN": "required-but-not-used",
 		},
 	}
