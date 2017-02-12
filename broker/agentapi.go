@@ -15,7 +15,7 @@ import (
 func NewAgentAPI(serviceBroker *Broker, logger lager.Logger, brokerCredentials brokerapi.BrokerCredentials) http.Handler {
 	router := newHTTPRouter()
 
-	router.Post("/agent/", agentStartRequest(serviceBroker, router, logger))
+	router.Post("/agent/api", agentStartRequest(serviceBroker, router, logger))
 	return wrapAuth(router, brokerCredentials)
 }
 
