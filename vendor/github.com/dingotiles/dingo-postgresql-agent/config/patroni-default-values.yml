@@ -1,0 +1,99 @@
+---
+scope: SCOPE
+namespace: /service/
+name: NAME
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: HOSTIP:8008
+#  certfile: /etc/ssl/certs/ssl-cert-snakeoil.pem
+#  keyfile: /etc/ssl/private/ssl-cert-snakeoil.key
+#  authentication:
+#    username: username
+#    password: password
+
+etcd:
+  url: http://SSH-ETCD:2379
+  cacert: /etc/ssl/certs/ca-certificates.crt
+
+bootstrap:
+  # this section will be written into Etcd:/<namespace>/<scope>/config after initializing new cluster
+  # and all other cluster members will use it as a `global configuration`
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: false
+      use_slots: true
+      parameters:
+        wal_level: hot_standby
+        hot_standby: "on"
+        wal_keep_segments: 8
+        max_wal_senders: 5
+        max_replication_slots: 5
+        wal_log_hints: "on"
+        archive_mode: "on"
+        archive_timeout: 10min
+        archive_command: "/scripts/archive_command.sh \"%p\" \"%f\""
+      recovery_conf:
+        restore_command: "/scripts/restore_command.sh \"%p\" \"%f\""
+
+  # some desired options for 'initdb'
+  initdb:  # Note: It needs to be a list (some options need values, others are switches)
+  - encoding: UTF8
+  - locale: en_US.UTF-8
+  - data-checksums
+
+  pg_hba:  # Add following lines to pg_hba.conf after running 'initdb'
+  - host replication APPUSER_USERNAME 0.0.0.0/0 md5
+  - host all all 0.0.0.0/0 md5
+#  - hostssl all all 0.0.0.0/0 md5
+
+  # Additional script to be launched after initial cluster creation (will be passed the connection URL as parameter)
+  # post_init: /scripts/show_pgpass.sh
+
+  # Some additional users users which needs to be created after initializing new cluster
+  users:
+    postgres:
+      password: ADMIN_PASSWORD
+      options:
+        - createrole
+        - createdb
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: HOSTIP:5432
+  data_dir: /data/postgres0
+  pgpass: /tmp/pgpass0
+  authentication:
+    replication:
+      username: APPUSER_USERNAME
+      password: APPUSER_PASSWORD
+    superuser:
+      username: SUPERUSER_USERNAME
+      password: SUPERUSER_PASSWORD
+  parameters:
+    unix_socket_directories: "/tmp"
+  callbacks:
+    on_start: /bin/true
+    on_stop: /bin/true
+    on_restart: /bin/true
+    on_role_change: /bin/true
+  create_replica_method:
+    - wal_e
+    - basebackup
+  wal_e:
+    command: "python3 /patroni/patroni/scripts/wale_restore.py"
+    # {key: value} below are converted to options for wale_restore.py script
+    envdir: /etc/wal-e.d/env
+    threshold_megabytes: 1024
+    threshold_backup_size_percentage: 30
+    retries: 2
+    use_iam: 0
+    no_master: 1
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
