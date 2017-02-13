@@ -9,15 +9,23 @@ import (
 const (
 	defaultNodeCount = 1
 
-	SchedulingStatusUnknown    = SchedulingStatus("")
-	SchedulingStatusSuccess    = SchedulingStatus("success")
+	// SchedulingStatusUnknown is a sad state of affairs
+	SchedulingStatusUnknown = SchedulingStatus("")
+	// SchedulingStatusSuccess means a scheduled change to a cluster has concluded successfully
+	SchedulingStatusSuccess = SchedulingStatus("success")
+	// SchedulingStatusInProgress means a scheduled change is in-progress
 	SchedulingStatusInProgress = SchedulingStatus("in-progress")
-	SchedulingStatusFailed     = SchedulingStatus("failed")
+	// SchedulingStatusFailed means a scheduled change has finished but failed
+	SchedulingStatusFailed = SchedulingStatus("failed")
 )
 
+// SchedulingStatus is a set of known states for a schedule
 type SchedulingStatus string
+
+// ClusterID aka InstanceID is the unique ID for a Cluster
 type ClusterID string
 
+// ClusterRecreationData is the stored state of a Cluster for future recreation/restoration
 type ClusterRecreationData struct {
 	ServiceInstanceName  string              `json:"service_instance_name"`
 	InstanceID           ClusterID           `json:"instance_id"`
@@ -31,6 +39,7 @@ type ClusterRecreationData struct {
 	AllocatedPort        int                 `json:"allocated_port"`
 }
 
+// ClusterState documents known state of a Cluster
 type ClusterState struct {
 	InstanceID           ClusterID           `json:"instance_id"`
 	ServiceID            string              `json:"service_id"`
@@ -46,6 +55,7 @@ type ClusterState struct {
 	Nodes                []*Node             `json:"nodes"`
 }
 
+// SchedulingInfo is that status of an in-progress scheduled change to a cluster
 type SchedulingInfo struct {
 	Status         SchedulingStatus `json:"status"`
 	Steps          int              `json:"steps"`
@@ -53,10 +63,14 @@ type SchedulingInfo struct {
 	LastMessage    string           `json:"last_message"`
 }
 
+// NodeCount is the number of nodes running in this cluster
 func (c *ClusterState) NodeCount() int {
 	return len(c.Nodes)
 }
 
+// RecreationData is a subset of ClusterState that is remotely stored
+// to allow a cluster to be re-built/resurrected/restored in future
+// It is all the known promises to end users and internal secrets.
 func (c *ClusterState) RecreationData() *ClusterRecreationData {
 	return &ClusterRecreationData{
 		ServiceInstanceName:  c.ServiceInstanceName,
@@ -72,10 +86,12 @@ func (c *ClusterState) RecreationData() *ClusterRecreationData {
 	}
 }
 
+// AddNode updates the known state of a cluster
 func (c *ClusterState) AddNode(node Node) {
 	c.Nodes = append(c.Nodes, &node)
 }
 
+// RemoveNode updates the known state of a cluster
 func (c *ClusterState) RemoveNode(node *Node) {
 	for i, n := range c.Nodes {
 		if n.ID == node.ID {
@@ -84,33 +100,37 @@ func (c *ClusterState) RemoveNode(node *Node) {
 		}
 	}
 }
-func (m *ClusterState) NodeOnCell(cellGUID string) (Node, error) {
-	for _, node := range m.Nodes {
+
+// NodeOnCell returns the Node that was place on a particular cell
+func (c *ClusterState) NodeOnCell(cellGUID string) (Node, error) {
+	for _, node := range c.Nodes {
 		if node.CellGUID == cellGUID {
 			return *node, nil
 		}
 	}
-	return Node{}, fmt.Errorf("Cluster %s has no node on cell %s", m.InstanceID, cellGUID)
+	return Node{}, fmt.Errorf("Cluster %s has no node on cell %s", c.InstanceID, cellGUID)
 }
 
+// ClusterFeatures describes a desired state for a cluster
 type ClusterFeatures struct {
 	NodeCount            int      `mapstructure:"node-count"`
 	CellGUIDs            []string `mapstructure:"cells"`
 	CloneFromServiceName string   `mapstructure:"clone-from"`
 }
 
+// PostgresCredentials describes basic auth credentials for PostgreSQL
 type PostgresCredentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
+// Node represents the allocation of a node to a cell within a cluster
 type Node struct {
 	ID       string `json:"node_id"`
 	CellGUID string `json:"cell_guid"`
-	State    string `json:"state"`
-	Role     string `json:"role"`
 }
 
+// ClusterFeaturesFromParameters customizes changes to a cluster from parameters from user
 func ClusterFeaturesFromParameters(params map[string]interface{}) (features ClusterFeatures, err error) {
 	err = mapstructure.Decode(params, &features)
 	if err != nil {
