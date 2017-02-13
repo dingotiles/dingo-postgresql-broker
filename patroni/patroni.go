@@ -75,42 +75,40 @@ func (p *Patroni) ClusterLeader(instanceID structs.ClusterID) (string, error) {
 // WaitForLeader blocks until leader is elected and active
 func (p *Patroni) WaitForLeader(instanceID structs.ClusterID) error {
 	timeout := time.After(waitForLeaderTimeout)
-	c := time.Tick(1 * time.Second)
+	c := time.Tick(5 * time.Second)
 	for {
 		select {
 		case <-timeout:
-			return fmt.Errorf("Timed out waiting for leader of %d", instanceID)
+			return fmt.Errorf("Timed out waiting for leader of %s", string(instanceID))
 		case <-c:
 			if p.leaderRunning(instanceID) {
 				return nil
 			}
 		}
 	}
-	return nil
 }
 
 // WaitForAllMembers waits until expected number of nodes are running (not too many, not too few, and all running)
 func (p *Patroni) WaitForAllMembers(instanceID structs.ClusterID, expectedNodeCount int) error {
 	timeout := time.After(waitTilMemberRunningTimeout)
-	c := time.Tick(1 * time.Second)
+	c := time.Tick(5 * time.Second)
 	for {
 		select {
 		case <-timeout:
-			return fmt.Errorf("Timed out waiting for cluster %d members to achieve state 'running'", instanceID)
+			return fmt.Errorf("Timed out waiting for cluster %s members to achieve state 'running'", string(instanceID))
 		case <-c:
 			if p.checkClusterMembersRunning(instanceID, expectedNodeCount) {
 				return nil
 			}
 		}
 	}
-	return nil
 }
 
 func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) error {
 	notFoundRegExp, _ := regexp.Compile("Key not found")
 
 	timeout := time.After(waitTilMemberRunningTimeout)
-	tick := time.Tick(1 * time.Second)
+	tick := time.Tick(5 * time.Second)
 	for {
 		select {
 		case <-timeout:
@@ -138,7 +136,6 @@ func (p *Patroni) WaitForMember(instanceID structs.ClusterID, memberID string) e
 			}
 		}
 	}
-	return nil
 }
 
 func (p *Patroni) FailoverFrom(instanceID structs.ClusterID, memberID string) error {
