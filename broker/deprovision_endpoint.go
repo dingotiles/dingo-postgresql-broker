@@ -28,6 +28,7 @@ func (bkr *Broker) deprovision(instanceID structs.ClusterID, details brokerapi.D
 		logger.Error("load-cluster.error", err)
 		return false, err
 	}
+	logger.Debug("cluster-state", lager.Data{"cluster": clusterState})
 
 	clusterModel := state.NewClusterModel(bkr.state, clusterState)
 	err = bkr.scheduler.StopCluster(clusterModel)

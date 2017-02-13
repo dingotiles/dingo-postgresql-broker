@@ -38,6 +38,7 @@ func NewStateEtcdWithPrefix(etcdConfig config.Etcd, prefix string, logger lager.
 	return state, nil
 }
 
+// SaveCluster stores the known state of the cluster in the /state endpoint
 func (s *StateEtcd) SaveCluster(clusterState structs.ClusterState) (err error) {
 	s.logger.Info("state.save-cluster", lager.Data{
 		"cluster": clusterState,
@@ -48,13 +49,13 @@ func (s *StateEtcd) SaveCluster(clusterState structs.ClusterState) (err error) {
 
 	data, err := json.Marshal(clusterState)
 	if err != nil {
-		s.logger.Error("state.save-cluster.marshal", err)
+		s.logger.Error("state.save-cluster.marshal", err, lager.Data{"instance-id": clusterState.InstanceID})
 		return
 	}
 
 	_, err = s.etcdApi.Set(ctx, key, string(data), &etcd.SetOptions{})
 	if err != nil {
-		s.logger.Error("state.save-cluster.set", err)
+		s.logger.Error("state.save-cluster.set", err, lager.Data{"instance-id": clusterState.InstanceID})
 		return
 	}
 
@@ -72,23 +73,24 @@ func (s *StateEtcd) setupEtcd(cfg config.Etcd) (etcd.KeysAPI, error) {
 	return api, nil
 }
 
+// ClusterExists looks up if this cluster has its state stored in etcd
 func (s *StateEtcd) ClusterExists(instanceID structs.ClusterID) bool {
 	ctx := context.Background()
-	s.logger.Info("state.cluster-exists")
 	key := fmt.Sprintf("%s/service/%s/state", s.prefix, instanceID)
 	_, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{})
+	s.logger.Info("state.cluster-exists", lager.Data{"instance-id": instanceID, "exists": err == nil})
 	return err == nil
 }
 
 // LoadCluster fetches the latest data/state for specific cluster
 func (s *StateEtcd) LoadCluster(instanceID structs.ClusterID) (cluster structs.ClusterState, err error) {
 	ctx := context.Background()
-	s.logger.Info("state.load-cluster")
+	s.logger.Info("state.load-cluster", lager.Data{"instance-id": instanceID})
 
 	key := fmt.Sprintf("%s/service/%s", s.prefix, instanceID)
 	resp, err := s.etcdApi.Get(ctx, key, &etcd.GetOptions{Recursive: true})
 	if err != nil {
-		s.logger.Error("state.load-cluster.error", err)
+		s.logger.Error("state.load-cluster.error", err, lager.Data{"instance-id": instanceID})
 		return
 	}
 
