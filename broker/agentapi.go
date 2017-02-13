@@ -7,6 +7,7 @@ import (
 	"os"
 
 	agentconfig "github.com/dingotiles/dingo-postgresql-agent/config"
+	"github.com/dingotiles/dingo-postgresql-broker/broker/structs"
 	"github.com/frodenas/brokerapi"
 	"github.com/pivotal-golang/lager"
 )
@@ -55,12 +56,18 @@ func agentStartRequest(bkr *Broker, router httpRouter, logger lager.Logger) http
 
 		clusterSpec.Etcd.URI = bkr.global.Etcd.URI()
 
-		// TODO: look these up; created by provision_endpoint initCluster
-		clusterSpec.Postgresql.Admin.Password = "admin-password"
-		clusterSpec.Postgresql.Superuser.Username = "superuser-username"
-		clusterSpec.Postgresql.Superuser.Password = "superuser-password"
-		clusterSpec.Postgresql.Appuser.Username = "appuser-username"
-		clusterSpec.Postgresql.Appuser.Password = "appuser-password"
+		instanceID := structs.ClusterID(startupReq.ClusterName)
+		clusterState, err := bkr.state.LoadCluster(instanceID)
+		if err != nil {
+			respond(w, http.StatusBadRequest, fmt.Sprintf("Could not load cluster details: %s", err))
+			return
+		}
+
+		clusterSpec.Postgresql.Admin.Password = clusterState.AdminCredentials.Password
+		clusterSpec.Postgresql.Superuser.Username = clusterState.SuperuserCredentials.Username
+		clusterSpec.Postgresql.Superuser.Password = clusterState.SuperuserCredentials.Password
+		clusterSpec.Postgresql.Appuser.Username = clusterState.AppCredentials.Username
+		clusterSpec.Postgresql.Appuser.Password = clusterState.AppCredentials.Password
 
 		respond(w, http.StatusOK, clusterSpec)
 	}
