@@ -15,7 +15,7 @@ type ContainerStartupRequest struct {
 	ImageVersion string `json:"image_version"`
 	ClusterName  string `json:"cluster"`
 	NodeName     string `json:"node"`
-	OrgAuthToken string `json:"org_token"`
+	Account      string `json:"account"`
 }
 
 // ClusterSpecification describes the cluster configuration provided by central API
@@ -87,7 +87,7 @@ func FetchClusterSpec() (cluster *ClusterSpecification, err error) {
 		ImageVersion: apiSpec.ImageVersion,
 		ClusterName:  apiSpec.ClusterName,
 		NodeName:     nodeName,
-		OrgAuthToken: apiSpec.OrgAuthToken,
+		Account:      apiSpec.Account,
 	}
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(startupReq)

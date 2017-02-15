@@ -21,6 +21,7 @@ type Environ map[string]string
 func NewPatroniEnvironFromClusterSpec(clusterSpec *ClusterSpecification) *Environ {
 	environ := Environ{}
 	environ["REPLICATION_USER"] = clusterSpec.Postgresql.Appuser.Username
+	environ["DINGO_NODE"] = clusterSpec.Cluster.Name
 	environ["PATRONI_SCOPE"] = clusterSpec.Cluster.Scope
 	environ["PG_DATA_DIR"] = "/data/postgres0"
 
