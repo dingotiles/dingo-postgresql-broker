@@ -151,6 +151,11 @@ func (patroniSpec *PatroniV12Specification) MergeClusterSpec(clusterSpec *Cluste
 	patroniSpec.Etcd.URL = clusterSpec.Etcd.URI
 	patroniSpec.Scope = clusterSpec.Cluster.Scope
 	patroniSpec.Name = clusterSpec.Cluster.Name
+	if clusterSpec.Cluster.Namespace == "" {
+		clusterSpec.Cluster.Namespace = "/service/"
+		fmt.Fprintln(os.Stderr, "Using default namespace:", clusterSpec.Cluster.Namespace)
+	}
+	patroniSpec.Namespace = clusterSpec.Cluster.Namespace
 	patroniSpec.Bootstrap.PgHba = []string{
 		fmt.Sprintf("host replication %s 0.0.0.0/0 md5", replicationUsername),
 		"host postgres all 0.0.0.0/0 md5",

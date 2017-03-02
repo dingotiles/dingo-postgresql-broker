@@ -21,8 +21,9 @@ type ContainerStartupRequest struct {
 // ClusterSpecification describes the cluster configuration provided by central API
 type ClusterSpecification struct {
 	Cluster struct {
-		Name  string `json:"name"`
-		Scope string `json:"scope"`
+		Name      string `json:"name"`
+		Scope     string `json:"scope"`
+		Namespace string `json:"namespace"`
 	} `json:"cluster"`
 	Archives Archives `json:"archives"`
 	Etcd     struct {
@@ -72,7 +73,7 @@ type Archives struct {
 func FetchClusterSpec() (cluster *ClusterSpecification, err error) {
 	apiSpec := APISpec()
 	apiClusterSpec := fmt.Sprintf("%s/api", apiSpec.APIURI)
-	fmt.Printf("Loading configuration from %s...", apiClusterSpec)
+	fmt.Printf("Loading configuration from %s...\n", apiClusterSpec)
 	var netClient = &http.Client{
 		Timeout: time.Second * 10,
 	}

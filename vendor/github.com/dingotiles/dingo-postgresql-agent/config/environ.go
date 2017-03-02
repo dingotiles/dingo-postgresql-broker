@@ -26,6 +26,8 @@ func NewPatroniEnvironFromClusterSpec(clusterSpec *ClusterSpecification) *Enviro
 	environ["PG_DATA_DIR"] = "/data/postgres0"
 
 	environ["ETCD_URI"] = clusterSpec.Etcd.URI
+	environ["ETCD_CLUSTER_URI"] = fmt.Sprintf("%s/v2/keys%s%s",
+		clusterSpec.Etcd.URI, clusterSpec.Cluster.Namespace, clusterSpec.Cluster.Scope)
 
 	environ["ARCHIVE_METHOD"] = clusterSpec.Archives.Method
 	if clusterSpec.UsingWaleS3() {
