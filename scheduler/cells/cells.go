@@ -98,11 +98,11 @@ func (cell *Cell) ProvisionNode(clusterState structs.ClusterState, logger lager.
 		ServiceID:        clusterState.ServiceID,
 		SpaceGUID:        clusterState.SpaceGUID,
 		Parameters: map[string]interface{}{
-			"PATRONI_SCOPE":   clusterState.InstanceID,
-			"NODE_ID":         node.ID,
-			"DINGO_CLUSTER":   clusterState.InstanceID,
-			"DINGO_NODE":      node.ID,
-			"DINGO_ORG_TOKEN": "required-but-not-used",
+			"PATRONI_SCOPE": clusterState.InstanceID,
+			"NODE_ID":       node.ID,
+			"DINGO_CLUSTER": clusterState.InstanceID,
+			"DINGO_NODE":    node.ID,
+			"DINGO_ACCOUNT": "common-account",
 		},
 	}
 
